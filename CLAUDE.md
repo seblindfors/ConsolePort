@@ -867,7 +867,7 @@ local text = env.L.NAME_TOGGLE_BINDINGS;
 The `.toc` supports multiple WoW versions via comma-separated interface numbers:
 
 ```
-## Interface: 120001, 120000, 50503, 38000, 20505, 11508
+## Interface: 120001, 120000, 50503, 38010, 20505, 11508
 ```
 
 ### Version Flags

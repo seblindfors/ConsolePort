@@ -230,7 +230,7 @@ end
 InputMixin.timer = 0;
 
 function InputMixin:OnLoad(id)
-	if CPAPI.IsRetailVersion or CPAPI.IsAnniVersion then
+	if CPAPI.IsRetailVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion then
 		self:RegisterForClicks('AnyUp', 'AnyDown')
 		self:SetAttribute(CPAPI.ActionPressAndHold, true)
 	end
