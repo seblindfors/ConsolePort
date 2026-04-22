@@ -300,7 +300,7 @@ local PopoutFrame = CreateFromMixins(CPToolbarSixSliceInverterMixin)
 function PopoutFrame:RefreshMicroButtons()
 	local microButtons = {};
 
-	-- Titan Reforge: discover micro buttons from the MicroMenu container.
+	-- Titan/Retail: discover micro buttons from the MicroMenu container.
 	if MicroMenu then
 		for _, button in ipairs({MicroMenu:GetChildren()}) do
 			if button.layoutIndex then
@@ -309,7 +309,7 @@ function PopoutFrame:RefreshMicroButtons()
 		end
 	end
 
-	-- Retail: fall back to the global list when available.
+	-- Fall back to the global list when available.
 	if not next(microButtons) and MICRO_BUTTONS then
 		for i, name in ipairs(MICRO_BUTTONS) do
 			local button = _G[name];
