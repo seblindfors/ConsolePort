@@ -39,8 +39,7 @@ end
 local function IsTooltipAvailable()
 	return not ConsolePort:IsCursorActive()
 		and (( GameTooltip:IsOwned(UIParent) or anchor and GameTooltip:IsOwned(anchor) )
-		or not GameTooltip:IsVisible()
-		or GameTooltip:GetAlpha() < 1);
+		or not GameTooltip:IsVisible());
 end
 
 local function IsTooltipOwned(unit, guid)
