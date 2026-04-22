@@ -110,9 +110,13 @@ CPPopupBindingCatchButtonMixin.Template = (CPAPI.IsRetailVersion
 	or  'UIPanelButtonTemplate')
 	..  ',CPPopupBindingCatchButtonTemplate';
 
+function CPPopupBindingCatchButtonMixin:ResetCancelTimer()
+	self.timeUntilCancel = tonumber(db('bindingCatchTime')) or TIME_UNTIL_CANCEL;
+end
+
 function CPPopupBindingCatchButtonMixin:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
-	self.timeUntilCancel = TIME_UNTIL_CANCEL;
+	self:ResetCancelTimer()
 	self:SetSize(260, 50)
 end
 
@@ -124,7 +128,7 @@ end
 
 function CPPopupBindingCatchButtonMixin:OnHide()
 	db:TriggerEvent('OnBindingCatcherShown', false, self)
-	self.timeUntilCancel = TIME_UNTIL_CANCEL;
+	self:ResetCancelTimer()
 	self:ToggleInputs(false)
 end
 
@@ -132,7 +136,7 @@ function CPPopupBindingCatchButtonMixin:OnUpdate(elapsed)
 	self.timeUntilCancel = self.timeUntilCancel - elapsed;
 	self:SetText(('%s (%d)'):format(CANCEL, ceil(self.timeUntilCancel)))
 	if self.timeUntilCancel <= 0 then
-		self.timeUntilCancel = TIME_UNTIL_CANCEL;
+		self:ResetCancelTimer()
 		self:GetParent():Hide()
 	end
 end

@@ -680,6 +680,11 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Allow binding discrete radial stick inputs.';
 		advd = true;
 	};
+	bindingCatchTime = _{Number(5, 0.25, true);
+		name = 'Binding Catch Timeframe';
+		desc = 'Timeframe to catch a binding in the configuration, in seconds.';
+		advd = true;
+	};
 	bindingAutomaticBackup = _{Bool(true);
 		name = 'Automatic Binding Backups';
 		desc = 'Automatically backup your bindings when you change them, for import and export.';
