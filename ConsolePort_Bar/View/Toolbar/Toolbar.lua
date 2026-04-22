@@ -302,13 +302,29 @@ function PopoutFrame:OnLoad()
 	Mixin(self.Config, Config):OnLoad()
 	Mixin(self.ExitVehicle, ExitVehicle):OnLoad()
 
-	self.MicroButtons = {};
-	for i, name in ipairs(MICRO_BUTTONS) do
-		local button = _G[name];
-		if button then
-			self.MicroButtons[button] = CPAPI.IsRetailVersion and button.layoutIndex or i;
-		end
-	end
+  local MICRO_BUTTONS_CONSOLEPORT = {
+      "CharacterMicroButton",
+      "ProfessionMicroButton",
+      "PlayerSpellsMicroButton",
+      "AchievementMicroButton",
+      "QuestLogMicroButton",
+      "HousingMicroButton",
+      "GuildMicroButton",
+      "LFDMicroButton",
+      "EJMicroButton",
+      "CollectionsMicroButton",
+      "MainMenuMicroButton",
+      "HelpMicroButton",
+      "StoreMicroButton",
+  }
+  
+  self.MicroButtons = {};
+  for i, name in ipairs(MICRO_BUTTONS or MICRO_BUTTONS_CONSOLEPORT) do
+      local button = _G[name];
+      if button then
+          self.MicroButtons[button] = CPAPI.IsRetailVersion and button.layoutIndex or i;
+      end
+  end
 
 	self:SlideOut()
 	RunNextFrame(function()
