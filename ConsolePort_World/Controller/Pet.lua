@@ -418,6 +418,7 @@ function PetRow:HideEditRow()
 	or not self.editRow
 	or not self.editRow:IsShown() then return end;
 	self.editRow:Hide()
+	self.editRow:GetPool():ReleaseAll()
 	self:Layout()
 	env.QMenu:Run([[ self::UpdateLayout() ]])
 end
