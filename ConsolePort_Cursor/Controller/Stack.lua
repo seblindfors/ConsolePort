@@ -4,7 +4,7 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. See Cursor.lua.
 
-local env, db, name = CPAPI.GetEnv(...)
+local env, db, DEFAULT = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local After = C_Timer.After;
 local pairs, next, unravel = pairs, next, db.table.unravel;
@@ -24,6 +24,20 @@ local function GetFrameWidget(frame)
 		return frame;
 	elseif type(frame) == 'string' and C_Widget.IsFrameWidget(_G[frame]) then
 		return _G[frame];
+	end
+end
+
+local function GetFrameName(frame)
+	if type(frame) == 'string' then
+		return frame;
+	elseif C_Widget.IsFrameWidget(frame) then
+		local fname = frame:GetDebugName();
+		-- Reject anonymous frames whose debug name contains the object pointer,
+		-- since they cannot be reliably tracked across sessions.
+		local ptr = tostring(frame):match('%x+$');
+		if not ptr or not fname:lower():find(ptr:lower():gsub('^0+', ''), 1, true) then
+			return fname;
+		end
 	end
 end
 
@@ -125,22 +139,11 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 	-- @param state : true (enabled), false (disabled), or nil (reset)
 	-- @param owner : registry set key (defaults to addon name)
 	function Stack:SetFrame(frame, state, owner)
-		local fname;
-		if type(frame) == 'string' then
-			fname = frame;
-		elseif C_Widget.IsFrameWidget(frame) then
-			fname = frame:GetDebugName();
-			-- Reject anonymous frames whose debug name contains the object pointer,
-			-- since they cannot be reliably tracked across sessions.
-			local ptr = tostring(frame):match('%x+$');
-			if ptr and fname:lower():find(ptr:lower():gsub('^0+', ''), 1, true) then
-				return
-			end
-		end
+		local fname = GetFrameName(frame);
 		if not fname then return end;
 
 		-- Update registry
-		local key = owner or name;
+		local key = owner or DEFAULT;
 		self.Registry[key] = self.Registry[key] or {};
 		self.Registry[key][fname] = state;
 
@@ -249,8 +252,11 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 	local function TryDiscoverFrame(self, frame)
 		local widget = GetFrameWidget(frame)
 		if tracked[widget] then return end;
-		local set = self.Registry[name];
-		if set and set[frame] == false then return end;
+		local set = self.Registry[DEFAULT];
+		if set then
+			local fname = GetFrameName(frame);
+			if fname and set[fname] == false then return end;
+		end
 		self:SetFrame(frame, true)
 		return true;
 	end
