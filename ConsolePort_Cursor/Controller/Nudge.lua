@@ -162,6 +162,11 @@ function Nudge:MODIFIER_STATE_CHANGED()
 
 	local cursor = env.Cursor;
 	if not cursor:GetCustomAnchor() then return end;
+	if InCombatLockdown() then
+		cursor:SetCustomAnchor(nil)
+		self:Reset()
+		return
+	end
 
 	local cX, cY = Node.GetCenter(cursor)
 	cursor:ScanUI()
