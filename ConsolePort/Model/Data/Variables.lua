@@ -680,7 +680,7 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Allow binding discrete radial stick inputs.';
 		advd = true;
 	};
-	bindingCatchTime = _{Number(5, 0.25, true);
+	bindingCatchTime = _{Range(5, 1, 1, 10);
 		name = 'Binding Catch Timeframe';
 		desc = 'Timeframe to catch a binding in the configuration, in seconds.';
 		advd = true;
