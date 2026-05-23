@@ -1,0 +1,7 @@
+# Manually placed by user — Blizzard's; not ours to redistribute.
+GlobalStrings*.lua
+
+# Intermediate artifacts from running the pipeline.
+out/
+*.json
+__pycache__/

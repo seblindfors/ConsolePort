@@ -24,6 +24,6 @@ move-folders:
 ignore:
   - Artwork
   - Wiki
-  - GamepadTool
+  - Tools
   - README.md
   - CLAUDE.md
