@@ -10,6 +10,10 @@ env.Variables = {
 		name = 'Automatically Bind Extra Items';
 		desc = 'Automatically add tracked quest items and extra spells to main utility ring.';
 	};
+	ringBindCursorItem = _{Data.Bool(true);
+		name = 'Bind Cursor Items';
+		desc = 'Press a ring binding to place a cursor item into the bound ring.';
+	};
 	ringPressAndHold = _{Data.Bool(true);
 		name = 'Press and Hold';
 		desc = 'Use press and hold to navigate and use rings. Press, point, release.';

@@ -29,21 +29,21 @@ function Observer:AddFromCursorInfo(setID, idx)
 end
 
 function Observer:CheckCursorInfo(setID, silent)
-	if not InCombatLockdown() then
-		setID = self:GetSetID(setID);
-		if GetCursorInfo() then
-			local wasAdded, info = self:AddFromCursorInfo(setID)
-			if wasAdded then
-				if not silent then
-					self:AnnounceAddition(
-						info.link or info.type:gsub('^%l', strupper),
-						self:GetBindingSuffixForSet(setID), true
-					);
-				end
-				ClearCursor()
-				db:TriggerEvent('OnRingContentChanged', setID)
-			end
+	if InCombatLockdown()
+	or not GetCursorInfo()
+	or not db('ringBindCursorItem') then return end;
+
+	setID = self:GetSetID(setID);
+	local wasAdded, info = self:AddFromCursorInfo(setID)
+	if wasAdded then
+		if not silent then
+			self:AnnounceAddition(
+				info.link or info.type:gsub('^%l', strupper),
+				self:GetBindingSuffixForSet(setID), true
+			);
 		end
+		ClearCursor()
+		db:TriggerEvent('OnRingContentChanged', setID)
 	end
 end
 
