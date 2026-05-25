@@ -27,8 +27,8 @@ UIParent:UnregisterEvent('EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED')
 -- Cancel cinematics
 do local MovieControls = {
 		[MovieFrame] = {
-			PAD1 = MovieFrame.CloseDialog.ResumeButton;
-			PAD2 = MovieFrame.CloseDialog.ConfirmButton;
+			PAD1 = MovieFrame.CloseDialog.Buttons and MovieFrame.CloseDialog.Buttons.ResumeButton or MovieFrame.CloseDialog.ResumeButton;
+			PAD2 = MovieFrame.CloseDialog.Buttons and MovieFrame.CloseDialog.Buttons.ConfirmButton or MovieFrame.CloseDialog.ConfirmButton;
 		};
 		[CinematicFrame] = {
 			PAD1 = CinematicFrameCloseDialogResumeButton;
@@ -37,8 +37,10 @@ do local MovieControls = {
 	};
 
 	local function MovieOnGamePadButtonDown(controls, self, button)
-		controls.PAD1:SetText(('%s %s'):format(GetBindingText('PAD1', '_ABBR'), NO))
-		controls.PAD2:SetText(('%s %s'):format(GetBindingText('PAD2', '_ABBR'), YES))
+		if controls.PAD1 and controls.PAD2 then
+			controls.PAD1:SetText(('%s %s'):format(GetBindingText('PAD1', '_ABBR'), NO))
+			controls.PAD2:SetText(('%s %s'):format(GetBindingText('PAD2', '_ABBR'), YES))
+		end
 
 		local binding = GetBindingFromClick(button)
 		if controls[button] then
