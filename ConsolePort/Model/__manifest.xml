@@ -1,6 +1,5 @@
 <Ui>
 	<!-- Models -->
-	<Include file="Locale\__manifest.xml"/>
 	<Include file="Data\__manifest.xml"/>
 	<Include file="Gamepad\__manifest.xml"/>
 	<Include file="Game\__manifest.xml"/>

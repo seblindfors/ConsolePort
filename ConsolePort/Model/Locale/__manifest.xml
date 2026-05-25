@@ -1,6 +1,0 @@
-<Ui>
-	<!-- Model -->
-	<Script file="Locale.lua"/>
-	<!-- Locale files are located at root\Locale -->
-	<Include file="..\..\Locale\__manifest.xml"/>
-</Ui>

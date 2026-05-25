@@ -63,22 +63,22 @@ def main():
     rejected_json = out / "rejected.json"
 
     # 1. Static extraction
-    _run(["python3", str(HERE / "extract.py"), "-o", str(static_json)])
+    _run([sys.executable, str(HERE / "extract.py"), "-o", str(static_json)])
 
     # 2. Runtime (optional)
     merge_inputs = [str(static_json)]
     if args.runtime:
-        _run(["python3", str(HERE / "runtime.py"), args.runtime, "-o", str(runtime_json)])
+        _run([sys.executable, str(HERE / "runtime.py"), args.runtime, "-o", str(runtime_json)])
         merge_inputs.append(str(runtime_json))
     else:
         print("(skipping runtime parse — no --runtime given)", file=sys.stderr)
 
     # 3. Merge
-    _run(["python3", str(HERE / "merge.py"), *merge_inputs, "-o", str(merged_json)])
+    _run([sys.executable, str(HERE / "merge.py"), *merge_inputs, "-o", str(merged_json)])
 
     # 4. Filter
     _run([
-        "python3", str(HERE / "filter.py"), str(merged_json),
+        sys.executable, str(HERE / "filter.py"), str(merged_json),
         "-o", str(kept_json),
         "--rejected", str(rejected_json),
         "--globals", args.globals,
@@ -90,7 +90,7 @@ def main():
         prefill = locale_dir / f"{code}.lua"
         template_json = out / f"template_{code}.json"
         cmd = [
-            "python3", str(HERE / "template.py"), str(kept_json),
+            sys.executable, str(HERE / "template.py"), str(kept_json),
             "--locale", code,
             "-o", str(template_json),
         ]
@@ -110,7 +110,7 @@ def main():
         print(f"  template:  template_{code}.json", file=sys.stderr)
     print(file=sys.stderr)
     print("Next: fill `translation` fields in template_<code>.json (via LLM),", file=sys.stderr)
-    print("then run: python3 Tools/Locale/emit.py <template> -o ConsolePort/Locale/<code>.lua",
+    print("then run: <python> Tools/Locale/emit.py <template> -o ConsolePort/Locale/<code>.lua",
           file=sys.stderr)
 
 

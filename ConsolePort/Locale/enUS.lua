@@ -1,13 +1,9 @@
 local L = select(2, ...).Locale;
 ---------------------------------------------------------------
--- enUS
+-- enUS (constants)
 ---------------------------------------------------------------
--- NOTE: This file is not intended to be translated,
---       it is purely for the purpose of providing
---       a fallback locale in case the user's locale
---       is not supported.
 ---------------------------------------------------------------
--- Short
+-- Short / curated keys
 ---------------------------------------------------------------
 L.DESC_CAMERAZOOMIN           = 'Zooms the camera in. Hold for continuous zoom.';
 L.DESC_CAMERAZOOMOUT          = 'Zooms the camera out. Hold for continuous zoom.';

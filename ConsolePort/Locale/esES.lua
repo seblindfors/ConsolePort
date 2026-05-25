@@ -1,4 +1,4 @@
-local L = select(2, ...).Locale:GetLocale('esES'); if not L then return end;
+local L = select(2, ...).Locale;
 ---------------------------------------------------------------
 -- esES Español Spanish
 ---------------------------------------------------------------

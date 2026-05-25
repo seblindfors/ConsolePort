@@ -25,6 +25,7 @@ XML\__manifest.xml
 API.lua
 
 Utils\__manifest.xml
+Locale\[TextLocale].lua
 Model\__manifest.xml
 Controller\__manifest.xml
 Widget\__manifest.xml

@@ -16,12 +16,6 @@ local Locale = select(2, ...):Register('Locale', setmetatable({}, {
 	end;
 }))
 
-function Locale:GetLocale(locale)
-	if (GetLocale() == locale) then
-		return self;
-	end
-end
-
 InnerLocaleLookup = GenerateClosure(function(self, str)
 	return self(str:sub(3, -2))
 end, Locale)

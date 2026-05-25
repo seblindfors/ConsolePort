@@ -1,4 +1,4 @@
-local L = select(2, ...).Locale:GetLocale('zhCN'); if not L then return end;
+local L = select(2, ...).Locale;
 ---------------------------------------------------------------
 -- zhCN 简体中文 simplified Chinese
 ---------------------------------------------------------------

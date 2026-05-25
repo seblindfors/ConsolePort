@@ -59,7 +59,7 @@ def main():
     tmp.write_text(json.dumps(template, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     try:
         res = subprocess.run(
-            ["python3", str(HERE / "emit.py"), str(tmp), "-o", args.output],
+            [sys.executable, str(HERE / "emit.py"), str(tmp), "-o", args.output],
             check=False,
         )
         sys.exit(res.returncode)

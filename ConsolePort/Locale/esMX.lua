@@ -1,4 +1,4 @@
-local L = select(2, ...).Locale:GetLocale('esMX'); if not L then return end;
+local L = select(2, ...).Locale;
 ---------------------------------------------------------------
 -- esMX Español Latinoamericano
 ---------------------------------------------------------------

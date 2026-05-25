@@ -16,7 +16,7 @@
 #      and won't promote English-fallback rows back into the template.
 #
 # Output shape matches Locale/zhCN.lua:
-#   local L = select(2, ...).Locale:GetLocale('<code>'); if not L then return end;
+#   local L = select(2, ...).Locale;
 #   L.SHORT_KEY        = 'translation';
 #   L.LONG_KEY = [[
 #       translation block
@@ -139,9 +139,7 @@ def emit_file(template: dict, translated_only: bool = False) -> str:
     literals    = [e for e in entries if e["form"] == "literal"]
 
     out: list[str] = []
-    out.append(
-        f"local L = select(2, ...).Locale:GetLocale('{locale}'); if not L then return end;"
-    )
+    out.append("local L = select(2, ...).Locale;")
     out.append(section(f"{locale} {title}"))
 
     if keys_short:

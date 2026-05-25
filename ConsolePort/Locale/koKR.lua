@@ -1,4 +1,4 @@
-local L = select(2, ...).Locale:GetLocale('koKR'); if not L then return end;
+local L = select(2, ...).Locale;
 ---------------------------------------------------------------
 -- koKR 한국어 Korean
 ---------------------------------------------------------------

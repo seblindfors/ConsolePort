@@ -1,4 +1,4 @@
-local L = select(2, ...).Locale:GetLocale('zhTW'); if not L then return end;
+local L = select(2, ...).Locale;
 ---------------------------------------------------------------
 -- zhTW 繁體中文 traditional Chinese
 ---------------------------------------------------------------
