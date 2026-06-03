@@ -1,5 +1,5 @@
 -- Credit: https://github.com/Nevcairiel/Bartender4/blob/master/HideBlizzard.lua
-if not (CPAPI.IsAnniVersion or CPAPI.IsWrathVersion) then return end;
+if not (CPAPI.IsAnniVersion or CPAPI.IsWrathVersion or CPAPI.IsClassicVersion) then return end;
 local _, env = ...;
 
 local function hideEditModeFrame(frame, clearEvents)
