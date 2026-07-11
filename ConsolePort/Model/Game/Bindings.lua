@@ -471,9 +471,19 @@ do -- Icon provider (see FrameXML\IconDataProvider.lua)
 	function IconDataProvider:Init(type, extraIconsOnly, requestedIconTypes)
 		type = type or IconDataProviderExtraType.None;
 
-		local extraSpells = {}; IconDataProviderMixin.Init(extraSpells, IconDataProviderExtraType.Spellbook, true, true)
-		local extraItems  = {}; IconDataProviderMixin.Init(extraItems,  IconDataProviderExtraType.Equipment, true, true)
-		local extraAll    = FillOutExtraIconsWithCustomIcons({});
+		local extraAll, extraSpells, extraItems = FillOutExtraIconsWithCustomIcons({}), {}, {};
+		if IconDataProviderMixin.FillOutExtraIconsMapWithSpells then
+			Mixin(extraSpells, IconDataProviderMixin);
+			extraSpells:Init(IconDataProviderExtraType.Spellbook, true, true)
+		else
+			IconDataProviderMixin.Init(extraSpells, IconDataProviderExtraType.Spellbook, true, true)
+		end
+		if IconDataProviderMixin.FillOutExtraIconsMapWithEquipment then
+			Mixin(extraItems, IconDataProviderMixin);
+			extraItems:Init(IconDataProviderExtraType.Equipment, true, true)
+		else
+			IconDataProviderMixin.Init(extraItems, IconDataProviderExtraType.Equipment, true, true)
+		end
 		tAppendAll(extraAll, extraSpells.extraIcons)
 		tAppendAll(extraAll, extraItems.extraIcons)
 
