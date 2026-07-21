@@ -13,7 +13,7 @@ local ItemMenu = db:Register('ItemMenu', CPAPI.EventHandler(ConsolePortItemMenu,
 }))
 ---------------------------------------------------------------
 local INV_EQ_LOCATIONS = {
-	INVTYPE_RANGED         = CPAPI.IsClassicEraVersion and {'RANGEDSLOT'};
+	INVTYPE_RANGED         = (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion) and {'RANGEDSLOT'};
 	INVTYPE_CLOAK          = {'BACKSLOT'};
 	INVTYPE_FINGER         = {'FINGER0SLOT',  'FINGER1SLOT'};
 	INVTYPE_TRINKET        = {'TRINKET0SLOT', 'TRINKET1SLOT'};
@@ -24,9 +24,9 @@ local INV_EQ_LOCATIONS = {
 	INVTYPE_SHIELD         = {'SECONDARYHANDSLOT'};
 	INVTYPE_BAG            = {'BAG0SLOT', 'BAG1SLOT', 'BAG2SLOT', 'BAG3SLOT', CPAPI.IsRetailVersion and Enum.BagIndex.ReagentBag};
 }; for _, slots in pairs(INV_EQ_LOCATIONS) do
-	for i, slot in ipairs(slots) do
+	for i, slot in ipairs(slots) do if slot then
 		slots[i] = tonumber(slot) and C_Container.ContainerIDToInventoryID(slot) or GetInventorySlotInfo(slot);
-	end
+	end end
 end
 ---------------------------------------------------------------
 local QUALITY_STANDARD = Enum.ItemQuality.Standard or Enum.ItemQuality.Common;

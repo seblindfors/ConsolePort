@@ -185,7 +185,7 @@ if not CPAPI.IsRetailVersion then
 	end
 end
 
-if CPAPI.IsClassicEraVersion then
+if CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion then
 	function MovePerformanceBar(self)
 		local frame  = MainMenuBarPerformanceBarFrame;
 		local status = MainMenuBarPerformanceBar;

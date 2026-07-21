@@ -145,7 +145,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Collections ]] if CollectionsMicroButton then _{
+--[[ Collections ]] if (not CPAPI.IsClassicEraVersion and not CPAPI.IsAnniVersion and CollectionsMicroButton) then _{
 ---------------------------------------------------------------
 	text  = COLLECTIONS;
 	img   = ICON('inv_misc_enggizmos_19');
@@ -167,7 +167,10 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	end;
 } end;
 
-	--[[ Keyring ]] if (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion) and KeyRingButton then _{
+---------------------------------------------------------------
+--[[ Keyring ]] if (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion) and KeyRingButton then _{
+---------------------------------------------------------------
+	text  = KEYRING;
 	img   = [[Interface\ContainerFrame\KeyRing-Bag-Icon]];
 	ref   = KeyRingButton;
 } end;
@@ -189,7 +192,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Guide ]] if EJMicroButton then _{
+--[[ Guide ]] if (not CPAPI.IsClassicEraVersion and not CPAPI.IsAnniVersion and EJMicroButton) then _{
 ---------------------------------------------------------------
 	text  = ADVENTURE_JOURNAL;
 	img   = [[Interface\ENCOUNTERJOURNAL\UI-EJ-PortraitIcon]];
@@ -223,7 +226,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Achievements ]]  if AchievementMicroButton then _{
+--[[ Achievements ]]  if (not CPAPI.IsClassicEraVersion and not CPAPI.IsAnniVersion and AchievementMicroButton) then _{
 ---------------------------------------------------------------
 	text  = ACHIEVEMENTS;
 	img   = ICON('ACHIEVEMENT_WIN_WINTERGRASP');

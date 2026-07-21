@@ -230,10 +230,8 @@ end
 InputMixin.timer = 0;
 
 function InputMixin:OnLoad(id)
-	if not CPAPI.IsClassicEraVersion then
-		self:RegisterForClicks('AnyUp', 'AnyDown')
-		self:SetAttribute(CPAPI.ActionPressAndHold, true)
-	end
+	self:RegisterForClicks('AnyUp', 'AnyDown')
+	self:SetAttribute(CPAPI.ActionPressAndHold, true)
 	self:SetAttribute('id', id)
 	self:SetAttribute('_childupdate-combat', [[
 		if message then

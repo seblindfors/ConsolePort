@@ -161,7 +161,7 @@ end
 function GamepadAPI:OnDataLoaded()
 	-- TODO: remove if/when atlas icons get added to Classic Era.
 	-- Added as a workaround for players importing settings from Retail.
-	if CPAPI.IsClassicEraVersion and db('useAtlasIcons') then
+	if (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion) and db('useAtlasIcons') then
 		db('Settings/useAtlasIcons', false)
 	end
 

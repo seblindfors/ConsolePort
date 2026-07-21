@@ -469,7 +469,7 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Inactive Opacity';
 		desc = 'Opacity of inactive hotkey prompts on unit frames after targeting.';
 	};
-	unitHotkeySize = _{Number(CPAPI.IsClassicEraVersion and 32 or 24, 1);
+	unitHotkeySize = _{Number((CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion) and 32 or 24, 1);
 		name = 'Size';
 		desc = 'Size of unit hotkeys, in pixels.';
 	};
