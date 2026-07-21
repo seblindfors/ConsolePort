@@ -4,31 +4,21 @@ local Manager, db = Mixin(ConsolePortBarManager, CPAPI.AdvancedSecureMixin), env
 env.Manager = Manager;
 ---------------------------------------------------------------
 Manager.Env = {
-	_onhide = [[
-		self:ClearBindings()
-	]];
+	_onhide = [[]];
 	_onshow = [[
-		self::ApplyBindings()
 		mouse::OnBindingsChanged()
 		cursor::ActionPageChanged()
 	]];
 	RefreshBindings = [[
 		local owner = ...;
-		self:ClearBindings()
-		self::ApplyBindings()
+		self:CallMethod('OnRefreshBindings')
 		if owner then
 			mouse::OnBindingsChanged()
 			cursor::OwnerChanged(owner)
 		end
 	]];
 	ApplyBindings = [[
-		for owner, set in pairs(bindings) do
-			if self:GetAttribute(owner) then
-				for key, button in pairs(set) do
-					self:SetBindingClick(false, key, button, 'ControllerInput')
-				end
-			end
-		end
+		-- Bindings are now applied dynamically via BuildApplyBody / UpdateOverrides
 	]];
 };
 
@@ -81,40 +71,69 @@ end
 ---------------------------------------------------------------
 
 function Manager:ClearOverrides()
+	self.keyBindings = {}
 	self:Run([[
 		bindings = wipe(bindings);
 		self:ClearBindings()
 	]])
 end
 
-function Manager:UpdateOverrides() self:Run([[
-	self:ClearBindings()
-	self::ApplyBindings()
-	mouse::OnBindingsChanged()
-]]) end
+function Manager:BuildApplyBody()
+	for refName, keys in pairs(self.keyBindings) do
+		for key, _ in pairs(keys) do
+			SetBindingClick(key, refName)
+		end
+	end
+end
+
+function Manager:OnRefreshBindings()
+	self:Run([[self:ClearBindings()]])
+	self:BuildApplyBody()
+end
+
+function Manager:UpdateOverrides()
+	self:Run([[self:ClearBindings()]])
+	self:BuildApplyBody()
+	self:Run([[mouse:RunAttribute('OnBindingsChanged')]])
+end
 
 function Manager:RegisterOverride(owner, ref, ...)
+	-- Track in Lua table for binding setup
+	if not self.keyBindings[ref] then
+		self.keyBindings[ref] = {}
+	end
 	for i = 1, select('#', ...) do
+		local key = select(i, ...)
+		self.keyBindings[ref][key] = true
 		self:Parse([[
 			bindings[{owner}] = bindings[{owner}] or newtable();
 			bindings[{owner}][{key}] = {ref};
 		]], {
 			owner = env:GetSignature(owner);
-			key  = select(i, ...);
+			key  = key;
 			ref  = ref;
 		})
 	end
 end
 
-function Manager:UnregisterOverride(owner, key) self:Parse([[
-	if bindings[{owner}] then
-		bindings[{owner}][{key}] = nil;
+function Manager:UnregisterOverride(owner, key)
+	-- Remove from Lua tracking table
+	for refName, keys in pairs(self.keyBindings) do
+		keys[key] = nil
 	end
-]], { owner = env:GetSignature(owner), key = key }) end
+	self:Parse([[
+		if bindings[{owner}] then
+			bindings[{owner}][{key}] = nil;
+		end
+	]], { owner = env:GetSignature(owner), key = key })
+end
 
-function Manager:UnregisterOverrides(owner) self:Parse([[
-	bindings[{owner}] = nil;
-]], { owner = env:GetSignature(owner) }) end
+function Manager:UnregisterOverrides(owner)
+	self.keyBindings = {}
+	self:Parse([[
+		bindings[{owner}] = nil;
+	]], { owner = env:GetSignature(owner) })
+end
 
 ---------------------------------------------------------------
 -- Initialize manager
@@ -122,6 +141,10 @@ function Manager:UnregisterOverrides(owner) self:Parse([[
 Manager:SetFrameRef('Cursor', db.Raid)
 Manager:SetFrameRef('Mouse', db.Interact)
 Manager:SetFrameRef('Pager', db.Pager)
+Manager.keyBindings = {}
+Manager:HookScript('OnShow', function(self)
+	self:BuildApplyBody()
+end)
 Manager:Run([[
 	bindings = {};
 	owners   = {};

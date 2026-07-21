@@ -1,5 +1,9 @@
 local env, db, _, L = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
+-- Classic Era: some Blizzard globals don't exist
+SEARCH = SEARCH or L['Search'] or 'Search'
+SETTINGS_SEARCH_NOTHING_FOUND = SETTINGS_SEARCH_NOTHING_FOUND or L['No results found.'] or 'No results found.'
+---------------------------------------------------------------
 local Panel = {};
 ---------------------------------------------------------------
 

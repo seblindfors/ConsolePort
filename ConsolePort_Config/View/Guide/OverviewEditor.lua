@@ -2,6 +2,9 @@ local env, db = CPAPI.GetEnv(...);
 local Guide = env:GetContextPanel();
 
 ---------------------------------------------------------------
+-- Classic Era fallbacks
+SETTINGS_SEARCH_NOTHING_FOUND = SETTINGS_SEARCH_NOTHING_FOUND or 'No results found.'
+---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
 local EditType = EnumUtil.MakeEnum('Binding', 'Action')

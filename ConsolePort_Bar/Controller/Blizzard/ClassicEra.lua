@@ -68,15 +68,17 @@ function env.UIHandler:HideBlizzard()
 
 	---------------------------------------------------------------
 	-- Managed frame positions (prevent re-anchoring/re-enabling)
-	for frame in pairs({
-		MainMenuBar             = true;
-		StanceBarFrame          = true;
-		PossessBarFrame         = true;
-		MultiCastActionBarFrame = true;
-		PETACTIONBAR_YPOS       = true;
-		ExtraAbilityContainer   = true;
-	}) do
-		CPAPI.Purge(UIPARENT_MANAGED_FRAME_POSITIONS, frame)
+	if UIPARENT_MANAGED_FRAME_POSITIONS then
+		for frame in pairs({
+			MainMenuBar             = true;
+			StanceBarFrame          = true;
+			PossessBarFrame         = true;
+			MultiCastActionBarFrame = true;
+			PETACTIONBAR_YPOS       = true;
+			ExtraAbilityContainer   = true;
+		}) do
+			CPAPI.Purge(UIPARENT_MANAGED_FRAME_POSITIONS, frame)
+		end
 	end
 
 	---------------------------------------------------------------
@@ -97,15 +99,27 @@ function env.UIHandler:HideBlizzard()
 		hideHUDFrame(_G[frame], unpack(settings))
 	end
 
+	-- Classic Era update may have moved exp/rep bars to StatusTrackingBarManager
+	if StatusTrackingBarManager then
+		StatusTrackingBarManager:Hide()
+		StatusTrackingBarManager:UnregisterAllEvents()
+		if StatusTrackingBarManager.system then
+			CPAPI.Purge(StatusTrackingBarManager, 'isShownExternal')
+		end
+		StatusTrackingBarManager:SetParent(env.UIHandler)
+	end
+
 	---------------------------------------------------------------
 	-- Misc
 
 	-- when blizzard vehicle is turned off, we need to manually fix the state since the OverrideActionBar animation wont run
-	local animations = {MainMenuBar.slideOut:GetAnimations()}
-	animations[1]:SetOffset(0,0)
+	if MainMenuBar.slideOut then
+		local animations = {MainMenuBar.slideOut:GetAnimations()}
+		animations[1]:SetOffset(0,0)
+	end
 
-	if OverrideActionBar then -- classic doesn't have this
-		animations = {OverrideActionBar.slideOut:GetAnimations()}
+	if OverrideActionBar and OverrideActionBar.slideOut then
+		local animations = {OverrideActionBar.slideOut:GetAnimations()}
 		animations[1]:SetOffset(0,0)
 
 		-- when blizzard vehicle is turned off, we need to manually fix the state since the OverrideActionBar animation wont run
