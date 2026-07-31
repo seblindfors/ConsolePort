@@ -296,6 +296,8 @@ function CPLoadoutContainerMixin:OnSearch(text)
 end
 
 function CPLoadoutContainerMixin:RefreshCollections()
+	-- Collection data may have changed.
+	self._titleCache = nil;
 	if not self.Collections or self:GetDataProvider():IsEmpty() then
 		return self:UpdateCollections()
 	end
@@ -348,7 +350,19 @@ function CPLoadoutContainerMixin:UpdateCollections()
 		if not isSearchActive then
 			return true;
 		end
-		local title = data.title(Entry.UnpackID(entry));
+		local id = Entry.UnpackID(entry);
+		-- Titles come from C calls and don't change mid-session.
+		if not self._titleCache then self._titleCache = {} end;
+		local cache = self._titleCache[data.name];
+		if not cache then
+			cache = {};
+			self._titleCache[data.name] = cache;
+		end
+		local title = cache[id];
+		if title == nil then
+			title = data.title(id);
+			cache[id] = title or false;
+		end
 		if not title then
 			return false;
 		end

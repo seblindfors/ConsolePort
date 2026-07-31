@@ -417,14 +417,37 @@ function Config:OnSearch(text)
 		local _, right = self.Container:GetLists()
 		local results = right:GetDataProvider()
 		results:Flush()
+		-- Stale matches would otherwise land in the provider we just emptied.
 		for _, panel in env:EnumeratePanels() do
-			panel:OnSearch(text, results, results.node:GetSize() + 1)
+			if panel.CancelPendingSearch then
+				panel:CancelPendingSearch()
+			end
 		end
-		if results:IsEmpty() then
-			results:Insert(env.Elements.Title:New(SEARCH))
-			results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+		if self._searchTimer then
+			self._searchTimer:Cancel()
 		end
+		-- Deferred so the keystroke itself stays cheap.
+		self._searchTimer = C_Timer.After(0, function()
+			self._searchTimer = nil
+			for _, panel in env:EnumeratePanels() do
+				panel:OnSearch(text, results, results.node:GetSize() + 1)
+			end
+			if results:IsEmpty() then
+				results:Insert(env.Elements.Title:New(SEARCH))
+				results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+			end
+		end)
 		return;
+	end
+	-- Search cleared; stop pending and in-flight rendering.
+	if self._searchTimer then
+		self._searchTimer:Cancel()
+		self._searchTimer = nil
+	end
+	for _, panel in env:EnumeratePanels() do
+		if panel.CancelPendingSearch then
+			panel:CancelPendingSearch()
+		end
 	end
 	local currentPanel = self:GetCurrentPanel()
 	if currentPanel then
