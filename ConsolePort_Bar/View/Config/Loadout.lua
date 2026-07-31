@@ -89,7 +89,7 @@ local function ReleaseSetting(_, self)
 	if self.Reset then
 		self:Reset()
 	end
-	self.children, self.owner = nil, nil;
+	self.children, self.owner, self.pendingChildren = nil, nil, nil;
 end
 
 local function GetEndpoint(path)
@@ -98,6 +98,9 @@ end
 
 function LoadoutSetting:OnExpandOrCollapse()
 	local isChecked = self:GetChecked();
+	if isChecked then
+		self:MaterializeChildren()
+	end
 	self:ToggleChildren(isChecked)
 	self:UpdateIcon(isChecked)
 end
@@ -110,8 +113,38 @@ function LoadoutSetting:UpdateIcon(isChecked)
 	end
 end
 
+function LoadoutSetting:CountPendingChildren()
+	local pending = self.pendingChildren;
+	if not pending then return 0 end;
+	local count = 0;
+	for _, datapoint in pairs(pending.children) do
+		if not datapoint.hide then
+			count = count + 1;
+		end
+	end
+	return count;
+end
+
+-- Answers from pending data when the subtree isn't built yet.
 function LoadoutSetting:HasChildren()
-	return self.children and next(self.children) ~= nil;
+	if self.children and next(self.children) ~= nil then
+		return true;
+	end
+	return self:CountPendingChildren() > 0;
+end
+
+-- Builds one level; new children start collapsed and defer in turn.
+function LoadoutSetting:MaterializeChildren()
+	local pending = self.pendingChildren;
+	if not pending then return end;
+	local count = self:CountPendingChildren();
+	self.pendingChildren = nil;
+	if count == 0 then return end;
+
+	-- Make room so the subtree slots in beneath this widget.
+	local owner = self:GetParent();
+	owner:NudgeLayoutIndex(self.layoutIndex + 1, count)
+	owner:DrawChildren(self, pending.path, pending.children, CreateCounter(self.layoutIndex), pending.depth)
 end
 
 function LoadoutSetting:AddChild(child)
@@ -472,6 +505,10 @@ end
 
 function Mutable:ToggleDeleteButtons()
 	self.deleteButtonPool:ReleaseAll()
+	-- Runs before OnExpandOrCollapse, so the subtree may still be pending.
+	if self:GetChecked() then
+		self:MaterializeChildren()
+	end
 	if self:GetChecked() and self.children then
 		for child in pairs(self.children) do
 			local button = self.deleteButtonPool:Acquire()
@@ -1232,6 +1269,12 @@ function Loadout:DrawInterface(parent, path, interface, layoutIndex, depth)
 end
 
 function Loadout:DrawChildren(parent, path, children, layoutIndex, depth)
+	-- Collapsed subtrees are invisible; build on first expand instead.
+	if not parent:GetChecked() then
+		parent.pendingChildren = { path = path, children = children, depth = depth };
+		parent:UpdateIcon(false)
+		return;
+	end
 	for child, datapoint in db.table.spairs(children, DisplaySort) do
 		self:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
 	end
@@ -1279,6 +1322,7 @@ end
 ---------------------------------------------------------------
 function Loadout:Update()
 	self.updated = false;
+	env:InvalidateConfigCache()
 	self:MarkDirty()
 	self:Draw()
 end
