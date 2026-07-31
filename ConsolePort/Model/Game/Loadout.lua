@@ -130,10 +130,11 @@ function LoadoutInfo:RefreshDictionary()
 		end
 
 		-- XML-registered bindings
+		local headerPrefix = self.HeaderPrefix
 		for i=1, numBindings do
 			local id, header = GetBinding(i)
 
-			if not id:match('^HEADER') then
+			if id:find('HEADER', 1, true) ~= 1 then
 				-- link binding IDs to their headers
 				headers[id] = header;
 
@@ -142,7 +143,7 @@ function LoadoutInfo:RefreshDictionary()
 				-- GetBindingName() can't be verified since it returns the
 				-- original string if it doesn't find a match.
 				local global = self:GetBindingName(id)
-				local name   = tostring(global or _G[self.HeaderPrefix:format(id)] or id);
+				local name   = tostring(global or _G[headerPrefix:format(id)] or id);
 				local action = self:GetActionButtonID(id)
 
 				if action then

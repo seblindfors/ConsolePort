@@ -153,8 +153,17 @@ do
 	---------------------------------------------------------------
 	-- Get all buttons that look like action buttons
 	---------------------------------------------------------------
+	local buttonCache, barCache
+
+	function ActionBarAPI:InvalidateActionCache()
+		buttonCache, barCache = nil, nil
+	end
+
 	function ActionBarAPI:GetActionButtons(asTable, parent)
-		local buttons = FindActionButtons(CacheActionButton, {}, parent or UIParent)
+		if not parent and not buttonCache then
+			buttonCache = FindActionButtons(CacheActionButton, {}, UIParent)
+		end
+		local buttons = parent and FindActionButtons(CacheActionButton, {}, parent) or buttonCache
 		if asTable then return buttons end
 		return pairs(buttons)
 	end
@@ -163,14 +172,21 @@ do
 	-- Get all container frames that look like action bars
 	---------------------------------------------------------------
 	function ActionBarAPI:GetActionBars(asTable, parent)
-		local bars = FindActionButtons(CacheActionBar, {}, parent or UIParent)
+		if not parent and not barCache then
+			barCache = FindActionButtons(CacheActionBar, {}, UIParent)
+		end
+		local bars = parent and FindActionButtons(CacheActionBar, {}, parent) or barCache
 		if asTable then return bars end
 		return pairs(bars)
 	end
 
 	function ActionBarAPI:SetIgnoreFrameForActionLookup(frame, enabled)
-		IGNORE_FRAMES[frame] = enabled
+		IGNORE_FRAMES[frame] = enabled or nil
+		ActionBarAPI:InvalidateActionCache()
 	end
+
+	db:RegisterCallback('OnNewBindings', ActionBarAPI.InvalidateActionCache, ActionBarAPI)
+	db:RegisterCallback('OnActionPageChanged', ActionBarAPI.InvalidateActionCache, ActionBarAPI)
 
 	---------------------------------------------------------------
 	-- Database proxy
