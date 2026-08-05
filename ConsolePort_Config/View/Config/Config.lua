@@ -425,9 +425,10 @@ function Config:OnSearch(text)
 		end
 		if self._searchTimer then
 			self._searchTimer:Cancel()
+			self._searchTimer = nil
 		end
 		-- Deferred so the keystroke itself stays cheap.
-		self._searchTimer = C_Timer.After(0, function()
+		self._searchTimer = C_Timer.NewTimer(0, function()
 			self._searchTimer = nil
 			for _, panel in env:EnumeratePanels() do
 				panel:OnSearch(text, results, results.node:GetSize() + 1)

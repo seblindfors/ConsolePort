@@ -252,22 +252,19 @@ function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
 		return Finish();
 	end
 
-	local driver = self._searchDriver;
-	if not driver then
-		driver = CreateFrame('Frame');
-		self._searchDriver = driver;
-	end
-	driver:SetScript('OnUpdate', function()
+	self._searchTicker = C_Timer.NewTicker(0, function(ticker)
 		if RenderChunk() then
-			driver:SetScript('OnUpdate', nil)
+			ticker:Cancel()
+			self._searchTicker = nil
 			Finish()
 		end
 	end)
 end
 
 function Renderer:CancelPendingSearch()
-	if self._searchDriver then
-		self._searchDriver:SetScript('OnUpdate', nil)
+	if self._searchTicker then
+		self._searchTicker:Cancel()
+		self._searchTicker = nil
 	end
 end
 

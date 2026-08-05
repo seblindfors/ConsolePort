@@ -350,7 +350,6 @@ function CPLoadoutContainerMixin:UpdateCollections()
 		if not isSearchActive then
 			return true;
 		end
-		local id = Entry.UnpackID(entry);
 		-- Titles come from C calls and don't change mid-session.
 		if not self._titleCache then self._titleCache = {} end;
 		local cache = self._titleCache[data.name];
@@ -358,10 +357,10 @@ function CPLoadoutContainerMixin:UpdateCollections()
 			cache = {};
 			self._titleCache[data.name] = cache;
 		end
-		local title = cache[id];
+		local title = cache[entry];
 		if title == nil then
-			title = data.title(id);
-			cache[id] = title or false;
+			title = data.title(Entry.UnpackID(entry));
+			cache[entry] = title or false;
 		end
 		if not title then
 			return false;

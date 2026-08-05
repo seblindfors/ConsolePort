@@ -74,19 +74,6 @@ db:RegisterCallback('OnToggleCharacterSettings', DataAPI.OnToggleCharacterSettin
 ---------------------------------------------------------------
 local ID, DATA, TYPE, CALL, INIT, DEF = 0x0, 0x1, 0x2, 0x3, 0x4, 0x5;
 
--- Deep copy sharing metatables, which copy() duplicates per node.
--- Instances only; subtypes need private metatables for their methods.
-local function copyShared(src)
-	if type(src) ~= 'table' then
-		return src;
-	end
-	local t = {};
-	for key, value in next, src, nil do
-		t[key] = copyShared(value);
-	end
-	return setmetatable(t, getmetatable(src));
-end
-
 local Field = setmetatable({[TYPE] = 'Field'}, {
 	__index = {};
 	__newindex = function(self, key, value)
@@ -100,7 +87,7 @@ local Field = setmetatable({[TYPE] = 'Field'}, {
 		if newType then
 			return rawset(copy(self), TYPE, newType);
 		end
-		return copyShared(self);
+		return copy(self);
 	end;
 });
 
@@ -309,7 +296,6 @@ local Table = Field('Table');
 
 function Table:Get()
 	local result = {};
-	-- Raw read; Field.Get would deep-copy values the loop below discards.
 	local data = rawget(self, DATA);
 	for child, field in pairs(data) do
 		result[child] = field[DATA]:Get();
