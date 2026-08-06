@@ -394,46 +394,38 @@ end
 function GamepadAPI:GetActiveModifiers()
 	local mods = db.table.copy(self.Index.Modifier.Prefix)
 	local driver = {'[nomod] '};
+	local spairs = db.table.spairs; -- need to scan in-order
 
-	-- Never more than three modifiers, so emit the combinations directly.
-	local keys = {};
-	for mod in pairs(mods) do keys[#keys + 1] = mod end
-	table.sort(keys)
-
-	local function addSingle(K)
-		driver[#driver + 1] = ('[mod:%s] %s'):format(K, K)
-	end
-
-	local function addDouble(K1, K2)
-		local modifier = K1..K2
-		mods[modifier] = ('%s-%s'):format(mods[K1], mods[K2])
-		driver[#driver + 1] = ('[mod:%s] %s'):format(modifier, modifier)
-	end
-
-	local function addTriple(K1, K2, K3)
-		local modifier = K1..K2..K3
-		mods[modifier] = ('%s-%s-%s'):format(mods[K1], mods[K2], mods[K3])
-		driver[#driver + 1] = ('[mod:%s] %s'):format(modifier, modifier)
-	end
-
-	-- Most-specific first; the state driver takes the first match.
-	local K1, K2, K3 = keys[1], keys[2], keys[3]
-	if K1 then
-		if K2 then
-			if K3 then
-				addTriple(K1, K2, K3)
-				addDouble(K2, K3)
-				addDouble(K1, K3)
-			end
-			addDouble(K1, K2)
-			addSingle(K2)
-			if K3 then
-				addSingle(K3)
+	local function assertUniqueAndInOrder(...)
+		local uniques = {}
+		for i=1, select('#', ...) do
+			local v1 = select(i, ...)
+			if uniques[v1] then return end
+			uniques[v1] = true
+			for v2 in pairs(uniques) do
+				if v2 > v1 then return end
 			end
 		end
-		addSingle(K1)
+		return true
 	end
 
+	for M1, K1 in spairs(mods) do
+		for M2, K2 in spairs(mods) do
+			for M3, K3 in spairs(mods) do
+				if (assertUniqueAndInOrder(M1, M2, M3)) then
+					local modifier = M1..M2..M3;
+					mods[modifier] = ('%s-%s-%s'):format(K1, K2, K3)
+					tinsert(driver, ('[mod:%s] %s'):format(modifier, modifier))
+				end
+			end
+			if (assertUniqueAndInOrder(M1, M2)) then
+				local modifier = M1..M2;
+				mods[modifier] = ('%s-%s'):format(K1, K2)
+				tinsert(driver, ('[mod:%s] %s'):format(modifier, modifier))
+			end
+		end
+		tinsert(driver, ('[mod:%s] %s'):format(M1, M1))
+	end
 	mods[NM] = true
 	return mods, table.concat(driver, '; ');
 end
