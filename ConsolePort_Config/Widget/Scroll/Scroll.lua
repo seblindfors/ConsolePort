@@ -360,7 +360,7 @@ function CPLoadoutContainerMixin:UpdateCollections()
 		local title = cache[entry];
 		if title == nil then
 			title = data.title(Entry.UnpackID(entry));
-			cache[entry] = title or false;
+			cache[entry] = title;
 		end
 		if not title then
 			return false;
