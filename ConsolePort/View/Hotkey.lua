@@ -7,7 +7,6 @@
 local _, db = ...;
 local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', '$parentHotkeyHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
-	'MODIFIER_STATE_CHANGED';
 })
 db:Register('Hotkeys', HotkeyHandler)
 HotkeyHandler.Textures = CreateTexturePool(HotkeyHandler, 'ARTWORK')
@@ -32,31 +31,21 @@ function HotkeyHandler:UPDATE_BINDINGS(...)
 	self:OnInterfaceUpdated()
 end
 
-function HotkeyHandler:MODIFIER_STATE_CHANGED(...)
-	for widget in self.Widgets:EnumerateActive() do
-		-- TODO: dispatch modifier
-	end
-end
-
 function HotkeyHandler:OnInterfaceUpdated()
-	-- hotkey rendering is expensive, make sure it doesn't run unnecessarily
-	if not self.timeLock then
-		self.timeLock = true
-		C_Timer.After(0.5, function()
-			self:OnActiveDeviceChanged()
-			self.timeLock = nil
-		end)
-	end
+	-- hotkey rendering is expensive, coalesce all triggers into one update
+	self:QueueHotkeyUpdate()
 end
 
-function HotkeyHandler:OnActiveDeviceChanged()
+function HotkeyHandler:RefreshHotkeys()
 	local device = db.Gamepad:GetActiveDevice()
 	if device then
 		self:UpdateHotkeys(device)
 	end
 end
 
-db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
+HotkeyHandler.QueueHotkeyUpdate = CPAPI.Debounce(HotkeyHandler.RefreshHotkeys, HotkeyHandler)
+
+db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnInterfaceUpdated, HotkeyHandler)
 
 ---------------------------------------------------------------
 -- API
@@ -175,7 +164,7 @@ function HotkeyHandler:Enable()
 	for _, event in ipairs(self.Events) do
 		self:RegisterEvent(event)
 	end
-	self:OnActiveDeviceChanged()
+	self:OnInterfaceUpdated()
 end
 
 ---------------------------------------------------------------
