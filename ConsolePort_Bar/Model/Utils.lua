@@ -135,7 +135,6 @@ do -- Widget factory
 			end
 		end
 		ActiveWidgets[Widgets[signature]] = signature;
-		self:InvalidateConfigCache()
 		return Widgets[signature];
 	end
 
@@ -158,7 +157,6 @@ do -- Widget factory
 
 	function env:Release(widget, release)
 		ActiveWidgets[widget] = nil;
-		self:InvalidateConfigCache();
 		(release or HideAndClearAnchors)(widget);
 		if widget.OnRelease then
 			widget:OnRelease();
@@ -166,7 +164,6 @@ do -- Widget factory
 	end
 
 	function env:ReleaseAll()
-		self:InvalidateConfigCache()
 		repeat
 			for widget in pairs(ActiveWidgets) do
 				self:Release(widget);
@@ -207,10 +204,6 @@ do -- Widget factory
 	end
 
 	function env:GetConfiguration()
-		if self._configCache then
-			return self._configCache;
-		end
-
 		local hierarchy = {};
 
 		local function scaffold(widget, sig)
@@ -234,12 +227,7 @@ do -- Widget factory
 			end
 		end
 
-		self._configCache = hierarchy;
 		return hierarchy;
-	end
-
-	function env:InvalidateConfigCache()
-		self._configCache = nil;
 	end
 
 end -- Widget factory

@@ -1322,7 +1322,6 @@ end
 ---------------------------------------------------------------
 function Loadout:Update()
 	self.updated = false;
-	env:InvalidateConfigCache()
 	self:MarkDirty()
 	self:Draw()
 end
