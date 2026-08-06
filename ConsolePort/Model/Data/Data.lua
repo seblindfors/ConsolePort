@@ -87,7 +87,8 @@ local Field = setmetatable({[TYPE] = 'Field'}, {
 		if newType then
 			return rawset(copy(self), TYPE, newType);
 		end
-		return copy(self);
+		local shareMeta = true;
+		return copy(self, shareMeta);
 	end;
 });
 
