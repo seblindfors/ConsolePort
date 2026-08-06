@@ -158,7 +158,7 @@ do -- Widget factory
 
 	function env:Release(widget, release)
 		ActiveWidgets[widget] = nil;
-		self:InvalidateConfigCache()
+		self:InvalidateConfigCache();
 		(release or HideAndClearAnchors)(widget);
 		if widget.OnRelease then
 			widget:OnRelease();
