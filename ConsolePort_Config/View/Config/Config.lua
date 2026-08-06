@@ -267,6 +267,11 @@ function Config:OnShowDelayed()
 	end
 end
 
+function Config:OnHide()
+	CPCombatHideMixin.OnHide(self)
+	self:CancelPendingSearches()
+end
+
 function Config:SetDefaultClosures()
 	self:ReleaseClosures()
 	for button, delta in pairs(self.PanelSelectDelta) do
@@ -416,20 +421,10 @@ function Config:OnSearch(text)
 	if text then
 		local _, right = self.Container:GetLists()
 		local results = right:GetDataProvider()
+		self:CancelPendingSearches()
 		results:Flush()
-		-- Stale matches would otherwise land in the provider we just emptied.
-		for _, panel in env:EnumeratePanels() do
-			if panel.CancelPendingSearch then
-				panel:CancelPendingSearch()
-			end
-		end
-		if self._searchTimer then
-			self._searchTimer:Cancel()
-			self._searchTimer = nil
-		end
-		-- Deferred so the keystroke itself stays cheap.
 		self._searchTimer = C_Timer.NewTimer(0, function()
-			self._searchTimer = nil
+			self._searchTimer = nil;
 			for _, panel in env:EnumeratePanels() do
 				panel:OnSearch(text, results, results.node:GetSize() + 1)
 			end
@@ -440,19 +435,21 @@ function Config:OnSearch(text)
 		end)
 		return;
 	end
-	-- Search cleared; stop pending and in-flight rendering.
+	self:CancelPendingSearches()
+	local currentPanel = self:GetCurrentPanel()
+	if currentPanel then
+		ExecuteFrameScript(currentPanel, 'OnShow')
+	end
+end
+
+function Config:CancelPendingSearches()
 	if self._searchTimer then
-		self._searchTimer:Cancel()
-		self._searchTimer = nil
+		self._searchTimer = self._searchTimer:Cancel();
 	end
 	for _, panel in env:EnumeratePanels() do
 		if panel.CancelPendingSearch then
 			panel:CancelPendingSearch()
 		end
-	end
-	local currentPanel = self:GetCurrentPanel()
-	if currentPanel then
-		ExecuteFrameScript(currentPanel, 'OnShow')
 	end
 end
 

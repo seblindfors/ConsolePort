@@ -254,8 +254,7 @@ function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
 
 	self._searchTicker = C_Timer.NewTicker(0, function(ticker)
 		if RenderChunk() then
-			ticker:Cancel()
-			self._searchTicker = nil
+			self._searchTicker = ticker:Cancel();
 			Finish()
 		end
 	end)
@@ -263,8 +262,7 @@ end
 
 function Renderer:CancelPendingSearch()
 	if self._searchTicker then
-		self._searchTicker:Cancel()
-		self._searchTicker = nil
+		self._searchTicker = self._searchTicker:Cancel();
 	end
 end
 
