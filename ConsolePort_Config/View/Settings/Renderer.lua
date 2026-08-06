@@ -172,7 +172,7 @@ function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	return hasDeviceSettings and not useDeviceEdit;
 end
 
-function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
+function Renderer:OnSearch(text, onCompleted) text = text:lower();
 	local interface = self:GetIndex()
 	local MinEditDistance = CPAPI.MinEditDistance;
 
@@ -212,16 +212,30 @@ function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
 		end
 	end
 
-	local needsDeviceEdit = false;
-
-	-- Broad queries can match most of the list. Only data is inserted, into a
-	-- virtualized provider, so spreading across frames is safe.
 	self:CancelPendingSearch()
 
-	local queue = {};
+	local queue, needsDeviceEdit = {}, false;
 	for main, group in env.table.spairs(results) do
 		tinsert(queue, {main = main, group = group})
+		for _, dp in ipairs(group) do
+			if dp.field.path then
+				needsDeviceEdit = true;
+			end
+		end
 	end
+
+	if not next(queue) then
+		return onCompleted(self, nil);
+	end
+
+	local staging = CreateTreeDataProvider()
+	staging:Insert(self.MakeTitle(self:GetSearchTitle()))
+	if needsDeviceEdit then
+		staging:Insert(env.Elements.DeviceEdit:New())
+		staging:Insert(self.MakeDivider())
+	end
+
+	local preferCollapsed, useDeviceEdit, flattened = false, false, true;
 
 	local index = 1;
 	local function RenderChunk()
@@ -229,33 +243,20 @@ function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
 		repeat -- at least one group per pass, to guarantee progress
 			local entry = queue[index];
 			if not entry then break end;
-			if self:Render(provider, entry.main, entry.group, false, false, true) then
-				needsDeviceEdit = true;
-			end
+			self:Render(staging, entry.main, entry.group, preferCollapsed, useDeviceEdit, flattened)
 			index = index + 1;
 		until index > #queue or debugprofilestop() >= deadline;
 		return index > #queue;
 	end
 
-	local function Finish()
-		if needsDeviceEdit then
-			provider:InsertAtIndex(self.MakeDivider(), startIndex)
-			provider:InsertAtIndex(env.Elements.DeviceEdit:New(), startIndex)
-		end
-		if next(results) then
-			provider:InsertAtIndex(self.MakeTitle(self:GetSearchTitle()), startIndex)
-		end
-	end
-
-	-- Synchronous first chunk, so the caller's IsEmpty check sees results.
 	if RenderChunk() then
-		return Finish();
+		return onCompleted(self, staging);
 	end
 
 	self._searchTicker = C_Timer.NewTicker(0, function(ticker)
 		if RenderChunk() then
 			self._searchTicker = ticker:Cancel();
-			Finish()
+			onCompleted(self, staging)
 		end
 	end)
 end
@@ -263,6 +264,21 @@ end
 function Renderer:CancelPendingSearch()
 	if self._searchTicker then
 		self._searchTicker = self._searchTicker:Cancel();
+	end
+end
+
+do  local function SpliceNode(source, target)
+		for _, node in ipairs(source:GetNodes()) do
+			local copy = target:Insert(node:GetData())
+			if node:IsCollapsed() then
+				copy:SetCollapsed(true)
+			end
+			SpliceNode(node, copy)
+		end
+	end
+
+	function Renderer.Splice(staging, target)
+		SpliceNode(staging:GetRootNode(), target:GetRootNode())
 	end
 end
 

@@ -296,11 +296,15 @@ end
 function Editor:HandleBindingSearch(text, results)
 	if text then
 		results:Flush()
-		self:OnSearch(text, results)
-		if results:IsEmpty() then
-			results:Insert(env.Elements.Title:New(SEARCH))
-			results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
-		end
+		self:OnSearch(text, function(_, staging)
+			if staging then
+				self.Splice(staging, results)
+			end
+			if results:IsEmpty() then
+				results:Insert(env.Elements.Title:New(SEARCH))
+				results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+			end
+		end)
 		return;
 	end
 	self:SetEditType(nil)
