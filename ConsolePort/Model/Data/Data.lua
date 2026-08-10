@@ -87,7 +87,8 @@ local Field = setmetatable({[TYPE] = 'Field'}, {
 		if newType then
 			return rawset(copy(self), TYPE, newType);
 		end
-		return setmetatable(copy(self), getmetatable(self));
+		local shareMeta = true;
+		return copy(self, shareMeta);
 	end;
 });
 
@@ -296,7 +297,7 @@ local Table = Field('Table');
 
 function Table:Get()
 	local result = {};
-	local data = Field.Get(self);
+	local data = rawget(self, DATA);
 	for child, field in pairs(data) do
 		result[child] = field[DATA]:Get();
 	end

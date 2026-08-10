@@ -133,7 +133,13 @@ function CPScrollBoxSettingsTree:InitDefault()
 		if ( info.xml ~= XML_SETTING_TEMPLATE ) then
 			return factory(info.xml, info.init)
 		end
-		SettingFactory(scrollView, info)
+		if scrollView:IsAcquireLocked() then
+			-- real acquisition; use hacky pooling by data type
+			SettingFactory(scrollView, info)
+		else
+			-- probe for template and initializer; must not create frames
+			factory(info.xml, info.init)
+		end
 	end)
 
 	-- Not entirely sure why this override is necessary, but without
@@ -296,6 +302,8 @@ function CPLoadoutContainerMixin:OnSearch(text)
 end
 
 function CPLoadoutContainerMixin:RefreshCollections()
+	-- Collection data may have changed.
+	self._titleCache = nil;
 	if not self.Collections or self:GetDataProvider():IsEmpty() then
 		return self:UpdateCollections()
 	end
@@ -348,7 +356,18 @@ function CPLoadoutContainerMixin:UpdateCollections()
 		if not isSearchActive then
 			return true;
 		end
-		local title = data.title(Entry.UnpackID(entry));
+		-- Titles come from C calls and don't change mid-session.
+		if not self._titleCache then self._titleCache = {} end;
+		local cache = self._titleCache[data.name];
+		if not cache then
+			cache = {};
+			self._titleCache[data.name] = cache;
+		end
+		local title = cache[entry];
+		if title == nil then
+			title = data.title(Entry.UnpackID(entry));
+			cache[entry] = title;
+		end
 		if not title then
 			return false;
 		end

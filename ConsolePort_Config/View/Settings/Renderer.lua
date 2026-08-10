@@ -7,6 +7,8 @@ local Renderer = {}; env.SettingsRenderer = Renderer;
 -----------------------------------------------------------
 local SEP = GRAY_FONT_COLOR:WrapTextInColorCode(' | ');
 
+local SEARCH_CHUNK_BUDGET_MS = 4;
+
 function Renderer.MakeDivider()
 	return env.Elements.Divider:New(8)
 end
@@ -170,7 +172,7 @@ function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	return hasDeviceSettings and not useDeviceEdit;
 end
 
-function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
+function Renderer:OnSearch(text, onCompleted) text = text:lower();
 	local interface = self:GetIndex()
 	local MinEditDistance = CPAPI.MinEditDistance;
 
@@ -192,11 +194,12 @@ function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
 		local name  = field.name;
 		local excl  = field.excludeSearch;
 
-		return not excl and (( name and MinEditDistance(name:lower(), text) < 3 )
-			or TestString(name)
+		-- Cheap tests first; MinEditDistance is the expensive fallback.
+		return not excl and (TestString(name)
 			or TestString(field.desc)
 			or TestString(field.note)
-			or TestString(field.list));
+			or TestString(field.list)
+			or (name and MinEditDistance(name:lower(), text) < 3));
 	end
 
 	for main, group in env.table.spairs(interface) do
@@ -209,19 +212,73 @@ function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
 		end
 	end
 
-	local needsDeviceEdit = false;
+	self:CancelPendingSearch()
+
+	local queue, needsDeviceEdit = {}, false;
 	for main, group in env.table.spairs(results) do
-		if self:Render(provider, main, group, false, false, true) then
-			needsDeviceEdit = true;
+		tinsert(queue, {main = main, group = group})
+		for _, dp in ipairs(group) do
+			if dp.field.path then
+				needsDeviceEdit = true;
+			end
 		end
 	end
 
-	if needsDeviceEdit then
-		provider:InsertAtIndex(self.MakeDivider(), startIndex)
-		provider:InsertAtIndex(env.Elements.DeviceEdit:New(), startIndex)
+	if not next(queue) then
+		return onCompleted(self, nil);
 	end
-	if next(results) then
-		provider:InsertAtIndex(self.MakeTitle(self:GetSearchTitle()), startIndex)
+
+	local staging = CreateTreeDataProvider()
+	staging:Insert(self.MakeTitle(self:GetSearchTitle()))
+	if needsDeviceEdit then
+		staging:Insert(env.Elements.DeviceEdit:New())
+		staging:Insert(self.MakeDivider())
+	end
+
+	local preferCollapsed, useDeviceEdit, flattened = false, false, true;
+
+	local index = 1;
+	local function RenderChunk()
+		local deadline = debugprofilestop() + SEARCH_CHUNK_BUDGET_MS;
+		repeat -- at least one group per pass, to guarantee progress
+			local entry = queue[index];
+			if not entry then break end;
+			self:Render(staging, entry.main, entry.group, preferCollapsed, useDeviceEdit, flattened)
+			index = index + 1;
+		until index > #queue or debugprofilestop() >= deadline;
+		return index > #queue;
+	end
+
+	if RenderChunk() then
+		return onCompleted(self, staging);
+	end
+
+	self._searchTicker = C_Timer.NewTicker(0, function(ticker)
+		if RenderChunk() then
+			self._searchTicker = ticker:Cancel();
+			onCompleted(self, staging)
+		end
+	end)
+end
+
+function Renderer:CancelPendingSearch()
+	if self._searchTicker then
+		self._searchTicker = self._searchTicker:Cancel();
+	end
+end
+
+do  local function SpliceNode(source, target)
+		for _, node in ipairs(source:GetNodes()) do
+			local copy = target:Insert(node:GetData())
+			if node:IsCollapsed() then
+				copy:SetCollapsed(true)
+			end
+			SpliceNode(node, copy)
+		end
+	end
+
+	function Renderer.Splice(staging, target)
+		SpliceNode(staging:GetRootNode(), target:GetRootNode())
 	end
 end
 

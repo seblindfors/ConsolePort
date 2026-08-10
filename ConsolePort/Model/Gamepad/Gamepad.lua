@@ -394,38 +394,25 @@ end
 function GamepadAPI:GetActiveModifiers()
 	local mods = db.table.copy(self.Index.Modifier.Prefix)
 	local driver = {'[nomod] '};
-	local spairs = db.table.spairs; -- need to scan in-order
 
-	local function assertUniqueAndInOrder(...)
-		local uniques = {}
-		for i=1, select('#', ...) do
-			local v1 = select(i, ...)
-			if uniques[v1] then return end
-			uniques[v1] = true
-			for v2 in pairs(uniques) do
-				if v2 > v1 then return end
-			end
-		end
-		return true
-	end
+	local keys = {};
+	for mod in pairs(mods) do keys[#keys + 1] = mod end
+	table.sort(keys)
 
-	for M1, K1 in spairs(mods) do
-		for M2, K2 in spairs(mods) do
-			for M3, K3 in spairs(mods) do
-				if (assertUniqueAndInOrder(M1, M2, M3)) then
-					local modifier = M1..M2..M3;
-					mods[modifier] = ('%s-%s-%s'):format(K1, K2, K3)
-					tinsert(driver, ('[mod:%s] %s'):format(modifier, modifier))
-				end
-			end
-			if (assertUniqueAndInOrder(M1, M2)) then
-				local modifier = M1..M2;
-				mods[modifier] = ('%s-%s'):format(K1, K2)
-				tinsert(driver, ('[mod:%s] %s'):format(modifier, modifier))
-			end
+	-- Emit longer combinations before shorter ones, so the driver takes the most specific match.
+	local function combine(combo, chord, index)
+		for i = index + 1, #keys do
+			combine(combo..keys[i], chord and chord..'-'..mods[keys[i]] or mods[keys[i]], i)
 		end
-		tinsert(driver, ('[mod:%s] %s'):format(M1, M1))
+		if ( combo ~= '' ) then
+			if not mods[combo] then
+				mods[combo] = chord;
+			end
+			driver[#driver + 1] = ('[mod:%s] %s'):format(combo, combo)
+		end
 	end
+	combine('', nil, 0)
+
 	mods[NM] = true
 	return mods, table.concat(driver, '; ');
 end
@@ -480,13 +467,14 @@ function GamepadAPI:GetBindings(getInactive)
 
 	local bindings = {};
 	for btn in pairs(btns) do
+		local set = {}
 		for mod in pairs(mods) do
 			local binding = CPAPI.GetBindingAction(mod..btn)
-			if getInactive or binding:len() > 0 then
-				bindings[btn] = bindings[btn] or {};
-				bindings[btn][mod] = binding;
+			if getInactive or binding ~= '' then
+				set[mod] = binding
 			end
 		end
+		if next(set) then bindings[btn] = set end
 	end
 	return bindings;
 end

@@ -7,11 +7,11 @@
 local _, db = ...;
 local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', '$parentHotkeyHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
-	'MODIFIER_STATE_CHANGED';
 })
 db:Register('Hotkeys', HotkeyHandler)
+HotkeyHandler.Cache    = setmetatable({}, {__mode = 'v'})
 HotkeyHandler.Textures = CreateTexturePool(HotkeyHandler, 'ARTWORK')
-HotkeyHandler.Widgets = CreateFramePool('Frame', HotkeyHandler, nil, function(pool, self)
+HotkeyHandler.Widgets  = CreateFramePool('Frame', HotkeyHandler, nil, function(pool, self)
 	self:Hide()
 	self:ClearAllPoints()
 	if self.Release then
@@ -23,7 +23,18 @@ end)
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
+function HotkeyHandler:GetActionButtons()
+	local buttons = self.Cache.Buttons;
+	if not buttons then
+		buttons = db.Actionbar:GetActionButtons(true)
+		self.Cache.Buttons = buttons;
+	end
+	return pairs(buttons)
+end
+
 function HotkeyHandler:ADDON_LOADED(...)
+	-- clear cache on addon load, since action buttons may have been created
+	self.Cache.Buttons = nil;
 	-- need to run this on every addon loading
 	self:OnInterfaceUpdated()
 end
@@ -32,31 +43,20 @@ function HotkeyHandler:UPDATE_BINDINGS(...)
 	self:OnInterfaceUpdated()
 end
 
-function HotkeyHandler:MODIFIER_STATE_CHANGED(...)
-	for widget in self.Widgets:EnumerateActive() do
-		-- TODO: dispatch modifier
-	end
-end
-
 function HotkeyHandler:OnInterfaceUpdated()
-	-- hotkey rendering is expensive, make sure it doesn't run unnecessarily
-	if not self.timeLock then
-		self.timeLock = true
-		C_Timer.After(0.5, function()
-			self:OnActiveDeviceChanged()
-			self.timeLock = nil
-		end)
-	end
+	-- hotkey rendering is expensive, coalesce all triggers into one update
+	self:QueueHotkeyUpdate()
 end
 
-function HotkeyHandler:OnActiveDeviceChanged()
+HotkeyHandler.QueueHotkeyUpdate = CPAPI.Debounce(function(self)
 	local device = db.Gamepad:GetActiveDevice()
 	if device then
 		self:UpdateHotkeys(device)
 	end
-end
+end, HotkeyHandler)
 
-db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
+db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnInterfaceUpdated, HotkeyHandler)
+db:RegisterCallback('Settings/disableHotkeyRendering', HotkeyHandler.OnInterfaceUpdated, HotkeyHandler)
 
 ---------------------------------------------------------------
 -- API
@@ -175,7 +175,7 @@ function HotkeyHandler:Enable()
 	for _, event in ipairs(self.Events) do
 		self:RegisterEvent(event)
 	end
-	self:OnActiveDeviceChanged()
+	self:OnInterfaceUpdated()
 end
 
 ---------------------------------------------------------------
@@ -205,7 +205,7 @@ function HotkeyHandler:UpdateHotkeys(device)
 	end
 
 	-- draw on action buttons
-	for owner, action in db.Actionbar:GetActionButtons() do
+	for owner, action in self:GetActionButtons() do
 		local data = bindingToActionID[db('Actionbar/Action/'..action)]
 		if data then
 			self:GetWidget():SetData(data, owner)

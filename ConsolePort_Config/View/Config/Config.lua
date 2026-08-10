@@ -47,8 +47,9 @@ function Panel:SetEnabled(enabled)
 	self.navButton:SetEnabled(enabled)
 end
 
-function Panel:OnSearch(text, dataProvider)
-	-- query string, dataprovider to add results to
+function Panel:OnSearch(text, onCompleted)
+	-- query string, callback expecting (panel, staging dataprovider or nil)
+	onCompleted(self, nil)
 end
 
 function Panel:OnDefaults()
@@ -267,6 +268,11 @@ function Config:OnShowDelayed()
 	end
 end
 
+function Config:OnHide()
+	CPCombatHideMixin.OnHide(self)
+	self:CancelPendingSearches()
+end
+
 function Config:SetDefaultClosures()
 	self:ReleaseClosures()
 	for button, delta in pairs(self.PanelSelectDelta) do
@@ -416,19 +422,65 @@ function Config:OnSearch(text)
 	if text then
 		local _, right = self.Container:GetLists()
 		local results = right:GetDataProvider()
+		self:CancelPendingSearches()
 		results:Flush()
-		for _, panel in env:EnumeratePanels() do
-			panel:OnSearch(text, results, results.node:GetSize() + 1)
-		end
-		if results:IsEmpty() then
-			results:Insert(env.Elements.Title:New(SEARCH))
-			results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
-		end
+		self._searchTimer = C_Timer.NewTimer(0, function()
+			self._searchTimer = nil;
+			self:DispatchSearch(text, results)
+		end)
 		return;
 	end
+	self:CancelPendingSearches()
 	local currentPanel = self:GetCurrentPanel()
 	if currentPanel then
 		ExecuteFrameScript(currentPanel, 'OnShow')
+	end
+end
+
+function Config:DispatchSearch(text, results)
+	local pending, stagings = {}, {};
+	self._pendingSearch = pending;
+	for _, panel in env:EnumeratePanels() do
+		pending[panel] = true;
+	end
+	local function onCompleted(panel, staging)
+		if self._pendingSearch ~= pending then return end;
+		pending[panel] = nil;
+		stagings[panel] = staging;
+		if not next(pending) then
+			self._pendingSearch = nil;
+			self:FinalizeSearch(results, stagings)
+		end
+	end
+	for _, panel in env:EnumeratePanels() do
+		panel:OnSearch(text, onCompleted)
+	end
+end
+
+function Config:FinalizeSearch(results, stagings)
+	for _, panel in env:EnumeratePanels() do
+		local staging = stagings[panel];
+		if staging then
+			env.SettingsRenderer.Splice(staging, results)
+		end
+	end
+	if results:IsEmpty() then
+		results:Insert(env.Elements.Title:New(SEARCH))
+		results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+	end
+	local _, right = self.Container:GetLists()
+	right:GetScrollView():ReinitializeFrames()
+end
+
+function Config:CancelPendingSearches()
+	self._pendingSearch = nil;
+	if self._searchTimer then
+		self._searchTimer = self._searchTimer:Cancel();
+	end
+	for _, panel in env:EnumeratePanels() do
+		if panel.CancelPendingSearch then
+			panel:CancelPendingSearch()
+		end
 	end
 end
 

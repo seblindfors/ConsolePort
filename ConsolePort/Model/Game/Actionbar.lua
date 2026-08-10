@@ -169,7 +169,7 @@ do
 	end
 
 	function ActionBarAPI:SetIgnoreFrameForActionLookup(frame, enabled)
-		IGNORE_FRAMES[frame] = enabled
+		IGNORE_FRAMES[frame] = enabled or nil
 	end
 
 	---------------------------------------------------------------
