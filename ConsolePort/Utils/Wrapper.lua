@@ -369,6 +369,7 @@ CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
 CPAPI.IsInLFDBattlefield             = IsInLFDBattlefield or nop;
 CPAPI.IsInLFGDungeon                 = IsInLFGDungeon     or nop;
 CPAPI.IsPartyLFG                     = IsPartyLFG         or nop;
+CPAPI.IsSecret                       = issecretvalue      or nop;
 CPAPI.IsSpellOverlayed               = IsSpellOverlayed   or nop;
 CPAPI.IsXPUserDisabled               = IsXPUserDisabled   or nop;
 CPAPI.PlayerHasToy                   = PlayerHasToy       or nop;
