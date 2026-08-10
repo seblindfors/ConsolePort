@@ -9,8 +9,9 @@ local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', '$pare
 	'UPDATE_BINDINGS';
 })
 db:Register('Hotkeys', HotkeyHandler)
+HotkeyHandler.Cache    = setmetatable({}, {__mode = 'v'})
 HotkeyHandler.Textures = CreateTexturePool(HotkeyHandler, 'ARTWORK')
-HotkeyHandler.Widgets = CreateFramePool('Frame', HotkeyHandler, nil, function(pool, self)
+HotkeyHandler.Widgets  = CreateFramePool('Frame', HotkeyHandler, nil, function(pool, self)
 	self:Hide()
 	self:ClearAllPoints()
 	if self.Release then
@@ -22,7 +23,18 @@ end)
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
+function HotkeyHandler:GetActionButtons()
+	local buttons = self.Cache.Buttons;
+	if not buttons then
+		buttons = db.Actionbar:GetActionButtons(true)
+		self.Cache.Buttons = buttons;
+	end
+	return pairs(buttons)
+end
+
 function HotkeyHandler:ADDON_LOADED(...)
+	-- clear cache on addon load, since action buttons may have been created
+	self.Cache.Buttons = nil;
 	-- need to run this on every addon loading
 	self:OnInterfaceUpdated()
 end
@@ -36,16 +48,15 @@ function HotkeyHandler:OnInterfaceUpdated()
 	self:QueueHotkeyUpdate()
 end
 
-function HotkeyHandler:RefreshHotkeys()
+HotkeyHandler.QueueHotkeyUpdate = CPAPI.Debounce(function(self)
 	local device = db.Gamepad:GetActiveDevice()
 	if device then
 		self:UpdateHotkeys(device)
 	end
-end
-
-HotkeyHandler.QueueHotkeyUpdate = CPAPI.Debounce(HotkeyHandler.RefreshHotkeys, HotkeyHandler)
+end, HotkeyHandler)
 
 db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnInterfaceUpdated, HotkeyHandler)
+db:RegisterCallback('Settings/disableHotkeyRendering', HotkeyHandler.OnInterfaceUpdated, HotkeyHandler)
 
 ---------------------------------------------------------------
 -- API
@@ -194,7 +205,7 @@ function HotkeyHandler:UpdateHotkeys(device)
 	end
 
 	-- draw on action buttons
-	for owner, action in db.Actionbar:GetActionButtons() do
+	for owner, action in self:GetActionButtons() do
 		local data = bindingToActionID[db('Actionbar/Action/'..action)]
 		if data then
 			self:GetWidget():SetData(data, owner)
