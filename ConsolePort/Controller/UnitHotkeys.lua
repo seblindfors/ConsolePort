@@ -70,7 +70,7 @@ end
 local UH    = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton, {'PLAYER_ENTERING_WORLD'}), CPAPI.SecureEnvironmentMixin)
 local Scan  = db.Scan;
 local Input = ConsolePortEasyMotionInput;
-UH.UnitDrivers, UH.UnitFrames = {}, {};
+UH.Assignments, UH.UnitDrivers, UH.UnitFrames = {}, {}, {};
 
 UH:Run([[bindRef = %q;
 	-- Unit and binding tables
@@ -156,15 +156,17 @@ UH:CreateEnvironment({
 
 	AssignUnits = [[
 		lookup = wipe(lookup)
+		local assignments = '';
 		for i, unit in ipairs(sorted) do
 			local binding = sequence[i];
 			if binding then
 				lookup[binding] = unit;
 				if UnitExists(unit) then
-					self:::AssignUnit(binding, unit)
+					assignments = assignments .. binding .. ' ' .. unit .. ';';
 				end
 			end
 		end
+		self:::SetAssignments(assignments)
 	]];
 
 	GetCommand = [[
@@ -403,15 +405,18 @@ db:RegisterCallbacks(UH.OnDisplaySettingsChanged, UH,
 ---------------------------------------------------------------
 -- Frontend frame tracking
 ---------------------------------------------------------------
-function UH:AssignUnit(binding, unitID)
-	self.UnitDrivers[unitID] = binding;
+function UH:SetAssignments(assignments)
+	local active = wipe(self.Assignments);
+	for binding, unitID in assignments:gmatch('(%d+) ([^;]+);') do
+		active[unitID] = tonumber(binding);
+	end
 	self:QueueUnitFrameRefresh()
 end
 
 function UH:RefreshUnitFrames()
 	local cache = Scan:GetCache(Scan.UnitFrames)
 	for frame, unitID in pairs(cache) do
-		if self.UnitDrivers[unitID] then
+		if self.Assignments[unitID] then
 			self:AddTrackedUnitFrame(unitID, frame)
 		end
 	end
@@ -451,7 +456,7 @@ function UH:GetUnitFramesForUnit(unitID)
 end
 
 function UH:GetActiveUnitIDs()
-	return pairs(tFilter(self.UnitDrivers, tonumber))
+	return pairs(self.Assignments)
 end
 
 function UH:GetNamePlateForUnit(unitID)

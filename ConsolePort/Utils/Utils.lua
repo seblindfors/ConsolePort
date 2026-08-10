@@ -395,7 +395,10 @@ end
 -- Debounce
 ---------------------------------------------------------------
 do local __tCount, __tID, __tTime = 0, 'task', '__time_';
-	local function Execute(self, task, callback)
+	local function Execute(self, task, timer, callback)
+		if self[timer] and self[timer] > GetTime() then
+			self[timer] = nil;
+		end
 		if not self[task] then
 			self[task] = true;
 			RunNextFrame(callback)
@@ -418,7 +421,7 @@ do local __tCount, __tID, __tTime = 0, 'task', '__time_';
 		local task    = __tID .. __tCount;
 		local timer   = task  .. __tTime;
 		local handler = GenerateClosure(Handler, owner, task, timer, callback, {...})
-		local execute = GenerateClosure(Execute, owner, task, handler)
+		local execute = GenerateClosure(Execute, owner, task, timer, handler)
 		local cancel  = GenerateClosure(Cancel,  owner, task, timer)
 		return setmetatable({
 			Execute = execute;

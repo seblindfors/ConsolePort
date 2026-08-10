@@ -50,6 +50,29 @@ do	local HasScript, GetScript = Scan.HasScript, Scan.GetScript;
 	end
 end
 
+---------------------------------------------------------------
+-- Unit frame attribution
+---------------------------------------------------------------
+-- Keeps the unit frame cache correct when secure headers
+-- reassign unit attributes without firing a scanned event.
+local HookUnitFrame;
+do	local hooked = {};
+	local function OnUnitChanged(frame, attribute)
+		if ( attribute ~= 'unit' ) then return end;
+		local unit = GetUnitForFrame(frame)
+		if ( Cache[Widgets.UnitFrames][frame] ~= unit ) then
+			Cache[Widgets.UnitFrames][frame] = unit;
+			Scan:QueueAttributionUpdate()
+		end
+	end
+	HookUnitFrame = function(frame)
+		if not hooked[frame] then
+			hooked[frame] = true;
+			frame:HookScript('OnAttributeChanged', OnUnitChanged)
+		end
+	end
+end
+
 local ScanGlobal, ScanFrames;
 do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Scan.IsProtected;
 	ScanFrames = function(collect, node, iterator, includeAll)
@@ -74,6 +97,9 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		Cache[Widgets.Any][node] = false;
 		if widgetType then
 			Cache[widgetType][node] = value;
+			if ( widgetType == Widgets.UnitFrames ) then
+				HookUnitFrame(node)
+			end
 		end
 	end
 
@@ -118,6 +144,10 @@ Scan.CINEMATIC_STOP        = Scan.GROUP_ROSTER_UPDATE;
 ---------------------------------------------------------------
 Scan.Refresh = ScanGlobal;
 Scan.Execute = ScanFrames;
+
+Scan.QueueAttributionUpdate = CPAPI.Debounce(function(self)
+	db:TriggerEvent('OnScanUpdate', Widgets.UnitFrames, Cache[Widgets.UnitFrames])
+end, Scan)
 
 function Scan:RegisterCallback(widgetType, callback, owner)
 	widgetType = widgetType or Widgets.Any;
