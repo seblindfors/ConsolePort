@@ -278,6 +278,7 @@ function Setting:OnRelease()
 end
 
 function Setting:OnDependencyChanged()
+	if not self.metaData then return end;
 	local isShown = not self.metaData.hide;
 	local newExtent = isShown and self.size.y or 0;
 	self:GetElementData():GetData().extent = newExtent;

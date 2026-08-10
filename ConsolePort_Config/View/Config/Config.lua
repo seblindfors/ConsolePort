@@ -468,6 +468,8 @@ function Config:FinalizeSearch(results, stagings)
 		results:Insert(env.Elements.Title:New(SEARCH))
 		results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
 	end
+	local _, right = self.Container:GetLists()
+	right:GetScrollView():ReinitializeFrames()
 end
 
 function Config:CancelPendingSearches()
