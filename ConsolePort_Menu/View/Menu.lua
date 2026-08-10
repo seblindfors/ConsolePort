@@ -120,7 +120,7 @@ do -- Skinning
 	local SkinGameMenu = GameMenu and GameMenu.Border and GameMenu.Header and function()
 			GameMenu.Border:SetShown(false)
 			GameMenu.Header:SetShown(false)
-			GameMenuFrameConsolePort:SetPoint('TOP', 0, 20)
+			GameMenuFrameConsolePort:SetPoint('TOP', 0, CPAPI.IsRetailVersion and 20 or 50)
 		end or GameMenuFrame and GameMenuFrame.Header and GameMenuFrame.Border and function()
 			GameMenuFrame.Header:SetShown(false)
 			NineSliceUtil.SetLayoutShown(GameMenuFrame.Border, false)
@@ -129,17 +129,22 @@ do -- Skinning
 			NineSliceUtil.SetLayoutShown(GameMenu, false)
 		end or nop;
 
+	local X_O = CPAPI.IsRetailVersion and 100 or 80;
+	local Y_O = CPAPI.IsRetailVersion and 250 or 160;
+	local T_O = CPAPI.IsRetailVersion and 116 or 60;
+	local B_O = CPAPI.IsRetailVersion and 112 or 54;
+	
 	Menu.Owners = {
 		[GameMenu] = {
-			tlX = -100, tlY =  270, brX =  100, brY = -250;
-			ltY =  116, lbY = -112;
+			tlX = -X_O, tlY = Y_O + 20, brX = X_O, brY = -Y_O;
+			ltY =  T_O, lbY = -B_O;
 			isRing   = false;
 			visible  = false;
 			callback = SkinGameMenu;
 		};
 		[MenuRing] = {
 			tlX = -700, tlY =  350, brX =  700, brY = -350;
-			ltY =  164, lbY = -178;
+			ltY =  168, lbY = -184;
 			isRing  = true;
 			visible = false;
 		};
