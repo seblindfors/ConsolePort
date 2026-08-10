@@ -89,6 +89,9 @@ local function ReleaseSetting(_, self)
 	if self.Reset then
 		self:Reset()
 	end
+	if self.deleteButtonPool then
+		self.deleteButtonPool:ReleaseAll()
+	end
 	self.children, self.owner, self.pendingChildren = nil, nil, nil;
 end
 
@@ -494,7 +497,9 @@ function Mutable:OnDelete(path, owner)
 	env(path, nil)
 	self.controller:Remove(GetEndpoint(path))
 	env:TriggerPathEvent(self.variableID, 'OnDelete', path)
-	self.children[owner] = nil;
+	if self.children then
+		self.children[owner] = nil;
+	end
 	owner:Hide()
 end
 
