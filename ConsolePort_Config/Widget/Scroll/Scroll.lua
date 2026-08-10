@@ -133,7 +133,13 @@ function CPScrollBoxSettingsTree:InitDefault()
 		if ( info.xml ~= XML_SETTING_TEMPLATE ) then
 			return factory(info.xml, info.init)
 		end
-		SettingFactory(scrollView, info)
+		if scrollView:IsAcquireLocked() then
+			-- real acquisition; use hacky pooling by data type
+			SettingFactory(scrollView, info)
+		else
+			-- probe for template and initializer; must not create frames
+			factory(info.xml, info.init)
+		end
 	end)
 
 	-- Not entirely sure why this override is necessary, but without
