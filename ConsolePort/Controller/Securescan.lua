@@ -74,12 +74,16 @@ do	local hooked = {};
 	end
 end
 
+---------------------------------------------------------------
+-- Global scanning
+---------------------------------------------------------------
 local ScanGlobal, ScanFrames;
 do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Scan.IsProtected;
 	local debugprofilestop = debugprofilestop;
 	local SCAN_BUDGET_MS   = 1.5;
-	local SCAN_GRANULARITY = 100;
+	local SCAN_GRANULARITY = 10;
 
+	-- Classification
 	local function ClassifyNode(collect, node)
 		local action = GetActionForFrame(node)
 		if action then
@@ -105,6 +109,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		end
 	end;
 
+	-- Caches
 	local Seen, StagedSeen, Discovered, Staging = {}, {}, {}, {};
 	for _, typeIndex in pairs(Widgets) do
 		Staging[typeIndex] = {};
@@ -117,6 +122,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		end
 	end
 
+	-- Discovery
 	local function StageDiscoveredNodes()
 		for node in pairs(Discovered) do
 			Discovered[node] = nil;
@@ -127,6 +133,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		end
 	end
 
+	-- Commit
 	local function CommitGlobalScan(self)
 		StageDiscoveredNodes()
 		for node in pairs(StagedSeen) do
@@ -140,6 +147,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 				if ( cache[node] ~= value ) then
 					cache[node] = value;
 					if ( typeIndex == Widgets.UnitFrames ) then
+						HookUnitFrame(node)
 						unitChanges = true;
 					else
 						newNodes = true;
@@ -148,9 +156,6 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 			end
 			wipe(staged)
 		end
-		for node in pairs(Cache[Widgets.UnitFrames]) do
-			HookUnitFrame(node)
-		end
 		if newNodes then
 			self:FireCallbacks(Widgets.Any)
 		elseif unitChanges then
@@ -158,6 +163,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		end
 	end
 
+	-- Sliced global scan
 	local function SliceGlobalScan(self)
 		local node, count = self.scanCursor, SCAN_GRANULARITY;
 		local expires = debugprofilestop() + SCAN_BUDGET_MS;
@@ -171,7 +177,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 			node = EnumerateFrames(node)
 			count = count - 1;
 			if ( count <= 0 ) then
-				if ( debugprofilestop() > expires ) then
+				if ( debugprofilestop() >= expires ) then
 					self.scanCursor = node;
 					return
 				end
@@ -186,6 +192,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		end
 	end
 
+	-- Start / stop
 	function Scan:StartGlobalScan()
 		for _, staged in pairs(Staging) do
 			wipe(staged)
@@ -200,6 +207,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		self:SetScript('OnUpdate', nil)
 	end
 
+	-- Global scan request
 	ScanGlobal = CPAPI.Debounce(function(self)
 		if InCombatLockdown() then
 			self.scanQueued = true;
@@ -214,29 +222,32 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 	-----------------------------------------------------------
 	-- Scan passes skip frames they have already seen, so frames
 	-- that change role after their first classification are
-	-- requeued here. SecureUnitButton_OnLoad runs on every
+	-- requeued here.
+	--
+	-- SecureUnitButton_OnLoad runs on every
 	-- CompactUnitFrame_SetUnit and on setup of all non-compact
-	-- Blizzard unit frames; RegisterUnitWatch covers addon
-	-- frames spawned outside secure group headers.
+	-- Blizzard unit frames.
+	--
+	-- RegisterUnitWatch covers addon frames spawned outside
+	-- secure group headers.
 
 	Scan.QueueDiscovery = CPAPI.Debounce(function(self)
-		if InCombatLockdown() or self.scanCursor then
-			return -- committed on regen or at the end of the running scan
-		end
+		if not next(Discovered) or InCombatLockdown() or self.scanCursor then return end;
 		CommitGlobalScan(self)
 	end, Scan)
 
 	local function QueueNodeDiscovery(node)
-		local isUsableFrame = type(node) == 'table' and node.IsForbidden and not Scrub(node:IsForbidden())
-		if not isUsableFrame then
-			return
-		end
+		if not C_Widget.IsFrameWidget(node) or Scrub(node:IsForbidden()) then return end;
 		Discovered[node] = true;
 		Scan:QueueDiscovery()
 	end
 
 	hooksecurefunc('SecureUnitButton_OnLoad', QueueNodeDiscovery)
 	hooksecurefunc('RegisterUnitWatch', QueueNodeDiscovery)
+
+	function Scan:HasPendingDiscovery()
+		return next(Discovered) ~= nil;
+	end
 end
 
 ---------------------------------------------------------------
@@ -259,9 +270,11 @@ function Scan:PLAYER_REGEN_DISABLED()
 end
 
 function Scan:PLAYER_REGEN_ENABLED()
-	self:QueueDiscovery()
 	if self.scanQueued then
-		ScanGlobal()
+		return ScanGlobal()
+	end
+	if self:HasPendingDiscovery() then
+		self:QueueDiscovery()
 	end
 end
 
