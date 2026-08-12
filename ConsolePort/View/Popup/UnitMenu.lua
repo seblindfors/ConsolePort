@@ -96,7 +96,9 @@ function UnitMenu:AddAdditionalContextData(contextData)
 	---@see UnitPopupShared.lua:UnitPopupManager:OpenMenu
 	contextData.name, contextData.server = UnitNameUnmodified(contextData.unit);
 	contextData.playerLocation = UnitPopupSharedUtil.TryCreatePlayerLocation(contextData);
-	contextData.accountInfo = UnitPopupSharedUtil.GetBNetAccountInfo(contextData);
+	if not CPAPI.IsSecret(UnitGUID(contextData.unit)) then
+		contextData.accountInfo = UnitPopupSharedUtil.GetBNetAccountInfo(contextData);
+	end
 	contextData.isMobile = UnitPopupSharedUtil.GetIsMobile(contextData);
 end
 
