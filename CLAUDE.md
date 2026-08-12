@@ -411,7 +411,7 @@ db:UnregisterCallback('OnNewBindings', self)
 **Layer 3 — Local Environment Events:** Sub-addons scope events to their `env`:
 
 ```lua
-LibStub('RelaTable')(name, env, false);  -- false = don't hook EventRegistry
+LibStub('RelaTable')(name, env);
 env:TriggerEvent('OnButtonFocus', self, true)
 ```
 
