@@ -106,6 +106,7 @@ do
 	local IGNORE_FRAMES     = ActionBarAPI.Lookup.Ignore;
 	local IsFrameWidget     = C_Widget.IsFrameWidget;
 	local Frame             = GetFrameMetatable().__index;
+	local Scrub             = CPAPI.Scrub;
 
 	-- Helpers:
 	local function GetContainer(this)
@@ -114,11 +115,9 @@ do
 	end
 
 	local function ValidateActionID(this)
-		local isProtected, type, action = CPAPI.Scrub(
-			Frame.IsProtected(this),
-			Frame.GetObjectType(this),
-			Frame.GetAttribute(this, 'action'))
-		return (isProtected and type and VALID_BUTTON_TYPE[type]) and action;
+		if not Scrub(Frame.IsProtected(this)) then return end
+		if not VALID_BUTTON_TYPE[Scrub(Frame.GetObjectType(this))] then return end
+		return Scrub(Frame.GetAttribute(this, 'action'))
 	end
 
 	local function IsActionButton(this, action)
@@ -138,16 +137,22 @@ do
 	end
 
 	-- Scanner:
-	local function FindActionButtons(callback, cache, this, sibling, ...)
-		if sibling then FindActionButtons(callback, cache, sibling, ...) end
+	local FindActionButtons;
+	local function ScanChildren(callback, cache, ...)
+		for i = 1, select('#', ...) do
+			FindActionButtons(callback, cache, (select(i, ...)))
+		end
+		return cache
+	end
+
+	function FindActionButtons(callback, cache, this)
 		if not IsFrameWidget(this) or Frame.IsForbidden(this) or IGNORE_FRAMES[this] then return cache end
 		-------------------------------------
 		local action = ValidateActionID(this)
 		if IsActionButton(this, action) and callback(cache, this, action) then
 			return cache
 		end
-		FindActionButtons(callback, cache, Frame.GetChildren(this))
-		return cache
+		return ScanChildren(callback, cache, Frame.GetChildren(this))
 	end
 
 	---------------------------------------------------------------
