@@ -405,5 +405,5 @@ GameMenuFrame:HookScript('OnShow', GenerateClosure(SpellMenu.Hide, SpellMenu))
 ---------------------------------------------------------------
 db:RegisterCallback('OnCursorChanged', SpellMenu.OnCursorChanged, SpellMenu)
 db:RegisterCallback('OnSlotRequest', SpellMenu.OnSlotRequest, SpellMenu)
-db:RegisterCallback('PlayerSpellsFrame.OpenFrame', SpellMenu.SetBackgroundAlpha, SpellMenu, 0.95)
-db:RegisterCallback('PlayerSpellsFrame.CloseFrame', SpellMenu.SetBackgroundAlpha, SpellMenu, 0.75)
+EventRegistry:RegisterCallback('PlayerSpellsFrame.OpenFrame', SpellMenu.SetBackgroundAlpha, SpellMenu, 0.95)
+EventRegistry:RegisterCallback('PlayerSpellsFrame.CloseFrame', SpellMenu.SetBackgroundAlpha, SpellMenu, 0.75)
