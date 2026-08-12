@@ -533,7 +533,7 @@ end
 ---------------------------------------------------------------
 UH.QueueDisplayBindings = CPAPI.Debounce(UH.DisplayBindings, UH)
 UH.QueueUnitFrameRefresh = CPAPI.Debounce(UH.RefreshAll, UH)
-db:RegisterCallback('OnScanUpdate', UH.RefreshAll, UH)
+db:RegisterCallback('OnScanUpdate', function(self) self:QueueUnitFrameRefresh() end, UH)
 
 function UH:SecureRefreshDisplayBindings()
 	self:QueueDisplayBindings()
