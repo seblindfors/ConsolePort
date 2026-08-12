@@ -105,16 +105,19 @@ do -- Skinning
 		end)
 	end
 
-	function Menu:UpdateMasks(useSquareMask)
-		if self.useSquareMask == useSquareMask then return end;
-		if not useSquareMask then
-			self.Gradient:AddMaskTexture(self.LineMask)
-			self.Background:AddMaskTexture(self.LineMask)
-		else
-			self.Gradient:RemoveMaskTexture(self.LineMask)
-			self.Background:RemoveMaskTexture(self.LineMask)
+	-- Textures can only hold a limited number of masks, so swap
+	-- between the ring and line masks instead of stacking them.
+	function Menu:UpdateMasks(isRing)
+		if ( self.isRingMasked == isRing ) then return end;
+		local addMask    = isRing and self.InnerMask or self.LineMask;
+		local removeMask = isRing and self.LineMask  or self.InnerMask;
+		for _, texture in ipairs({self.Gradient, self.Background}) do
+			if ( self.isRingMasked ~= nil ) then
+				texture:RemoveMaskTexture(removeMask)
+			end
+			texture:AddMaskTexture(addMask)
 		end
-		self.useSquareMask = useSquareMask;
+		self.isRingMasked = isRing;
 	end
 
 	local SkinGameMenu = GameMenu and GameMenu.Border and GameMenu.Header and function()
