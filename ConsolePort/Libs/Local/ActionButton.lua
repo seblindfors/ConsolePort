@@ -504,7 +504,7 @@ Lib.RoundGlow.unusedOverlays = Lib.RoundGlow.unusedOverlays or {}
 Lib.RoundGlow.numOverlays = Lib.RoundGlow.numOverlays or 0
 
 local tinsert, tremove, tostring = table.insert, table.remove, tostring
-local AnimateTexCoords = AnimateTexCoords
+local AnimateTexCoords = TextureUtil and TextureUtil.AnimateTexCoords or AnimateTexCoords;
 
 local function OverlayGlowAnimOutFinished(animGroup)
 	local overlay = animGroup:GetParent()
