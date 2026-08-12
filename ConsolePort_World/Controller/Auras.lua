@@ -1,3 +1,4 @@
+if CPAPI.IsRetailVersion then return end; -- TODO: figure out wtf happened on Retail
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local BUFF_CANCEL_ROW_INDEX = env.QMenuID();
@@ -147,7 +148,7 @@ end
 ---------------------------------------------------------------
 env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 	local function CreateHeader(index, filter, title)
-		local frame = CreateFrame('Frame', '$parentAuras'..index, QMenu, 'CPQMenuAuraHeader')
+		local frame = CreateFrame('Frame', '$parentAuras'..index, QMenu, 'CPQMenuAuraHeader,SecureAuraHeaderTemplate')
 		frame:SetAttribute('filter', filter)
 		CPAPI.Specialize(frame, Header)
 		frame:SetTitle(title);

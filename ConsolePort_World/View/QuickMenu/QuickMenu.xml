@@ -94,7 +94,7 @@
 		</Attributes>
 	</Frame>
 
-	<Frame name="CPQMenuAuraHeader" inherits="QMenuRowAttributes, SecureAuraHeaderTemplate" hidden="false" virtual="true">
+	<Frame name="CPQMenuAuraHeader" inherits="QMenuRowAttributes" hidden="false" virtual="true">
 		<Attributes>
 			<Attribute name="skipHeightCalc" value="true" type="boolean"/>
 			<Attribute name="sortDirection" value="+" type="string"/>
