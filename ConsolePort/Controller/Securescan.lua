@@ -38,14 +38,15 @@ do	local HasScript, GetScript = Scan.HasScript, Scan.GetScript;
 	end
 
 	function GetUnitForFrame(frame)
-		if (( IsUnitButton(frame) or IsClickType(frame, 'target')) and GetRaw(frame, 'unit')) then
+		if ( GetRaw(frame, 'unit') and ( IsUnitButton(frame) or IsClickType(frame, 'target') )) then
 			return GetModifiedUnit(frame)
 		end
 	end
 
 	function GetActionForFrame(frame)
-		if ( IsActionButton(frame) or IsClickType(frame, 'action')) then
-			return tonumber(GetAttribute(frame, 'action'))
+		local action = tonumber(GetAttribute(frame, 'action'))
+		if ( action and ( IsActionButton(frame) or IsClickType(frame, 'action') )) then
+			return action;
 		end
 	end
 end
@@ -81,11 +82,14 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 				if includeAll then
 					collect(node)
 				else
-					local unit, action = GetUnitForFrame(node), GetActionForFrame(node);
-					if unit and not action then
-						collect(node, Widgets.UnitFrames, unit)
-					elseif action then
+					local action = GetActionForFrame(node)
+					if action then
 						collect(node, Widgets.ActionBars, action)
+					else
+						local unit = GetUnitForFrame(node)
+						if unit then
+							collect(node, Widgets.UnitFrames, unit)
+						end
 					end
 				end
 			end
