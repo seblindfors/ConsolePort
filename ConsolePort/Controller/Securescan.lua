@@ -193,11 +193,10 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 	end
 
 	-- Start / stop
+	-- Staging is not wiped here: a commit is the only consumer,
+	-- so anything staged belongs to an aborted scan, and keeping
+	-- it lets the restarted pass skip already-classified frames.
 	function Scan:StartGlobalScan()
-		for _, staged in pairs(Staging) do
-			wipe(staged)
-		end
-		wipe(StagedSeen)
 		self.scanCursor = EnumerateFrames();
 		self:SetScript('OnUpdate', SliceGlobalScan)
 	end
