@@ -76,48 +76,104 @@ end
 
 local ScanGlobal, ScanFrames;
 do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Scan.IsProtected;
+	local debugprofilestop = debugprofilestop;
+	local SCAN_BUDGET_MS   = 1.5;
+	local SCAN_GRANULARITY = 100;
+
+	local function ClassifyNode(collect, node)
+		local action = GetActionForFrame(node)
+		if action then
+			collect(node, Widgets.ActionBars, action)
+		else
+			local unit = GetUnitForFrame(node)
+			if unit then
+				collect(node, Widgets.UnitFrames, unit)
+			end
+		end
+	end
+
 	ScanFrames = function(collect, node, iterator, includeAll)
 		while node do
 			if Scrub(IsProtected(node)) then
 				if includeAll then
 					collect(node)
 				else
-					local action = GetActionForFrame(node)
-					if action then
-						collect(node, Widgets.ActionBars, action)
-					else
-						local unit = GetUnitForFrame(node)
-						if unit then
-							collect(node, Widgets.UnitFrames, unit)
-						end
-					end
+					ClassifyNode(collect, node)
 				end
 			end
 			node = iterator(node)
 		end
 	end;
 
-	local function ScanLocal(node, widgetType, value)
-		Cache[Widgets.Any][node] = false;
+	local Staging = {};
+	for _, typeIndex in pairs(Widgets) do
+		Staging[typeIndex] = {};
+	end
+
+	local function StageNode(node, widgetType, value)
+		Staging[Widgets.Any][node] = false;
 		if widgetType then
-			Cache[widgetType][node] = value;
-			if ( widgetType == Widgets.UnitFrames ) then
-				HookUnitFrame(node)
-			end
+			Staging[widgetType][node] = value;
 		end
 	end
 
-	ScanGlobal = CPAPI.Debounce(function(self, collector)
+	local function CommitGlobalScan(self)
+		self:WipeCache()
+		for typeIndex, staged in pairs(Staging) do
+			local cache = Cache[typeIndex];
+			for node, value in pairs(staged) do
+				cache[node] = value;
+			end
+			wipe(staged)
+		end
+		for node in pairs(Cache[Widgets.UnitFrames]) do
+			HookUnitFrame(node)
+		end
+		self:FireCallbacks(Widgets.Any)
+	end
+
+	local function SliceGlobalScan(self)
+		local node, count = self.scanCursor, SCAN_GRANULARITY;
+		local expires = debugprofilestop() + SCAN_BUDGET_MS;
+		while node do
+			if Scrub(IsProtected(node)) then
+				ClassifyNode(StageNode, node)
+			end
+			node = EnumerateFrames(node)
+			count = count - 1;
+			if ( count <= 0 ) then
+				if ( debugprofilestop() > expires ) then
+					self.scanCursor = node;
+					return
+				end
+				count = SCAN_GRANULARITY;
+			end
+		end
+		self:StopGlobalScan()
+		if not InCombatLockdown() then
+			CommitGlobalScan(self)
+		end
+	end
+
+	function Scan:StartGlobalScan()
+		for _, staged in pairs(Staging) do
+			wipe(staged)
+		end
+		self.scanCursor = EnumerateFrames();
+		self:SetScript('OnUpdate', SliceGlobalScan)
+	end
+
+	function Scan:StopGlobalScan()
+		self.scanCursor = nil;
+		self:SetScript('OnUpdate', nil)
+	end
+
+	ScanGlobal = CPAPI.Debounce(function(self)
 		if InCombatLockdown() then
 			return CPAPI.Log('Raid cursor scan failed due to combat lockdown. Waiting for combat to end...')
 		end
-		for _, typeIndex in pairs(Widgets) do
-			wipe(Cache[typeIndex]);
-		end
-		self:WipeCache()
-		ScanFrames(collector, EnumerateFrames(), EnumerateFrames, false)
-		self:FireCallbacks(Widgets.Any)
-	end, Scan, ScanLocal);
+		self:StartGlobalScan()
+	end, Scan);
 end
 
 ---------------------------------------------------------------
@@ -131,6 +187,7 @@ end
 
 function Scan:PLAYER_REGEN_DISABLED()
 	ScanGlobal.Cancel()
+	self:StopGlobalScan()
 end
 
 function Scan:OnDataLoaded()
