@@ -346,6 +346,7 @@ CPAPI.IsEquippedItem                 = C_Item          and C_Item.IsEquippedItem
 CPAPI.IsFactionParagon               = C_Reputation    and C_Reputation.IsFactionParagonForCurrentPlayer or nop;
 CPAPI.IsMajorFaction                 = C_Reputation    and C_Reputation.IsMajorFaction                   or nop;
 CPAPI.IsPassiveSpell                 = C_Spell         and C_Spell.IsSpellPassive                        or IsPassiveSpell;
+CPAPI.IsPlayerAtEffectiveMaxLevel    = GameRulesUtil   and GameRulesUtil.IsPlayerAtEffectiveMaxLevel     or IsPlayerAtEffectiveMaxLevel;
 CPAPI.IsSpellBookItemPassive         = C_SpellBook     and C_SpellBook.IsSpellBookItemPassive            or IsPassiveSpell;
 CPAPI.IsSpellHarmful                 = C_Spell         and C_Spell.IsSpellHarmful                        or IsHarmfulSpell;
 CPAPI.IsSpellHelpful                 = C_Spell         and C_Spell.IsSpellHelpful                        or IsHelpfulSpell;
