@@ -1,4 +1,4 @@
-## Interface: 120007, 50504, 38010, 20506, 11509
+## Interface: 120100, 50504, 38010, 20506, 11509
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Rings|r
 ## Notes: Rings module
