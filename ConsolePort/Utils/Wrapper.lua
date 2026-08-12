@@ -600,7 +600,7 @@ end
 
 CPAPI.GetAllMacroInfo = function()
 	local info = {};
-	for i = 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
+	for i = 1, CPAPI.MAX_ACCOUNT_MACROS + CPAPI.MAX_CHARACTER_MACROS do
 		info[i] = CPAPI.GetMacroInfo(i);
 	end
 	return info;

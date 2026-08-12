@@ -448,7 +448,7 @@ LoadoutInfo.Collectors = {
 	-----------------------------------------------------------
 		local macros, numMacros, numCharMacros = {{}, {}}, GetNumMacros()
 		-- Character macros
-		for i=MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + numCharMacros do
+		for i=CPAPI.MAX_ACCOUNT_MACROS + 1, CPAPI.MAX_ACCOUNT_MACROS + numCharMacros do
 			macros[1][#macros[1]+1] = i;
 		end
 		-- Account macros

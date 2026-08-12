@@ -11,8 +11,6 @@ CPAPI.IsAnniVersion       = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSI
 ---------------------------------------------------------------
 -- Button
 ---------------------------------------------------------------
-CPAPI.ExtraActionButtonID = (ExtraActionButton1 or {}).action or CPAPI.IsRetailVersion and 217 or 169;
-
 CPAPI.ActionTypeRelease   = 'typerelease';
 CPAPI.ActionTypePress     = 'type';
 CPAPI.ActionPressAndHold  = 'pressAndHoldAction';
@@ -25,6 +23,14 @@ CPAPI.UseCustomFlyout     = 'usegamepadflyout';
 
 CPAPI.RaidCursorUnit      = 'cursorunit';
 CPAPI.ActionButtonGUID    = tostring(random((select(4, GetBuildInfo()))));
+
+
+---------------------------------------------------------------
+-- Game constants
+---------------------------------------------------------------
+CPAPI.ExtraActionButtonID  = (ExtraActionButton1 or {}).action or CPAPI.IsRetailVersion and 217 or 169;
+CPAPI.MAX_ACCOUNT_MACROS   = MAX_ACCOUNT_MACROS or Constants.MacroConsts.MAX_ACCOUNT_MACROS;
+CPAPI.MAX_CHARACTER_MACROS = MAX_CHARACTER_MACROS or Constants.MacroConsts.MAX_CHARACTER_MACROS;
 
 ---------------------------------------------------------------
 -- Addon
