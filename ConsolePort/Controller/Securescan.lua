@@ -78,10 +78,10 @@ end
 -- Global scanning
 ---------------------------------------------------------------
 local ScanGlobal, ScanFrames;
-do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Scan.IsProtected;
+do	local Scrub, IsProtected, IsForbidden, GetChildren =
+		CPAPI.Scrub, Scan.IsProtected, Scan.IsForbidden, Scan.GetChildren;
 	local debugprofilestop = debugprofilestop;
-	local SCAN_BUDGET_MS   = 1.5;
-	local SCAN_GRANULARITY = 10;
+	local SCAN_BUDGET_MS = 1.5; -- max processing time per frame
 
 	-- Classification
 	local function ClassifyNode(collect, node)
@@ -109,8 +109,8 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		end
 	end;
 
-	-- Caches
-	local Seen, StagedSeen, Discovered, Staging = {}, {}, {}, {};
+	-- Staging
+	local Staging = {};
 	for _, typeIndex in pairs(Widgets) do
 		Staging[typeIndex] = {};
 	end
@@ -122,66 +122,49 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		end
 	end
 
-	-- Discovery
-	local function StageDiscoveredNodes()
-		for node in pairs(Discovered) do
-			Discovered[node] = nil;
-			Seen[node] = true;
-			if Scrub(IsProtected(node)) then
-				ClassifyNode(StageNode, node)
-			end
-		end
-	end
-
 	-- Commit
 	local function CommitGlobalScan(self)
-		StageDiscoveredNodes()
-		for node in pairs(StagedSeen) do
-			StagedSeen[node] = nil;
-			Seen[node] = true;
-		end
-		local newNodes, unitChanges;
 		for typeIndex, staged in pairs(Staging) do
-			local cache = Cache[typeIndex];
+			local cache = wipe(Cache[typeIndex]);
 			for node, value in pairs(staged) do
-				if ( cache[node] ~= value ) then
-					cache[node] = value;
-					if ( typeIndex == Widgets.UnitFrames ) then
-						HookUnitFrame(node)
-						unitChanges = true;
-					else
-						newNodes = true;
-					end
-				end
+				cache[node] = value;
 			end
 			wipe(staged)
 		end
-		if newNodes then
-			self:FireCallbacks(Widgets.Any)
-		elseif unitChanges then
-			self:QueueAttributionUpdate()
+		for node in pairs(Cache[Widgets.UnitFrames]) do
+			HookUnitFrame(node)
+		end
+		self:FireCallbacks(Widgets.Any)
+	end
+
+	-- Depth-first walk of the configured container trees,
+	-- resumable across frames when the time budget runs out.
+	local ScanStack, scanDepth = {}, 0;
+
+	local function PushChildren(...)
+		for i = 1, select('#', ...) do
+			local child = select(i, ...);
+			if child then
+				scanDepth = scanDepth + 1;
+				ScanStack[scanDepth] = child;
+			end
 		end
 	end
 
-	-- Sliced global scan
 	local function SliceGlobalScan(self)
-		local node, count = self.scanCursor, SCAN_GRANULARITY;
 		local expires = debugprofilestop() + SCAN_BUDGET_MS;
-		while node do
-			if not ( Seen[node] or StagedSeen[node] ) then
-				StagedSeen[node] = true;
+		while ( scanDepth > 0 ) do
+			local node = ScanStack[scanDepth];
+			ScanStack[scanDepth] = nil;
+			scanDepth = scanDepth - 1;
+			if not Scrub(IsForbidden(node)) then
 				if Scrub(IsProtected(node)) then
 					ClassifyNode(StageNode, node)
 				end
+				PushChildren(Scrub(GetChildren(node)))
 			end
-			node = EnumerateFrames(node)
-			count = count - 1;
-			if ( count <= 0 ) then
-				if ( debugprofilestop() >= expires ) then
-					self.scanCursor = node;
-					return
-				end
-				count = SCAN_GRANULARITY;
+			if ( debugprofilestop() > expires ) then
+				return -- over budget; nodes are never processed partially
 			end
 		end
 		self:StopGlobalScan()
@@ -193,17 +176,32 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 	end
 
 	-- Start / stop
-	-- Staging is not wiped here: a commit is the only consumer,
-	-- so anything staged belongs to an aborted scan, and keeping
-	-- it lets the restarted pass skip already-classified frames.
 	function Scan:StartGlobalScan()
-		self.scanCursor = EnumerateFrames();
+		for _, staged in pairs(Staging) do
+			wipe(staged)
+		end
+		wipe(ScanStack)
+		scanDepth = 0;
+		for name in db('scanContainers'):gmatch('[^,%s]+') do
+			local container = _G[name];
+			if C_Widget.IsFrameWidget(container) then
+				scanDepth = scanDepth + 1;
+				ScanStack[scanDepth] = container;
+			end
+		end
+		if ( scanDepth == 0 ) then
+			scanDepth = 1;
+			ScanStack[1] = UIParent;
+		end
 		self:SetScript('OnUpdate', SliceGlobalScan)
 	end
 
 	function Scan:StopGlobalScan()
-		self.scanCursor = nil;
 		self:SetScript('OnUpdate', nil)
+	end
+
+	function Scan:IsScanActive()
+		return self:GetScript('OnUpdate') ~= nil;
 	end
 
 	-- Global scan request
@@ -216,37 +214,7 @@ do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Sca
 		self:StartGlobalScan()
 	end, Scan);
 
-	-----------------------------------------------------------
-	-- Discovery funnels
-	-----------------------------------------------------------
-	-- Scan passes skip frames they have already seen, so frames
-	-- that change role after their first classification are
-	-- requeued here.
-	--
-	-- SecureUnitButton_OnLoad runs on every
-	-- CompactUnitFrame_SetUnit and on setup of all non-compact
-	-- Blizzard unit frames.
-	--
-	-- RegisterUnitWatch covers addon frames spawned outside
-	-- secure group headers.
-
-	Scan.QueueDiscovery = CPAPI.Debounce(function(self)
-		if not next(Discovered) or InCombatLockdown() or self.scanCursor then return end;
-		CommitGlobalScan(self)
-	end, Scan)
-
-	local function QueueNodeDiscovery(node)
-		if not C_Widget.IsFrameWidget(node) or Scrub(node:IsForbidden()) then return end;
-		Discovered[node] = true;
-		Scan:QueueDiscovery()
-	end
-
-	hooksecurefunc('SecureUnitButton_OnLoad', QueueNodeDiscovery)
-	hooksecurefunc('RegisterUnitWatch', QueueNodeDiscovery)
-
-	function Scan:HasPendingDiscovery()
-		return next(Discovered) ~= nil;
-	end
+	db:RegisterSafeCallback('Settings/scanContainers', function() ScanGlobal() end)
 end
 
 ---------------------------------------------------------------
@@ -262,7 +230,7 @@ end
 
 function Scan:PLAYER_REGEN_DISABLED()
 	ScanGlobal.Cancel()
-	if self.scanCursor then
+	if self:IsScanActive() then
 		self.scanQueued = true;
 		self:StopGlobalScan()
 	end
@@ -270,10 +238,7 @@ end
 
 function Scan:PLAYER_REGEN_ENABLED()
 	if self.scanQueued then
-		return ScanGlobal()
-	end
-	if self:HasPendingDiscovery() then
-		self:QueueDiscovery()
+		ScanGlobal()
 	end
 end
 

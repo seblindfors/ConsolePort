@@ -34,6 +34,12 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Override class theme for interface styling.';
 		hide = true;
 	};
+	scanContainers = _{String('UIParent');
+		name = 'Frame Scan Containers';
+		desc = 'Comma-separated list of container frames to scan for unit frames and action buttons.';
+		note = 'Container names are resolved from the global environment. Invalid entries are ignored; if no entry resolves, UIParent is used.';
+		advd = true;
+	};
 	--------------------------------------------------------------------------------------------------------
 	_('Crosshair', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
