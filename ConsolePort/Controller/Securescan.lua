@@ -137,8 +137,8 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 		self:FireCallbacks(Widgets.Any)
 	end
 
-	-- Depth-first walk of the UIParent tree, resumable across
-	-- frames when the time budget runs out.
+	-- Depth-first walk of the configured container trees,
+	-- resumable across frames when the time budget runs out.
 	local ScanStack, scanDepth = {}, 0;
 
 	local function PushChildren(...)
