@@ -182,13 +182,15 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 		wipe(ScanStack)
 		scanDepth = 1;
 		ScanStack[1] = UIParent;
-		self.scanActive = true;
 		self:SetScript('OnUpdate', SliceGlobalScan)
 	end
 
 	function Scan:StopGlobalScan()
-		self.scanActive = nil;
 		self:SetScript('OnUpdate', nil)
+	end
+
+	function Scan:IsScanActive()
+		return self:GetScript('OnUpdate') ~= nil;
 	end
 
 	-- Global scan request
@@ -215,7 +217,7 @@ end
 
 function Scan:PLAYER_REGEN_DISABLED()
 	ScanGlobal.Cancel()
-	if self.scanActive then
+	if self:IsScanActive() then
 		self.scanQueued = true;
 		self:StopGlobalScan()
 	end
