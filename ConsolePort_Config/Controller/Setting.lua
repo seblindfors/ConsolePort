@@ -41,10 +41,6 @@ local function MountDatapoint(self, dp)
 
 			self:SetDataCallback(callbackFn)
 			self:RegisterCallback(callbackID, self.OnValueChanged)
-
-			if (field.deps) then
-				self:SetDependencies(field.deps)
-			end
 		end
 	end
 end
@@ -78,19 +74,6 @@ function Setting:Reset()
 	self.registry, self.callbacks = nil, nil;
 end
 
-function Setting:SetDependencies(deps)
-	self.deps = CreateFlags(0);
-	local flags, callbacks = {}, {};
-	for dep, value in db.table.spairs(deps) do
-		tinsert(flags, dep)
-		callbacks[dep] = self:RegisterDependency(dep, value)
-	end
-	self.flags = FlagsUtil.MakeFlags(unpack(flags))
-	for dep, callback in pairs(callbacks) do
-		callback(nil, self.registry(dep))
-	end
-end
-
 function Setting:RegisterCallback(callbackID, callback, ...)
 	self.callbacks = self.callbacks or {};
 	self.registry:RegisterCallback(callbackID, callback, self, ...)
@@ -108,21 +91,21 @@ do -- Dependencies
 		['function'] = function (lhs, rhs) return not lhs(rhs) end;
 	}, function() return function(lhs, rhs) return lhs ~= rhs end end)
 
-	local TriggerDependencyChanged = CPAPI.Proxy({}, function(self, registry)
-		return rawset(self, registry, CPAPI.Debounce(
-			registry.TriggerEvent, registry, 'OnDependencyChanged'
-		))[registry];
-	end)
-
-	local function OnDependencyChanged(self, dep, depValue, _, value)
-		self.deps:SetOrClear(self.flags[dep], Comparator[type(depValue)](depValue, value))
-		self.metaData.hide = self.deps:IsAnySet();
-		TriggerDependencyChanged[self.registry](dep)
-	end
-
-	function Setting:RegisterDependency(dep, value)
-		local callbackID = dep:match('/') and dep or Path(self.pathID, dep);
-		local callback = GenerateClosure(OnDependencyChanged, self, dep, value)
-		return self:RegisterCallback(callbackID, callback)
+	---@brief Test if a datapoint should be shown, evaluating its
+	---       dependencies against the current values in its registry.
+	function Setting.IsDatapointShown(dp)
+		local field = dp.field;
+		if field.hide then
+			return false;
+		end
+		if field.deps then
+			local registry = dp.registry or db;
+			for dep, value in pairs(field.deps) do
+				if Comparator[type(value)](value, registry(dep)) then
+					return false;
+				end
+			end
+		end
+		return true;
 	end
 end
