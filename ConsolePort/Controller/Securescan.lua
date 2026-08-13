@@ -181,8 +181,18 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 			wipe(staged)
 		end
 		wipe(ScanStack)
-		scanDepth = 1;
-		ScanStack[1] = UIParent;
+		scanDepth = 0;
+		for name in db('scanContainers'):gmatch('[^,%s]+') do
+			local container = _G[name];
+			if C_Widget.IsFrameWidget(container) then
+				scanDepth = scanDepth + 1;
+				ScanStack[scanDepth] = container;
+			end
+		end
+		if ( scanDepth == 0 ) then
+			scanDepth = 1;
+			ScanStack[1] = UIParent;
+		end
 		self:SetScript('OnUpdate', SliceGlobalScan)
 	end
 
@@ -203,6 +213,8 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 		self.scanQueued = nil;
 		self:StartGlobalScan()
 	end, Scan);
+
+	db:RegisterSafeCallback('Settings/scanContainers', function() ScanGlobal() end)
 end
 
 ---------------------------------------------------------------
