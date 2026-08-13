@@ -80,7 +80,8 @@ end
 local ScanGlobal, ScanFrames;
 do	local Scrub, IsProtected, IsForbidden, GetChildren =
 		CPAPI.Scrub, Scan.IsProtected, Scan.IsForbidden, Scan.GetChildren;
-	local SCAN_BUDGET = 500; -- nodes processed per frame
+	local debugprofilestop = debugprofilestop;
+	local SCAN_BUDGET_MS = 1.5; -- max processing time per frame
 
 	-- Classification
 	local function ClassifyNode(collect, node)
@@ -137,7 +138,7 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 	end
 
 	-- Depth-first walk of the UIParent tree, resumable across
-	-- frames when the node budget runs out.
+	-- frames when the time budget runs out.
 	local ScanStack, scanDepth = {}, 0;
 
 	local function PushChildren(...)
@@ -151,26 +152,26 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 	end
 
 	local function SliceGlobalScan(self)
-		local budget = SCAN_BUDGET;
-		while ( scanDepth > 0 and budget > 0 ) do
+		local expires = debugprofilestop() + SCAN_BUDGET_MS;
+		while ( scanDepth > 0 ) do
 			local node = ScanStack[scanDepth];
 			ScanStack[scanDepth] = nil;
 			scanDepth = scanDepth - 1;
-			budget = budget - 1;
 			if not Scrub(IsForbidden(node)) then
 				if Scrub(IsProtected(node)) then
 					ClassifyNode(StageNode, node)
 				end
 				PushChildren(Scrub(GetChildren(node)))
 			end
-		end
-		if ( scanDepth == 0 ) then
-			self:StopGlobalScan()
-			if InCombatLockdown() then
-				self.scanQueued = true;
-			else
-				CommitGlobalScan(self)
+			if ( debugprofilestop() > expires ) then
+				return -- over budget; nodes are never processed partially
 			end
+		end
+		self:StopGlobalScan()
+		if InCombatLockdown() then
+			self.scanQueued = true;
+		else
+			CommitGlobalScan(self)
 		end
 	end
 
