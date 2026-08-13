@@ -269,21 +269,10 @@ function Setting:OnAcquire(new)
 	if new then
 		InitializeSetting(self, env.Setting, Setting)
 	end
-	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 end
 
 function Setting:OnRelease()
 	self:Reset()
-	db:UnregisterCallback('OnDependencyChanged', self)
-end
-
-function Setting:OnDependencyChanged()
-	if not self.metaData then return end;
-	local isShown = not self.metaData.hide;
-	local newExtent = isShown and self.size.y or 0;
-	self:GetElementData():GetData().extent = newExtent;
-	self:SetHeight(newExtent)
-	self:SetShown(isShown)
 end
 
 function Setting:Data(datapoint)
@@ -322,7 +311,6 @@ function Cvar:OnAcquire(new)
 	if new then
 		InitializeSetting(self, env.Setting, Cvar)
 	end
-	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 end
 
 function Cvar:Get()
@@ -364,14 +352,12 @@ function Mapper:OnAcquire(new)
 	if new then
 		InitializeSetting(self, env.Setting, Mapper)
 	end
-	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnMapperConfigLoaded', self.OnMapperValueChanged, self)
 	db:RegisterCallback('OnMapperDeviceChanged', self.OnMapperValueChanged, self)
 end
 
 function Mapper:OnRelease()
 	self:Reset()
-	db:UnregisterCallback('OnDependencyChanged', self)
 	db:UnregisterCallback('OnMapperConfigLoaded', self)
 	db:UnregisterCallback('OnMapperDeviceChanged', self)
 end

@@ -29,7 +29,6 @@ function Settings:OnLoad()
 	CPAPI.Start(self)
 	self:Reindex()
 	self:SetActiveCategory(GENERAL, self.index[SETTING_GROUP_SYSTEM][GENERAL])
-	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnVariablesChanged', self.OnIndexChanged, self)
 	db:RegisterCallback('Settings/useCharacterSettings', self.OnToggleCharacterSettings, self)
 end

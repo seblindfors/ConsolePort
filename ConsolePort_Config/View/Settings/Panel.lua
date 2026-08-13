@@ -1,4 +1,4 @@
-local env = CPAPI.GetEnv(...);
+local env, db = CPAPI.GetEnv(...);
 local Settings = env:GetContextPanel();
 local Panel = {}; env.SettingsPanel = Panel;
 
@@ -52,11 +52,82 @@ function Panel:OnSubcatClicked(text, set)
 	self:SetActiveCategory(text, set)
 end
 
-function Panel:OnDependencyChanged(...)
-	local _, right = self:GetLists()
-	RunNextFrame(function()
-		right:GetScrollView():Layout()
-	end)
+do -- Dependency reconciliation
+	local function FindNodeByOrdinal(header, ordinal)
+		for _, node in ipairs(header:GetNodes()) do
+			if ( node:GetData().ordinal == ordinal ) then
+				return node;
+			end
+		end
+	end
+
+	local function FindInsertionIndex(header, ordinal)
+		local nodes = header:GetNodes()
+		for index, node in ipairs(nodes) do
+			local other = node:GetData().ordinal;
+			if ( not other or other > ordinal ) then
+				return index;
+			end
+		end
+		return #nodes + 1;
+	end
+
+	-- Inserts or removes setting nodes when their dependencies
+	-- change, leaving the rest of the tree untouched.
+	function Panel:OnDependencyChanged()
+		local ledger = self.dependencyLedger;
+		if not ledger then return end;
+		local IsDatapointShown = env.Setting.IsDatapointShown;
+		local skipInvalidation, dirty = true, false;
+		for dp, entry in pairs(ledger) do
+			local node = FindNodeByOrdinal(entry.header, entry.ordinal)
+			if IsDatapointShown(dp) then
+				if not node then
+					local index = FindInsertionIndex(entry.header, entry.ordinal)
+					entry.header:InsertNodeAtIndex(dp.type:New(dp), index):GetData().ordinal = entry.ordinal;
+					dirty = true;
+				end
+			elseif node then
+				entry.header:Remove(node, skipInvalidation)
+				dirty = true;
+			end
+		end
+		if dirty then
+			local _, right = self:GetLists()
+			right:GetDataProvider():Invalidate()
+		end
+	end
+end
+
+function Panel:UpdateDependencyWatchers()
+	local watchers = self.dependencyWatchers;
+	if watchers then
+		for _, watcher in ipairs(watchers) do
+			watcher.registry:UnregisterCallback(watcher.event, self)
+		end
+		wipe(watchers)
+	else
+		watchers = {};
+		self.dependencyWatchers = watchers;
+	end
+	if not self.activeData then return end;
+	local seen = {};
+	for _, dp in ipairs(self.activeData) do
+		local deps = dp.field.deps;
+		if deps then
+			local registry = dp.registry or db;
+			local events = seen[registry] or {};
+			seen[registry] = events;
+			for dep in pairs(deps) do
+				local event = dep:match('/') and dep or (dp.pathID or 'Settings')..'/'..dep;
+				if not events[event] then
+					events[event] = true;
+					registry:RegisterCallback(event, self.OnDependencyChanged, self)
+					tinsert(watchers, { registry = registry, event = event })
+				end
+			end
+		end
+	end
 end
 
 function Panel:OnDirty()
@@ -87,6 +158,7 @@ function Panel:RenderSettings()
 	local settings = right:GetDataProvider()
 	settings:Flush()
 	self:Render(settings, self.activeText, self.activeData, true, true)
+	self:UpdateDependencyWatchers()
 
 	return settings;
 end

@@ -127,42 +127,69 @@ function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 		provider:Insert(self.MakeDivider())
 	end
 
+	-- Settings with unmet dependencies are not rendered. Every setting
+	-- is assigned an ordinal within its header and tracked in a ledger,
+	-- so that visibility changes can be reconciled without a re-render.
+	local IsDatapointShown = env.Setting.IsDatapointShown;
+	local ledger, ordinals = not flattened and {} or nil, {};
+
+	local function InsertSetting(header, dp)
+		if ledger then
+			local ordinal = (ordinals[header] or 0) + 1;
+			ordinals[header] = ordinal;
+			ledger[dp] = { header = header, ordinal = ordinal };
+			if IsDatapointShown(dp) then
+				local node = header:Insert(dp.type:New(dp))
+				node:GetData().ordinal = ordinal;
+			end
+		elseif IsDatapointShown(dp) then
+			header:Insert(dp.type:New(dp))
+		end
+	end
+
 	local allowHeadless = not flattened or headless;
 	if allowHeadless and next(before) then
 		for i, dp in ipairs(before) do
-			provider:Insert(dp.type:New(dp))
+			if IsDatapointShown(dp) then
+				provider:Insert(dp.type:New(dp))
+			end
 		end
 		provider:Insert(self.MakeDivider())
 	end
 	if next(base) then
 		for i, dp in ipairs(base) do
-			__(GENERAL, dp, false):Insert(dp.type:New(dp))
+			InsertSetting(__(GENERAL, dp, false), dp)
 		end
 	end
 	if hasDeviceSettings then
 		for i, dp in ipairs(path) do
-			__(SYSTEM, dp, false):Insert(dp.type:New(dp))
+			InsertSetting(__(SYSTEM, dp, false), dp)
 		end
 	end
 	if next(cvar) then
 		for i, dp in ipairs(cvar) do
-			__(SYSTEM, dp, false):Insert(dp.type:New(dp))
+			InsertSetting(__(SYSTEM, dp, false), dp)
 		end
 	end
 	if next(advd) then
 		for i, dp in ipairs(advd) do
-			__(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
+			InsertSetting(__(ADVANCED_LABEL, dp, preferCollapsed), dp)
 		end
 	end
 	if allowHeadless and next(after) then
 		for i, dp in ipairs(after) do
-			provider:Insert(dp.type:New(dp))
+			if IsDatapointShown(dp) then
+				provider:Insert(dp.type:New(dp))
+			end
 		end
 	end
 	if next(xtra) then
 		for i, dp in ipairs(xtra) do
-			__(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
+			InsertSetting(__(ADVANCED_LABEL, dp, preferCollapsed), dp)
 		end
+	end
+	if ledger then
+		self.dependencyLedger = ledger;
 	end
 	for _, header in pairs(activeHeaders) do
 		header:Insert(self.MakeDivider())
