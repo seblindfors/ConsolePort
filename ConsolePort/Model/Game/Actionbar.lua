@@ -146,7 +146,7 @@ do
 	end
 
 	function FindActionButtons(callback, cache, this)
-		if not IsFrameWidget(this) or Frame.IsForbidden(this) or IGNORE_FRAMES[this] then return cache end
+		if not IsFrameWidget(this) or Scrub(Frame.IsForbidden(this)) ~= false or IGNORE_FRAMES[this] then return cache end
 		-------------------------------------
 		local action = ValidateActionID(this)
 		if IsActionButton(this, action) and callback(cache, this, action) then
