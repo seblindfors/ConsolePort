@@ -17,13 +17,13 @@ local LED, Modes = CPAPI.CreateEventHandler({'Frame', '$parentLEDHandler', Conso
 local SetLedColor = C_GamePad.SetLedColor or nop;
 local ClearLedColor = C_GamePad.ClearLedColor or nop;
 local GetClassColor = C_ClassColor and C_ClassColor.GetClassColor or GetClassColorObj;
-local UnitClass, select = UnitClass, select;
+local Scrub, UnitClass, select = CPAPI.Scrub, UnitClass, select;
 local BLACK = BLACK_FONT_COLOR or CreateColor(0, 0, 0, 1);
 
 local function GetClassColorObjForUnit(unit)
-	local class = select(2, UnitClass(unit));
+	local class = Scrub(select(2, UnitClass(unit)));
 	if class then
-		return GetClassColor(class);
+		return GetClassColor(class) or BLACK;
 	end
 	return BLACK;
 end

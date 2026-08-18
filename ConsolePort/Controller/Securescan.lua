@@ -157,7 +157,9 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 			local node = ScanStack[scanDepth];
 			ScanStack[scanDepth] = nil;
 			scanDepth = scanDepth - 1;
-			if not Scrub(IsForbidden(node)) then
+			-- Secret forbidden state scrubs to nil; only an explicit
+			-- false means the node is accessible.
+			if ( Scrub(IsForbidden(node)) == false ) then
 				if Scrub(IsProtected(node)) then
 					ClassifyNode(StageNode, node)
 				end

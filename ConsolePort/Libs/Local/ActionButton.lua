@@ -63,6 +63,44 @@ function Pet:UpdateLocal()
 end
 
 ---------------------------------------------------------------
+-- Autocast overlay
+---------------------------------------------------------------
+-- Clients with AutoCastOverlayManagerMixin route ShowAutoCastEnabled
+-- through a global manager, where insecurely registered shines taint
+-- the shared state and spread to the pet action bar and spell book.
+-- A private manager keeps addon overlays out of the shared one.
+do	local OverlayManager;
+	local function GetOverlayManager()
+		if ( OverlayManager == nil ) then
+			OverlayManager = AutoCastOverlayManagerMixin
+				and Mixin(CreateFrame('Frame'), AutoCastOverlayManagerMixin) or false;
+			if OverlayManager then
+				OverlayManager:OnLoad()
+				OverlayManager:SetScript('OnUpdate', OverlayManager.OnUpdate)
+			end
+		end
+		return OverlayManager or nil;
+	end
+
+	function Lib.ShowAutoCastEnabled(overlay, isEnabled)
+		local manager = GetOverlayManager()
+		if not manager then
+			return overlay:ShowAutoCastEnabled(isEnabled)
+		end
+		if isEnabled then
+			manager:AddActiveShine(overlay)
+		else
+			manager:RemoveActiveShine(overlay)
+		end
+		if overlay.sparkles then
+			for _, sparkle in ipairs(overlay.sparkles) do
+				sparkle:SetShown(isEnabled)
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------
 Lib.Skin, Lib.SkinUtility = {}, {};
 ---------------------------------------------------------------
 

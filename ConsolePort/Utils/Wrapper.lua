@@ -645,22 +645,25 @@ function CPAPI.SetModelLight(self, enabled, lightValues)
 	))
 end
 
-function CPAPI.AutoCastStart(self, autoCastAllowed, ...)
-	if (self.Shine or self.AutoCastShine) and AutoCastShine_AutoCastStart then
-		return AutoCastShine_AutoCastStart(self.Shine or self.AutoCastShine, ...)
-	end
-	if self.AutoCastOverlay and self.AutoCastOverlay.ShowAutoCastEnabled then
-		self.AutoCastOverlay:SetShown(autoCastAllowed)
-		return self.AutoCastOverlay:ShowAutoCastEnabled(true)
-	end
-end
+do	local Lib = LibStub('ConsolePortActionButton');
 
-function CPAPI.AutoCastStop(self, autoCastAllowed)
-	if (self.Shine or self.AutoCastShine) and AutoCastShine_AutoCastStop then
-		return AutoCastShine_AutoCastStop(self.Shine or self.AutoCastShine)
+	function CPAPI.AutoCastStart(self, autoCastAllowed, ...)
+		if (self.Shine or self.AutoCastShine) and AutoCastShine_AutoCastStart then
+			return AutoCastShine_AutoCastStart(self.Shine or self.AutoCastShine, ...)
+		end
+		if self.AutoCastOverlay and self.AutoCastOverlay.ShowAutoCastEnabled then
+			self.AutoCastOverlay:SetShown(autoCastAllowed)
+			return Lib.ShowAutoCastEnabled(self.AutoCastOverlay, true)
+		end
 	end
-	if self.AutoCastOverlay and self.AutoCastOverlay.ShowAutoCastEnabled then
-		self.AutoCastOverlay:SetShown(autoCastAllowed)
-		return self.AutoCastOverlay:ShowAutoCastEnabled(false)
+
+	function CPAPI.AutoCastStop(self, autoCastAllowed)
+		if (self.Shine or self.AutoCastShine) and AutoCastShine_AutoCastStop then
+			return AutoCastShine_AutoCastStop(self.Shine or self.AutoCastShine)
+		end
+		if self.AutoCastOverlay and self.AutoCastOverlay.ShowAutoCastEnabled then
+			self.AutoCastOverlay:SetShown(autoCastAllowed)
+			return Lib.ShowAutoCastEnabled(self.AutoCastOverlay, false)
+		end
 	end
 end
