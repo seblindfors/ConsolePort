@@ -78,8 +78,8 @@ end
 -- Global scanning
 ---------------------------------------------------------------
 local ScanGlobal, ScanFrames;
-do	local Scrub, IsProtected, IsForbidden, GetChildren =
-		CPAPI.Scrub, Scan.IsProtected, Scan.IsForbidden, Scan.GetChildren;
+do	local Scrub, IsProtected, IsRestricted, GetChildren =
+		CPAPI.Scrub, Scan.IsProtected, CPAPI.IsObjectRestricted, Scan.GetChildren;
 	local debugprofilestop = debugprofilestop;
 	local SCAN_BUDGET_MS = 1.5; -- max processing time per frame
 
@@ -157,9 +157,7 @@ do	local Scrub, IsProtected, IsForbidden, GetChildren =
 			local node = ScanStack[scanDepth];
 			ScanStack[scanDepth] = nil;
 			scanDepth = scanDepth - 1;
-			-- Secret forbidden state scrubs to nil; only an explicit
-			-- false means the node is accessible.
-			if ( Scrub(IsForbidden(node)) == false ) then
+			if not IsRestricted(node) then
 				if Scrub(IsProtected(node)) then
 					ClassifyNode(StageNode, node)
 				end

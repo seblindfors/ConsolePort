@@ -376,6 +376,27 @@ CPAPI.IsXPUserDisabled               = IsXPUserDisabled   or nop;
 CPAPI.PlayerHasToy                   = PlayerHasToy       or nop;
 CPAPI.Scrub                          = scrubsecretvalues  or function(...)return...end;
 
+do -- Object accessibility
+	local Widget = GetFrameMetatable().__index;
+	local Scrub, IsForbidden, HasAccessConstraints, HasAnyForbiddenAspects =
+		CPAPI.Scrub, Widget.IsForbidden, Widget.HasAccessConstraints, Widget.HasAnyForbiddenAspects;
+
+	-- Restricted objects may pass an IsForbidden check, but have forbidden
+	-- aspects that disallow the use of certain APIs. Accessibility queries
+	-- return secrets for objects carrying the ObjectSecurity aspect, which
+	-- scrub to nil; only an explicit false means the object is accessible.
+	if ( HasAccessConstraints and HasAnyForbiddenAspects ) then
+		function CPAPI.IsObjectRestricted(object)
+			return Scrub(HasAccessConstraints(object)) ~= false
+				or Scrub(HasAnyForbiddenAspects(object)) ~= false;
+		end
+	else
+		function CPAPI.IsObjectRestricted(object)
+			return Scrub(IsForbidden(object)) ~= false;
+		end
+	end
+end
+
 -- Complex wrappers
 CPAPI.GetContainerItemInfo = function(...)
 	if C_Container and C_Container.GetContainerItemInfo then
