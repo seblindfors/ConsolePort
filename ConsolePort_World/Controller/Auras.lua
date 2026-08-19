@@ -4,14 +4,6 @@ local BUFF_CANCEL_ROW_INDEX = env.QMenuID();
 local DEBUFF_INFO_ROW_INDEX = env.QMenuID();
 
 if CPAPI.IsRetailVersion then
-	-----------------------------------------------------------
-	-- Retail: aura data is secret in combat and secure aura
-	-- headers are classic-only, so a static set of cancelaura
-	-- buttons indexes the filtered aura list directly. Display
-	-- and cancel share the same enumeration and cannot misalign;
-	-- display degrades gracefully while in combat.
-	-- See docs/tasks/quick-menu-auras-retail.md
-	-----------------------------------------------------------
 	local WRAP_AFTER, SLOT_OFFSET, ROW_HEIGHT = 10, 52, 48;
 	local UNKNOWN_ICON = [[Interface\Icons\INV_Misc_QuestionMark]];
 	local IsSecret, InCombatLockdown = CPAPI.IsSecret, InCombatLockdown;
@@ -38,14 +30,19 @@ if CPAPI.IsRetailVersion then
 	end
 
 	function Aura:GetData()
-		return GetAuraDataByIndex('player', self:GetID(), self:GetFilter());
+		-- Accessing a secret aura throws while tainted; treat a
+		-- throw and a secret return value the same.
+		local ok, data = pcall(GetAuraDataByIndex, 'player', self:GetID(), self:GetFilter())
+		if not ok or IsSecret(data) then
+			return nil, true;
+		end
+		return data, false;
 	end
 
 	function Aura:Update()
-		local data = self:GetData()
-		if IsSecret(data) then
-			-- Occupancy is unknowable in combat; the cooldown keeps
-			-- ticking from the last known duration object.
+		local data, secret = self:GetData()
+		if secret then
+			-- Cooldown keeps ticking from the last known duration object.
 			if self:IsShown() then
 				self:SetIcon(UNKNOWN_ICON)
 				self:SetCount(nil, true, true)
@@ -70,11 +67,13 @@ if CPAPI.IsRetailVersion then
 
 	function Aura:OnEnter()
 		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
-		local data = self:GetData()
-		if IsSecret(data) then
+		local data, secret = self:GetData()
+		if secret then
 			GameTooltip:SetText(UNKNOWN)
 		elseif data then
-			GameTooltip:SetUnitAura('player', self:GetID(), self:GetFilter())
+			if not pcall(GameTooltip.SetUnitAura, GameTooltip, 'player', self:GetID(), self:GetFilter()) then
+				GameTooltip:SetText(UNKNOWN)
+			end
 		else
 			return GameTooltip:Hide()
 		end
