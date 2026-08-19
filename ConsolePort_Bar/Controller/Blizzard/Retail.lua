@@ -29,6 +29,16 @@ local function hideActionButton(button)
 	button:Hide()
 	button:UnregisterAllEvents()
 	button:SetAttributeNoHandler('statehidden', true)
+	-- Shared dispatchers invoke buttons regardless of their own event
+	-- registrations, spreading hidden button taint to the dispatch loop.
+	-- Removal from the keyed dispatchers is taint-safe; the array-backed
+	-- ActionBarButtonEventsFrame is not, so slot changes still get through.
+	if ActionBarActionEventsFrame then
+		ActionBarActionEventsFrame:UnregisterFrame(button)
+	end
+	if ActionBarButtonUpdateFrame then
+		ActionBarButtonUpdateFrame:UnregisterFrame(button)
+	end
 end
 
 local function NPE_LoadUI()
@@ -94,6 +104,9 @@ function env.UIHandler:HideBlizzard()
 		OverrideActionBar        = true;
 	}) do
 		hideEditModeFrame(_G[frame], clearEvents)
+	end
+	for i = 1, NUM_OVERRIDE_BUTTONS or 6 do
+		hideActionButton(_G['OverrideActionBarButton' .. i])
 	end
 
 	---------------------------------------------------------------
