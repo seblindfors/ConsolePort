@@ -1,4 +1,4 @@
-if CPAPI.IsRetailVersion then return end; -- TODO: figure out wtf happened on Retail
+if not SecureAuraHeader_OnLoad then return end; -- requires secure aura headers
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local BUFF_CANCEL_ROW_INDEX = env.QMenuID();
@@ -8,6 +8,8 @@ local DEBUFF_INFO_ROW_INDEX = env.QMenuID();
 local Aura = { getData = C_UnitAuras.GetAuraDataByIndex };
 ---------------------------------------------------------------
 local SetTimer, ClearTimer = CooldownFrame_Set, CooldownFrame_Clear;
+local IsSecret, Scrub = CPAPI.IsSecret, CPAPI.Scrub;
+local UNKNOWN_ICON = [[Interface\Icons\INV_Misc_QuestionMark]];
 
 function Aura:OnLoad()
 	self.cooldown:SetReverse(true)
@@ -82,6 +84,14 @@ end
 
 function Aura:Update(unit)
 	local data = self:GetData(unit);
+	if IsSecret(data) then
+		-- Aura data is secret in combat contexts; the aura remains
+		-- navigable and cancelable, but cannot be described.
+		self:SetIcon(UNKNOWN_ICON)
+		self:SetCount(nil, true, true)
+		ClearTimer(self.cooldown)
+		return
+	end
 	if not data then return self:SetIcon(nil) end;
 
 	self:SetIcon(data.icon)
@@ -97,11 +107,14 @@ end
 
 function Aura:UpdateTooltip()
 	local data = self:GetData();
-	if not data then return end;
-	if CPAPI.IsRetailVersion then
-		GameTooltip:SetUnitAuraByAuraInstanceID(self:GetUnit(), data.auraInstanceID, self:GetFilter())
-	else
-		GameTooltip:SetUnitAura(self:GetArguments())
+	local secret = IsSecret(data);
+	if not secret and not data then return end;
+	if not secret then
+		if CPAPI.IsRetailVersion then
+			GameTooltip:SetUnitAuraByAuraInstanceID(self:GetUnit(), data.auraInstanceID, self:GetFilter())
+		else
+			GameTooltip:SetUnitAura(self:GetArguments())
+		end
 	end
 
 	if not self.isHelpful then return end;
@@ -133,7 +146,7 @@ end
 function Header:Update()
 	local i, unit, aura = CreateCounter(0), self:GetAttribute('unit');
 	repeat aura = self:GetAttribute('child'..i())
-		if not aura or not aura:IsShown() then break end;
+		if not aura or Scrub(aura:IsShown()) ~= true then break end;
 		if not aura.Update then
 			CPAPI.Specialize(aura, Aura)
 			aura.isHelpful = self:IsHelpful();
