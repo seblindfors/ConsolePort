@@ -105,6 +105,7 @@ do
 	local VALID_BUTTON_TYPE = ActionBarAPI.Lookup.Types;
 	local IGNORE_FRAMES     = ActionBarAPI.Lookup.Ignore;
 	local IsFrameWidget     = C_Widget.IsFrameWidget;
+	local IsRestricted      = CPAPI.IsObjectRestricted;
 	local Frame             = GetFrameMetatable().__index;
 	local Scrub             = CPAPI.Scrub;
 
@@ -146,7 +147,7 @@ do
 	end
 
 	function FindActionButtons(callback, cache, this)
-		if not IsFrameWidget(this) or Scrub(Frame.IsForbidden(this)) ~= false or IGNORE_FRAMES[this] then return cache end
+		if not IsFrameWidget(this) or IsRestricted(this) or IGNORE_FRAMES[this] then return cache end
 		-------------------------------------
 		local action = ValidateActionID(this)
 		if IsActionButton(this, action) and callback(cache, this, action) then
