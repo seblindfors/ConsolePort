@@ -1,8 +1,194 @@
-if CPAPI.IsRetailVersion then return end; -- TODO: figure out wtf happened on Retail
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local BUFF_CANCEL_ROW_INDEX = env.QMenuID();
 local DEBUFF_INFO_ROW_INDEX = env.QMenuID();
+
+if CPAPI.IsRetailVersion then
+	-----------------------------------------------------------
+	-- Retail: aura data is secret in combat and secure aura
+	-- headers are classic-only, so a static set of cancelaura
+	-- buttons indexes the filtered aura list directly. Display
+	-- and cancel share the same enumeration and cannot misalign;
+	-- display degrades gracefully while in combat.
+	-- See docs/tasks/quick-menu-auras-retail.md
+	-----------------------------------------------------------
+	local WRAP_AFTER, SLOT_OFFSET, ROW_HEIGHT = 10, 52, 48;
+	local UNKNOWN_ICON = [[Interface\Icons\INV_Misc_QuestionMark]];
+	local IsSecret, InCombatLockdown = CPAPI.IsSecret, InCombatLockdown;
+	local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex;
+	local GetDisplayCount    = C_UnitAuras.GetAuraApplicationDisplayCount;
+	local GetAuraDuration    = C_UnitAuras.GetAuraDuration;
+
+	-----------------------------------------------------------
+	local Aura = {};
+	-----------------------------------------------------------
+
+	function Aura:OnLoad()
+		self.cooldown:SetReverse(true)
+		self.cooldown:SetHideCountdownNumbers(true)
+		self.cooldown:SetDrawEdge(false)
+		self:SetAttribute(CPAPI.ActionPressAndHold, true)
+		self:SetAttribute(CPAPI.ActionTypeRelease..'2', 'cancelaura')
+		self:SetAttribute('index', self:GetID())
+		self:SetAttribute('filter', self:GetFilter())
+	end
+
+	function Aura:GetFilter()
+		return self:GetParent():GetAttribute('filter');
+	end
+
+	function Aura:GetData()
+		return GetAuraDataByIndex('player', self:GetID(), self:GetFilter());
+	end
+
+	function Aura:Update()
+		local data = self:GetData()
+		if IsSecret(data) then
+			-- Occupancy is unknowable in combat; the cooldown keeps
+			-- ticking from the last known duration object.
+			if self:IsShown() then
+				self:SetIcon(UNKNOWN_ICON)
+				self:SetCount(nil, true, true)
+			end
+			return
+		end
+		local canToggle = not InCombatLockdown()
+		if not data then
+			if canToggle then self:Hide() end
+			return
+		end
+		if canToggle then self:Show() end
+		self:SetIcon(data.icon)
+		self:SetCount(GetDisplayCount('player', data.auraInstanceID), true, true)
+		local duration = GetAuraDuration('player', data.auraInstanceID)
+		if duration then
+			self.cooldown:SetCooldownFromDurationObject(duration)
+		else
+			CooldownFrame_Clear(self.cooldown)
+		end
+	end
+
+	function Aura:OnEnter()
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+		local data = self:GetData()
+		if IsSecret(data) then
+			GameTooltip:SetText(UNKNOWN)
+		elseif data then
+			GameTooltip:SetUnitAura('player', self:GetID(), self:GetFilter())
+		else
+			return GameTooltip:Hide()
+		end
+		if self:GetParent():IsHelpful() then
+			local text = env:GetTooltipPromptForClick('RightButton', CANCEL)
+			if text then
+				GameTooltip:AddLine(text, 1, 1, 1)
+			end
+		end
+		GameTooltip:Show()
+		self:LockHighlight()
+	end
+
+	function Aura:OnLeave()
+		GameTooltip:Hide()
+		self:UnlockHighlight()
+	end
+
+	-----------------------------------------------------------
+	local Row = {};
+	-----------------------------------------------------------
+	CPAPI.Props(Row)
+		.Prop('Title')
+		.Bool('Helpful', true)
+
+	function Row:OnLoad()
+		self.slots = {};
+		self:RegisterUnitEvent('UNIT_AURA', 'player')
+		self:HookScript('OnEvent', self.Update)
+		self:HookScript('OnShow', self.Update)
+	end
+
+	function Row:CreateSlots(numSlots)
+		for i = 1, numSlots do
+			local slot = CreateFrame('Button', '$parentAura'..i, self, 'CPQMenuStaticAura')
+			slot:SetID(i)
+			slot:SetPoint('TOPLEFT', ((i - 1) % WRAP_AFTER) * SLOT_OFFSET, -floor((i - 1) / WRAP_AFTER) * SLOT_OFFSET)
+			CPAPI.Specialize(slot, Aura)
+			slot:SetScript('OnEnter', slot.OnEnter)
+			slot:SetScript('OnLeave', slot.OnLeave)
+			slot:Hide()
+			self.slots[i] = slot;
+		end
+	end
+
+	function Row:GetNumSlots()
+		return self:IsHelpful() and db('QMenuNumBuffs') or db('QMenuNumDebuffs');
+	end
+
+	function Row:UpdateHeight()
+		local numRows = math.ceil(self:GetNumSlots() / WRAP_AFTER)
+		self:SetHeight(ROW_HEIGHT + (numRows - 1) * SLOT_OFFSET)
+	end
+
+	function Row:Update()
+		local numSlots = self:GetNumSlots()
+		local canToggle = not InCombatLockdown()
+		for i, slot in ipairs(self.slots) do
+			if ( i > numSlots ) then
+				if canToggle then slot:Hide() end
+			else
+				slot:Update()
+			end
+		end
+	end
+
+	-----------------------------------------------------------
+	-- Initializer
+	-----------------------------------------------------------
+	env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
+		local function CreateRow(index, filter, title, numSlots)
+			local frame = CreateFrame('Frame', '$parentAuras'..index, QMenu, 'QMenuRow')
+			frame:SetAttribute('filter', filter)
+			CPAPI.Specialize(frame, Row)
+			frame:SetHelpful(filter == 'HELPFUL')
+			frame:CreateSlots(numSlots)
+			frame:SetTitle(title)
+			QMenu:AddFrame(frame, index)
+			return frame;
+		end
+
+		local Helpful = CreateRow(BUFF_CANCEL_ROW_INDEX, 'HELPFUL', BUFFOPTIONS_LABEL, 20);
+		local Harmful = CreateRow(DEBUFF_INFO_ROW_INDEX, 'HARMFUL', BUFFOPTIONS_LABEL, 10);
+
+		function Helpful:OnVariablesChanged()
+			self:SetShown(db('QMenuCollectionBuffs'))
+			self:SetAttribute('paddingBottom', db('QMenuCollectionDebuffs') and 8 or 20)
+			self:UpdateHeight()
+			self:Update()
+		end
+
+		function Harmful:OnVariablesChanged()
+			self:SetShown(db('QMenuCollectionDebuffs'))
+			self:SetTitle(db('QMenuCollectionBuffs') and '' or BUFFOPTIONS_LABEL)
+			self:UpdateHeight()
+			self:Update()
+		end
+
+		db:RegisterSafeCallbacks(Helpful.OnVariablesChanged, Helpful,
+			'Settings/QMenuCollectionBuffs',
+			'Settings/QMenuCollectionDebuffs',
+			'Settings/QMenuNumBuffs'
+		);
+		db:RegisterSafeCallbacks(Harmful.OnVariablesChanged, Harmful,
+			'Settings/QMenuCollectionBuffs',
+			'Settings/QMenuCollectionDebuffs',
+			'Settings/QMenuNumDebuffs'
+		);
+
+		Helpful:OnVariablesChanged();
+		Harmful:OnVariablesChanged();
+	end)
+	return
+end
 
 ---------------------------------------------------------------
 local Aura = { getData = C_UnitAuras.GetAuraDataByIndex };
