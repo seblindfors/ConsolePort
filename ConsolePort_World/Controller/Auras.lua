@@ -63,6 +63,15 @@ if CPAPI.IsRetailVersion then
 		else
 			CooldownFrame_Clear(self.cooldown)
 		end
+		if GameTooltip:IsOwned(self) then
+			self:OnEnter()
+		end
+	end
+
+	function Aura:OnHide()
+		if GameTooltip:IsOwned(self) then
+			GameTooltip:Hide()
+		end
 	end
 
 	function Aura:OnEnter()
@@ -114,6 +123,7 @@ if CPAPI.IsRetailVersion then
 			CPAPI.Specialize(slot, Aura)
 			slot:SetScript('OnEnter', slot.OnEnter)
 			slot:SetScript('OnLeave', slot.OnLeave)
+			slot:HookScript('OnHide', slot.OnHide)
 			slot:Hide()
 			self.slots[i] = slot;
 		end
@@ -146,12 +156,31 @@ if CPAPI.IsRetailVersion then
 		end
 	end
 
+	function Row:UpdateState(enabled)
+		if enabled then
+			local condition = '[combat] nil; true';
+			RegisterStateDriver(self, 'visible', condition)
+			self:SetShown(SecureCmdOptionParse(condition) == 'true')
+			self:SetAttribute('_onstate-visible', [[
+				if newstate then
+					self:Show()
+				else
+					self:Hide()
+				end
+				self:GetParent():RunAttribute('UpdateLayout')
+			]])
+		else
+			UnregisterStateDriver(self, 'visible')
+			self:Hide()
+		end
+	end
+
 	-----------------------------------------------------------
 	-- Initializer
 	-----------------------------------------------------------
 	env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 		local function CreateRow(index, filter, title, numSlots)
-			local frame = CreateFrame('Frame', '$parentAuras'..index, QMenu, 'QMenuRow')
+			local frame = CreateFrame('Frame', '$parentAuras'..index, QMenu, 'QMenuRow, SecureHandlerStateTemplate')
 			frame:SetAttribute('filter', filter)
 			CPAPI.Specialize(frame, Row)
 			frame:SetHelpful(filter == 'HELPFUL')
@@ -165,16 +194,16 @@ if CPAPI.IsRetailVersion then
 		local Harmful = CreateRow(DEBUFF_INFO_ROW_INDEX, 'HARMFUL', BUFFOPTIONS_LABEL, 10);
 
 		function Helpful:OnVariablesChanged()
-			self:SetShown(db('QMenuCollectionBuffs'))
 			self:SetAttribute('paddingBottom', db('QMenuCollectionDebuffs') and 8 or 20)
 			self:UpdateSize()
+			self:UpdateState(db('QMenuCollectionBuffs'))
 			self:Update()
 		end
 
 		function Harmful:OnVariablesChanged()
-			self:SetShown(db('QMenuCollectionDebuffs'))
 			self:SetTitle(db('QMenuCollectionBuffs') and '' or BUFFOPTIONS_LABEL)
 			self:UpdateSize()
+			self:UpdateState(db('QMenuCollectionDebuffs'))
 			self:Update()
 		end
 
