@@ -123,9 +123,15 @@ if CPAPI.IsRetailVersion then
 		return self:IsHelpful() and db('QMenuNumBuffs') or db('QMenuNumDebuffs');
 	end
 
-	function Row:UpdateHeight()
-		local numRows = math.ceil(self:GetNumSlots() / WRAP_AFTER)
-		self:SetHeight(ROW_HEIGHT + (numRows - 1) * SLOT_OFFSET)
+	function Row:UpdateSize()
+		-- A frame without explicit width resolves to a nil rect,
+		-- dangling every row anchored below it.
+		local numSlots = self:GetNumSlots()
+		local numRows  = math.ceil(numSlots / WRAP_AFTER)
+		self:SetSize(
+			(math.min(numSlots, WRAP_AFTER) - 1) * SLOT_OFFSET + ROW_HEIGHT,
+			ROW_HEIGHT + (numRows - 1) * SLOT_OFFSET
+		);
 	end
 
 	function Row:Update()
@@ -161,14 +167,14 @@ if CPAPI.IsRetailVersion then
 		function Helpful:OnVariablesChanged()
 			self:SetShown(db('QMenuCollectionBuffs'))
 			self:SetAttribute('paddingBottom', db('QMenuCollectionDebuffs') and 8 or 20)
-			self:UpdateHeight()
+			self:UpdateSize()
 			self:Update()
 		end
 
 		function Harmful:OnVariablesChanged()
 			self:SetShown(db('QMenuCollectionDebuffs'))
 			self:SetTitle(db('QMenuCollectionBuffs') and '' or BUFFOPTIONS_LABEL)
-			self:UpdateHeight()
+			self:UpdateSize()
 			self:Update()
 		end
 
