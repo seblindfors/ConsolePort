@@ -151,6 +151,9 @@ end
 ---------------------------------------------------------------
 
 function Bindings:UPDATE_BINDINGS()
+	-- Deferred a frame so override owners (e.g. the action bar)
+	-- have reclaimed their combos before emulation resolves what
+	-- each real button actually does.
 	CPAPI.Next(db.RunSafe, db, self.OnEmulationChanged, self)
 end
 
