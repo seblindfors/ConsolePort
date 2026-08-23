@@ -1275,8 +1275,8 @@ L['Switches between the main menu and the radial companion.'] = 'Переклю�
 L['Synchronize Bindings'] = 'Синхронизировать привязки';
 L['Synchronize Config'] = 'Синхронизировать конфигурацию';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Взять во владение и переместить кнопки микроменю на панель инструментов.';
-L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[Имеет формат…
-[условие] Название предустановки; nil
+L['Takes the format of...\n|cFF3FC7EB[condition] Preset Name; nil|r\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[Имеет формат…
+|cFF3FC7EB[условие] Название предустановки; nil|r
 
 Автоматически сохранённые предустановки называются "Персонаж (Специализация) Игровой мир", в Classic вместо специализации используется класс.
 

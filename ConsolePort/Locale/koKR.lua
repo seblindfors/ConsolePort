@@ -1274,8 +1274,8 @@ L['Switches between the main menu and the radial companion.'] = '메인 메뉴�
 L['Synchronize Bindings'] = '단축키 동기화';
 L['Synchronize Config'] = '구성 동기화';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = '마이크로 메뉴 버튼의 소유권을 가져와 도구 모음으로 이동.';
-L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[형식:
-[조건] 프리셋 이름; nil
+L['Takes the format of...\n|cFF3FC7EB[condition] Preset Name; nil|r\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[형식:
+|cFF3FC7EB[조건] 프리셋 이름; nil|r
 
 자동 저장된 프리셋의 이름은 "캐릭터 (전문화) 서버"이며, 클래식에서는 전문화 대신 직업이 사용됩니다.
 

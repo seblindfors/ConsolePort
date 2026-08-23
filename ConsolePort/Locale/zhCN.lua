@@ -1272,8 +1272,8 @@ L['Switches between the main menu and the radial companion.'] = '在主菜单和
 L['Synchronize Bindings'] = '同步快捷键';
 L['Synchronize Config'] = '同步配置';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = '接管并将微型菜单按钮移动到工具栏。';
-L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[格式为...
-[条件] 预设名称; nil
+L['Takes the format of...\n|cFF3FC7EB[condition] Preset Name; nil|r\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[格式为...
+|cFF3FC7EB[条件] 预设名称; nil|r
 
 自动保存的预设名为"角色 (专精) 服务器"，怀旧服使用职业代替专精。
 

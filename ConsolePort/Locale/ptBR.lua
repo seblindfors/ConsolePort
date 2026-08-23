@@ -1276,8 +1276,8 @@ L['Switches between the main menu and the radial companion.'] = 'Alterna entre o
 L['Synchronize Bindings'] = 'Sincronizar ligações';
 L['Synchronize Config'] = 'Sincronizar configuração';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Assumir a propriedade e mover os botões do micromenu para a barra de ferramentas.';
-L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[Toma o formato de…
-[condição] Nome da predefinição; nil
+L['Takes the format of...\n|cFF3FC7EB[condition] Preset Name; nil|r\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[Toma o formato de…
+|cFF3FC7EB[condição] Nome da predefinição; nil|r
 
 Predefinições salvas automaticamente são nomeadas "Personagem (Especialização) Reino", com a classe no lugar da especialização no Classic.
 
