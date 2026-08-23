@@ -105,6 +105,7 @@ local Row = {};
 CPAPI.Props(Row)
 	.Prop('Title')
 	.Bool('Helpful', true)
+	.Bool('Enabled', true)
 
 function Row:OnLoad()
 	self.slots = {};
@@ -161,16 +162,17 @@ function Row:Update()
 		end
 	end
 	self:UpdateSize(numAuras)
+	self:SetAttribute('numAuras', numAuras)
+	self:SetShown(self:IsEnabled() and numAuras > 0)
 	self:GetParent():Run([[ self::UpdateLayout() ]])
 end
 
 function Row:UpdateState(enabled)
+	self:SetEnabled(enabled)
 	if enabled then
-		local condition = '[combat] nil; true';
-		RegisterStateDriver(self, 'visible', condition)
-		self:SetShown(SecureCmdOptionParse(condition) == 'true')
+		RegisterStateDriver(self, 'visible', '[combat] nil; true')
 		self:SetAttribute('_onstate-visible', [[
-			if newstate then
+			if newstate and (self:GetAttribute('numAuras') or 0) > 0 then
 				self:Show()
 			else
 				self:Hide()
@@ -200,14 +202,23 @@ env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 	local Helpful = CreateRow(BUFF_CANCEL_ROW_INDEX, 'HELPFUL', BUFFOPTIONS_LABEL);
 	local Harmful = CreateRow(DEBUFF_INFO_ROW_INDEX, 'HARMFUL', BUFFOPTIONS_LABEL);
 
+	local function UpdateDecorations()
+		if InCombatLockdown() then return end;
+		Helpful:SetAttribute('paddingBottom', Harmful:IsShown() and 8 or 20)
+		Harmful:SetTitle(Helpful:IsShown() and '' or BUFFOPTIONS_LABEL)
+	end
+
+	for _, row in ipairs({ Helpful, Harmful }) do
+		row:HookScript('OnShow', UpdateDecorations)
+		row:HookScript('OnHide', UpdateDecorations)
+	end
+
 	function Helpful:OnVariablesChanged()
-		self:SetAttribute('paddingBottom', db('QMenuCollectionDebuffs') and 8 or 20)
 		self:UpdateState(db('QMenuCollectionBuffs'))
 		self:Update()
 	end
 
 	function Harmful:OnVariablesChanged()
-		self:SetTitle(db('QMenuCollectionBuffs') and '' or BUFFOPTIONS_LABEL)
 		self:UpdateState(db('QMenuCollectionDebuffs'))
 		self:Update()
 	end
@@ -223,4 +234,5 @@ env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 
 	Helpful:OnVariablesChanged();
 	Harmful:OnVariablesChanged();
+	UpdateDecorations();
 end)
