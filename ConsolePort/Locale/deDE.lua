@@ -985,6 +985,7 @@ L['Loadout'] = 'Belegung';
 L['Lock Automatic Tooltip'] = 'Automatischen Tooltip sperren';
 L['Looks like a regular action bar, but shows the button combination rather than the action slot.'] = 'Sieht aus wie eine reguläre Aktionsleiste, zeigt aber die Tastenkombination statt des Aktionsslots an.';
 L['Lua pattern to match words for dictionary lookups.'] = 'Lua-Muster zum Abgleichen von Wörtern für Wörterbuch-Suchen.';
+L['Macro condition to automatically load a binding preset by name when the condition applies.'] = 'Makro-Bedingung, um automatisch eine Belegungs-Voreinstellung anhand ihres Namens zu laden, wenn die Bedingung zutrifft.';
 L['Macro condition to evaluate action bar page.'] = 'Makro-Bedingung zur Auswertung der Aktionsseite.';
 L['Macro condition to override the strafe angle threshold for combat.'] = 'Makro-Bedingung zum Überschreiben der Strafe-Winkel-Schwelle für den Kampf.';
 L['Macro condition to override the strafe angle threshold for travel.'] = 'Makro-Bedingung zum Überschreiben der Strafe-Winkel-Schwelle für Reisen.';
@@ -1096,6 +1097,7 @@ L['Position of the pet ring.'] = 'Position des Begleiterrings.';
 L['Position of the toolbar.'] = 'Position der Werkzeugleiste.';
 L['Power Level'] = 'Akkustand';
 L['Preferred size of radial menus, in pixels.'] = 'Bevorzugte Größe radialer Menüs, in Pixeln.';
+L['Preset Load Condition'] = 'Voreinstellungs-Ladebedingung';
 L['Presets'] = 'Voreinstellungen';
 L['Press and Hold'] = 'Drücken und Halten';
 L['Press your gamepad buttons to test them.'] = 'Drücke deine Gamepad-Tasten, um sie zu testen.';
@@ -1268,6 +1270,12 @@ L['Switches between the main menu and the radial companion.'] = 'Wechselt zwisch
 L['Synchronize Bindings'] = 'Belegungen synchronisieren';
 L['Synchronize Config'] = 'Konfiguration synchronisieren';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Mikromenü-Tasten übernehmen und in die Werkzeugleiste verschieben.';
+L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[Hat das Format von…
+[Bedingung] Name der Voreinstellung; nil
+
+Automatisch gespeicherte Voreinstellungen heißen "Charakter (Spezialisierung) Realm", auf Classic mit Klasse statt Spezialisierung.
+
+Die Voreinstellung wird außerhalb des Kampfes geladen, wenn die Bedingung zutrifft. Charakter-Voreinstellungen haben Vorrang vor Geräte-Voreinstellungen.]];
 L['Taps for cursor clicks are right clicks instead of left.'] = 'Tipps für Cursor-Klicks sind Rechtsklicks statt Linksklicks.';
 L['Target enemies automatically by looking at them.'] = 'Gegner automatisch anvisieren, indem du sie anschaust.';
 L['Target friends automatically by looking at them.'] = 'Freunde automatisch anvisieren, indem du sie anschaust.';

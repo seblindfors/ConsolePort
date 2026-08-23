@@ -985,6 +985,7 @@ L['Loadout'] = '로드아웃';
 L['Lock Automatic Tooltip'] = '자동 툴팁 잠금';
 L['Looks like a regular action bar, but shows the button combination rather than the action slot.'] = '일반 행동 단축바처럼 보이지만, 동작 슬롯 대신 버튼 조합을 표시합니다.';
 L['Lua pattern to match words for dictionary lookups.'] = '사전 조회를 위한 단어와 일치시키는 Lua 패턴.';
+L['Macro condition to automatically load a binding preset by name when the condition applies.'] = '조건이 충족되면 이름으로 단축키 프리셋을 자동으로 불러오는 매크로 조건입니다.';
 L['Macro condition to enable the click override button. The default condition clicks right mouse button when there is no enemy target.'] = '클릭 재정의 버튼을 활성화하는 매크로 조건. 기본 조건은 적 대상이 없을 때 마우스 우클릭을 합니다.';
 L['Macro condition to evaluate action bar page.'] = '행동 단축바 페이지를 평가하는 매크로 조건.';
 L['Macro condition to override the strafe angle threshold for combat.'] = '전투용 측면 이동 각도 임계값을 재정의하는 매크로 조건.';
@@ -1099,6 +1100,7 @@ L['Position of the pet ring.'] = '소환수 원형 메뉴의 위치.';
 L['Position of the toolbar.'] = '도구 모음의 위치.';
 L['Power Level'] = '배터리 레벨';
 L['Preferred size of radial menus, in pixels.'] = '픽셀 단위의 원형 메뉴 선호 크기.';
+L['Preset Load Condition'] = '프리셋 불러오기 조건';
 L['Presets'] = '프리셋';
 L['Press and Hold'] = '누르고 유지';
 L['Press your gamepad buttons to test them.'] = '게임패드 버튼을 눌러 테스트하십시오.';
@@ -1271,6 +1273,12 @@ L['Switches between the main menu and the radial companion.'] = '메인 메뉴�
 L['Synchronize Bindings'] = '단축키 동기화';
 L['Synchronize Config'] = '구성 동기화';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = '마이크로 메뉴 버튼의 소유권을 가져와 도구 모음으로 이동.';
+L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[형식:
+[조건] 프리셋 이름; nil
+
+자동 저장된 프리셋의 이름은 "캐릭터 (전문화) 서버"이며, 클래식에서는 전문화 대신 직업이 사용됩니다.
+
+조건이 충족되면 전투 중이 아닐 때 프리셋을 불러옵니다. 캐릭터 프리셋이 장치 프리셋보다 우선합니다.]];
 L['Taps for cursor clicks are right clicks instead of left.'] = '커서 클릭의 탭은 좌클릭 대신 우클릭입니다.';
 L['Target enemies automatically by looking at them.'] = '바라봄으로써 자동으로 적을 대상으로 지정합니다.';
 L['Target friends automatically by looking at them.'] = '바라봄으로써 자동으로 친구를 대상으로 지정합니다.';

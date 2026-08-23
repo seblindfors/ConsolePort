@@ -983,6 +983,7 @@ L['Loadout'] = '配置';
 L['Lock Automatic Tooltip'] = '锁定自动提示框';
 L['Looks like a regular action bar, but shows the button combination rather than the action slot.'] = '看起来像常规动作条，但显示按钮组合而不是动作槽。';
 L['Lua pattern to match words for dictionary lookups.'] = '用于字典查询匹配单词的 Lua 模式。';
+L['Macro condition to automatically load a binding preset by name when the condition applies.'] = '当条件满足时，按名称自动加载快捷键预设的宏条件。';
 L['Macro condition to enable the click override button. The default condition clicks right mouse button when there is no enemy target.'] = '启用点击覆盖按钮的宏条件。默认条件是在没有敌方目标时点击右鼠标按钮。';
 L['Macro condition to evaluate action bar page.'] = '用于评估动作条页面的宏条件。';
 L['Macro condition to override the strafe angle threshold for combat.'] = '用于覆盖战斗横移角度阈值的宏条件。';
@@ -1097,6 +1098,7 @@ L['Position of the pet ring.'] = '宠物环的位置。';
 L['Position of the toolbar.'] = '工具栏的位置。';
 L['Power Level'] = '电池电量';
 L['Preferred size of radial menus, in pixels.'] = '径向菜单的首选大小，以像素为单位。';
+L['Preset Load Condition'] = '预设加载条件';
 L['Presets'] = '预设';
 L['Press and Hold'] = '按住';
 L['Press your gamepad buttons to test them.'] = '按下你的手柄按钮以测试它们。';
@@ -1269,6 +1271,12 @@ L['Switches between the main menu and the radial companion.'] = '在主菜单和
 L['Synchronize Bindings'] = '同步快捷键';
 L['Synchronize Config'] = '同步配置';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = '接管并将微型菜单按钮移动到工具栏。';
+L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[格式为...
+[条件] 预设名称; nil
+
+自动保存的预设名为"角色 (专精) 服务器"，怀旧服使用职业代替专精。
+
+条件满足时会在脱离战斗后加载预设。角色预设优先于设备预设。]];
 L['Taps for cursor clicks are right clicks instead of left.'] = '光标点击的点击是右键点击而不是左键。';
 L['Target enemies automatically by looking at them.'] = '通过查看自动选择敌人。';
 L['Target friends automatically by looking at them.'] = '通过查看自动选择朋友。';

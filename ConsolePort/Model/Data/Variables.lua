@@ -701,8 +701,9 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Preset Load Condition';
 		desc = 'Macro condition to automatically load a binding preset by name when the condition applies.';
 		note = 'Takes the format of...\n'
-			.. BLUE'[condition] Preset Name; nil'
-			.. '\n\nThe preset is loaded when the condition applies, outside of combat. Character presets take precedence over device presets.';
+			.. '[condition] Preset Name; nil\n\n'
+			.. 'Auto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\n'
+			.. 'The preset loads outside of combat when the condition applies. Character presets take precedence over device presets.';
 		list = 'Presets';
 		advd = true;
 	};

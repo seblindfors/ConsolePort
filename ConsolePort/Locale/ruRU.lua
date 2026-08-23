@@ -989,6 +989,7 @@ L['Loadout'] = 'Раскладка';
 L['Lock Automatic Tooltip'] = 'Заблокировать автоматическую подсказку';
 L['Looks like a regular action bar, but shows the button combination rather than the action slot.'] = 'Выглядит как обычная панель действий, но показывает комбинацию кнопок, а не слот действия.';
 L['Lua pattern to match words for dictionary lookups.'] = 'Шаблон Lua для сопоставления слов для поиска в словаре.';
+L['Macro condition to automatically load a binding preset by name when the condition applies.'] = 'Макро-условие для автоматической загрузки предустановки привязок по имени, когда условие выполняется.';
 L['Macro condition to evaluate action bar page.'] = 'Условие макроса для оценки страницы панели действий.';
 L['Macro condition to override the strafe angle threshold for combat.'] = 'Условие макроса для переопределения порога угла движения боком для боя.';
 L['Macro condition to override the strafe angle threshold for travel.'] = 'Условие макроса для переопределения порога угла движения боком для путешествия.';
@@ -1101,6 +1102,7 @@ L['Position of the pet ring.'] = 'Позиция кругового меню п�
 L['Position of the toolbar.'] = 'Позиция панели инструментов.';
 L['Power Level'] = 'Уровень заряда';
 L['Preferred size of radial menus, in pixels.'] = 'Предпочтительный размер круговых меню, в пикселях.';
+L['Preset Load Condition'] = 'Условие загрузки предустановки';
 L['Presets'] = 'Предустановки';
 L['Press and Hold'] = 'Нажать и удерживать';
 L['Press your gamepad buttons to test them.'] = 'Нажимайте кнопки геймпада, чтобы их проверить.';
@@ -1272,6 +1274,12 @@ L['Switches between the main menu and the radial companion.'] = 'Переклю�
 L['Synchronize Bindings'] = 'Синхронизировать привязки';
 L['Synchronize Config'] = 'Синхронизировать конфигурацию';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Взять во владение и переместить кнопки микроменю на панель инструментов.';
+L['Takes the format of...\n[condition] Preset Name; nil\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[Имеет формат…
+[условие] Название предустановки; nil
+
+Автоматически сохранённые предустановки называются "Персонаж (Специализация) Игровой мир", в Classic вместо специализации используется класс.
+
+Предустановка загружается вне боя, когда условие выполняется. Предустановки персонажа имеют приоритет над предустановками устройства.]];
 L['Taps for cursor clicks are right clicks instead of left.'] = 'Касания для кликов курсора — это правые клики вместо левых.';
 L['Target enemies automatically by looking at them.'] = 'Автоматически выбирать врагов, глядя на них.';
 L['Target friends automatically by looking at them.'] = 'Автоматически выбирать друзей, глядя на них.';
