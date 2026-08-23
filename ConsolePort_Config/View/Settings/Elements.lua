@@ -603,7 +603,8 @@ function BindingPreset:Edit()
 		button3 = DELETE;
 		hasEditBox = 1;
 		OnShow = function(self, data)
-			self.editBox:SetText(data.key)
+			local editBox = self.editBox or self:GetEditBox();
+			editBox:SetText(data.key)
 		end;
 		OnAccept = function(popup, data)
 			local editBox = popup.editBox or popup:GetEditBox();
