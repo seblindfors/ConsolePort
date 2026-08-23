@@ -127,7 +127,7 @@ end
 function Bindings:LoadPreset(name)
 	if ( name == '' or name == 'nil' ) then return end;
 	local setID = GetCurrentBindingSet()
-	if ( setID ~= ACCOUNT_BINDINGS and setID ~= CHARACTER_BINDINGS ) then
+	if ( setID ~= Enum.BindingSet.Account and setID ~= Enum.BindingSet.Character ) then
 		-- Bindings are not available yet; retry on UPDATE_BINDINGS.
 		self.pendingPreset = name;
 		return
