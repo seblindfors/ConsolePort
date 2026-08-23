@@ -15,9 +15,11 @@ local Aura = {};
 ---------------------------------------------------------------
 
 function Aura:OnLoad()
+	local color = self:GetParent():IsHelpful() and NORMAL_FONT_COLOR or RED_FONT_COLOR;
 	self.cooldown:SetReverse(true)
 	self.cooldown:SetHideCountdownNumbers(true)
 	self.cooldown:SetDrawEdge(false)
+	self.cooldown:SetSwipeColor(color:GetRGBA())
 	self:SetAttribute(CPAPI.ActionPressAndHold, true)
 	self:SetAttribute(CPAPI.ActionTypeRelease..'2', 'cancelaura')
 	self:SetAttribute('index', self:GetID())
