@@ -14,7 +14,7 @@ local NOT_BOUND, PRESET_ATTRIBUTE = 'none', 'preset';
 ---------------------------------------------------------------
 -- Emulated buttons
 ---------------------------------------------------------------
-Bindings.Buttons = {
+Bindings.Emulated = {
 	'PADPADDLE1';
 	'PADPADDLE2';
 	'PADPADDLE3';
@@ -33,7 +33,7 @@ end
 
 function Bindings:GetEmulatedButton(key)
 	if not self:IsButtonBound(key) then return end;
-	for _, button in ipairs(self.Buttons) do
+	for _, button in ipairs(self.Emulated) do
 		if ( key == db('emulate'..button) ) then
 			return button;
 		end
@@ -50,7 +50,7 @@ function Bindings:SetEmulation(button, key)
 end
 
 function Bindings:OnEmulationChanged()
-	for _, button in ipairs(self.Buttons) do
+	for _, button in ipairs(self.Emulated) do
 		self:UpdateEmulation(button)
 	end
 end
@@ -68,7 +68,7 @@ function Bindings:UpdateEmulation(button)
 
 	if (isBound) then
 		-- Clear overlap
-		for _, other in ipairs(self.Buttons) do
+		for _, other in ipairs(self.Emulated) do
 			if ( other ~= button and (self:GetEmulation(other)) == mapping ) then
 				self:SetEmulation(other, NOT_BOUND)
 			end
@@ -158,6 +158,6 @@ db:RegisterSafeCallback('OnDataLoaded', Bindings.OnEmulationChanged, Bindings)
 db:RegisterSafeCallback('OnDataLoaded', Bindings.OnConditionChanged, Bindings)
 db:RegisterSafeCallback('Gamepad/Active', Bindings.OnEmulationChanged, Bindings)
 db:RegisterSafeCallback('Settings/bindingPresetCondition', Bindings.OnConditionChanged, Bindings)
-for _, button in ipairs(Bindings.Buttons) do
+for _, button in ipairs(Bindings.Emulated) do
 	db:RegisterSafeCallback('Settings/emulate'..button, Bindings.UpdateEmulation, Bindings, button)
 end
