@@ -21,7 +21,6 @@ Shared['<player>'] = function()
 			Spec  = specID;
 			Icon  = icon;
 			Name  = name;
-			Realm = GetRealmName();
 		};
 	}
 end

@@ -582,8 +582,9 @@ function BindingPreset:Init(elementData)
 			AddDoubleTooltipLine(self.tooltipDoubles, SPECIALIZATION, specName)
 		end
 	end
-	if data.meta.Realm then
-		AddDoubleTooltipLine(self.tooltipDoubles, L'Realm', data.meta.Realm)
+	local realm = data.key and data.key:match('^.*%)%s*(.+)$');
+	if realm then
+		AddDoubleTooltipLine(self.tooltipDoubles, L'Realm', realm)
 	end
 end
 
