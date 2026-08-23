@@ -526,10 +526,13 @@ local SchemeContent = {}; do
 				for i, cvar in ipairs(variables) do
 					variables[i] = db.Console:GetMetadata(cvar);
 				end
-				tinsert(variables, env.Elements.Title:New(SETTINGS))
-				for _, button in ipairs(db.Bindings.Buttons) do
-					tinsert(variables, { db.Variables['emulate'..button], 'emulate'..button })
-				end
+				tAppendAll(variables, {
+					env.Elements.Title:New(SETTINGS);
+					{ db.Variables.emulatePADPADDLE1, 'emulatePADPADDLE1' };
+					{ db.Variables.emulatePADPADDLE2, 'emulatePADPADDLE2' };
+					{ db.Variables.emulatePADPADDLE3, 'emulatePADPADDLE3' };
+					{ db.Variables.emulatePADPADDLE4, 'emulatePADPADDLE4' };
+				})
 				env:TriggerEvent('Controls.ShowVariables', variables, self.row);
 			end;
 			init = function(self)
