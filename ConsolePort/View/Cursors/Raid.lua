@@ -444,7 +444,7 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 		self.unit = unit;
 		if UnitExists(unit) then
 			self:UpdateHealthForUnit(unit)
-			self:UpdateColor(GetClassColorObj(select(2, UnitClass(unit))))
+			self:UpdateColor(GetClassColorObj(CPAPI.Scrub(select(2, UnitClass(unit)))))
 		end
 		self.UnitPortrait:SetPortrait(unit)
 		if unit then
