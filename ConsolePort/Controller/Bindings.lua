@@ -126,6 +126,12 @@ end
 
 function Bindings:LoadPreset(name)
 	if ( name == '' or name == 'nil' ) then return end;
+	local setID = GetCurrentBindingSet()
+	if ( setID ~= ACCOUNT_BINDINGS and setID ~= CHARACTER_BINDINGS ) then
+		-- Bindings are not available yet; retry on UPDATE_BINDINGS.
+		self.pendingPreset = name;
+		return
+	end
 	local preset = self:GetPresetByName(name)
 	if preset then
 		local merge, copy = db.table.merge, db.table.copy;
@@ -135,12 +141,12 @@ function Bindings:LoadPreset(name)
 				CPAPI.SetBinding(modifier..button, binding, false)
 			end
 		end
-		SaveBindings(GetCurrentBindingSet())
+		SaveBindings(setID)
 		return CPAPI.Log('Loaded binding preset %s.', name)
 	end
 	local device = self:GetDeviceByName(name)
 	if device then
-		device:ApplyPresetBindings(GetCurrentBindingSet())
+		device:ApplyPresetBindings(setID)
 		return CPAPI.Log('Loaded binding preset %s.', name)
 	end
 	CPAPI.Log('No binding preset named %s exists.', name)
@@ -155,6 +161,11 @@ function Bindings:UPDATE_BINDINGS()
 	-- have reclaimed their combos before emulation resolves what
 	-- each real button actually does.
 	CPAPI.Next(db.RunSafe, db, self.OnEmulationChanged, self)
+	if self.pendingPreset then
+		local name = self.pendingPreset;
+		self.pendingPreset = nil;
+		db:RunSafe(self.LoadPreset, self, name)
+	end
 end
 
 Bindings:RegisterEvent('UPDATE_BINDINGS')
