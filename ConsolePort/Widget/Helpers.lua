@@ -126,7 +126,7 @@ function CPButtonCatcherMixin:ToggleInputs(enabled)
 end
 
 function CPButtonCatcherMixin:GetButtonEmulation(button)
-	return db.Paddles:GetEmulatedButton(button)
+	return db.Bindings:GetEmulatedButton(button)
 end
 
 function CPButtonCatcherMixin:IsButtonValid(button)

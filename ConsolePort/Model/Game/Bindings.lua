@@ -1,4 +1,4 @@
-local Bindings, _, db, L = CPAPI.CreateDataHandler(), ...; L = db.Locale; db:Register('Bindings', Bindings)
+local Bindings, _, db, L = CPAPI.EventHandler(ConsolePortBindings), ...; L = db.Locale; db:Register('Bindings', Bindings)
 local function client(id) return [[Interface\Icons\]]..id end;
 ---------------------------------------------------------------
 -- Binding handler

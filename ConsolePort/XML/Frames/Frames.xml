@@ -20,8 +20,8 @@
 			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
 			<!-- Controllers\Interact.lua -->
 			<Frame name="$parentInteract" inherits="SecureHandlerStateTemplate"/>
-			<!-- Controllers\Paddles.lua -->
-			<Frame name="$parentPaddles" inherits="SecureHandlerBaseTemplate"/>
+			<!-- Model\Game\Bindings.lua, Controllers\Bindings.lua -->
+			<Frame name="$parentBindings" inherits="SecureHandlerStateTemplate"/>
 			<!-- Controllers\UnitMenu.lua -->
 			<Button name="$parentUnit" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
 		</Frames>
