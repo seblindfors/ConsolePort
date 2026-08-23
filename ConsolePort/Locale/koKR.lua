@@ -1117,6 +1117,7 @@ L['Radial Menus'] = '원형 메뉴';
 L['Raid Cursor'] = '공격대 커서';
 L['Re-apply config for the active device.'] = '활성 장치의 구성을 다시 적용합니다.';
 L['Reactivation Delay'] = '재활성화 지연';
+L['Realm'] = '서버';
 L['Recharge'] = '재충전';
 L['Recommended as first choice modifier.'] = '첫 번째 조합키로 권장됨.';
 L['Recommended as second choice modifier.'] = '두 번째 조합키로 권장됨.';

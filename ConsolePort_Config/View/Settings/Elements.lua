@@ -582,6 +582,9 @@ function BindingPreset:Init(elementData)
 			AddDoubleTooltipLine(self.tooltipDoubles, SPECIALIZATION, specName)
 		end
 	end
+	if data.meta.Realm then
+		AddDoubleTooltipLine(self.tooltipDoubles, L'Realm', data.meta.Realm)
+	end
 end
 
 function BindingPreset:OnClick(button)

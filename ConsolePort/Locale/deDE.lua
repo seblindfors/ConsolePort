@@ -1114,6 +1114,7 @@ L['Radial Menus'] = 'Radiale Menüs';
 L['Raid Cursor'] = 'Schlachtzugscursor';
 L['Re-apply config for the active device.'] = 'Konfiguration für das aktive Gerät erneut anwenden.';
 L['Reactivation Delay'] = 'Reaktivierungs-Verzögerung';
+L['Realm'] = 'Realm';
 L['Recharge'] = 'Aufladung';
 L['Recommended as first choice modifier.'] = 'Als erste Wahl als Modifikator empfohlen.';
 L['Recommended as second choice modifier.'] = 'Als zweite Wahl als Modifikator empfohlen.';

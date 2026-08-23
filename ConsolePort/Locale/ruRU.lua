@@ -1119,6 +1119,7 @@ L['Radial Menus'] = 'Круговые меню';
 L['Raid Cursor'] = 'Курсор рейда';
 L['Re-apply config for the active device.'] = 'Заново применить конфигурацию активного устройства.';
 L['Reactivation Delay'] = 'Задержка повторной активации';
+L['Realm'] = 'Игровой мир';
 L['Recharge'] = 'Перезарядка';
 L['Recommended as first choice modifier.'] = 'Рекомендуется как первый выбор модификатора.';
 L['Recommended as second choice modifier.'] = 'Рекомендуется как второй выбор модификатора.';

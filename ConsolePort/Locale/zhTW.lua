@@ -1115,6 +1115,7 @@ L['Radial Menus'] = '徑向菜單';
 L['Raid Cursor'] = '團隊光標';
 L['Re-apply config for the active device.'] = '為活動設備重新應用配置。';
 L['Reactivation Delay'] = '重新激活延迟';
+L['Realm'] = '伺服器';
 L['Recharge'] = '充能';
 L['Recommended as first choice modifier.'] = '推荐作為第一選擇修飾鍵。';
 L['Recommended as second choice modifier.'] = '推荐作為第二選擇修飾鍵。';
