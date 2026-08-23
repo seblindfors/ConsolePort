@@ -91,11 +91,14 @@ end
 ---------------------------------------------------------------
 
 function Bindings:OnConditionChanged()
-	local condition = db('bindingPresetCondition')
+	local condition = (db('bindingPresetCondition') or ''):trim()
 	UnregisterAttributeDriver(self, PRESET_ATTRIBUTE)
 	self:SetAttribute(PRESET_ATTRIBUTE, nil)
-	if ( condition and condition:trim() ~= '' ) then
-		RegisterAttributeDriver(self, PRESET_ATTRIBUTE, condition)
+	if ( condition ~= '' ) then
+		-- Force a fallback clause so the attribute zeroes out when
+		-- no condition applies, allowing the same preset to fire
+		-- again the next time a condition matches.
+		RegisterAttributeDriver(self, PRESET_ATTRIBUTE, condition..'; nil')
 	end
 end
 
