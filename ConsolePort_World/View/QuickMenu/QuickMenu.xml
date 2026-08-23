@@ -65,6 +65,8 @@
 		</Layers>
 	</Button>
 
+	<Button name="CPQMenuStaticAura" inherits="CPWorldSecureButtonBaseTemplate" registerForClicks="AnyUp" virtual="true"/>
+
 	<Button name="CPQMenuAura" inherits="SecureHandlerShowHideTemplate, CPWorldSecureButtonBaseTemplate" registerForClicks="AnyDown" virtual="true">
 		<Attributes>
 			<Attribute name="type2" value="cancelaura"/>

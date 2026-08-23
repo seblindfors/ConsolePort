@@ -97,7 +97,8 @@ QMenu:Run([[
 
 QMenu:CreateEnvironment({
 	UpdateLayout = [[
-		if not self:IsShown() then return end;
+		local force = ...;
+		if not (force or self:IsShown()) then return end;
 		local padding, height, isFirst, frame, prev, skipCalc = self:GetAttribute('padding'), 0, true;
 		for i = 1, FCOUNT do
 			frame = FRAMES[i];
@@ -209,7 +210,7 @@ end
 function QMenu:OnDataLoaded()
 	env:TriggerEvent('QMenu.Loaded', self)
 	self:OnVariableChanged()
-	self:Run([[ self::UpdateLayout() ]])
+	self:Run([[ self::UpdateLayout(true) ]])
 
 	CPAPI.Specialize(self.Slug, CPSlugMixin)
 	self.Slug:SetBinding(db.Bindings.Custom.QuickMenu)

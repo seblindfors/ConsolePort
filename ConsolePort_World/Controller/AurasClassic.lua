@@ -1,4 +1,3 @@
-if CPAPI.IsRetailVersion then return end; -- TODO: figure out wtf happened on Retail
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local BUFF_CANCEL_ROW_INDEX = env.QMenuID();
@@ -13,10 +12,6 @@ function Aura:OnLoad()
 	self.cooldown:SetReverse(true)
 	if self.cooldown.SetUseAuraDisplayTime then
 		self.cooldown:SetUseAuraDisplayTime(true)
-	end
-	if CPAPI.IsRetailVersion then
-		self.cooldown:SetHideCountdownNumbers(true)
-		self.cooldown:SetDrawEdge(false)
 	end
 end
 
@@ -46,37 +41,19 @@ else
 	end
 end
 
-if CPAPI.IsRetailVersion then
-	function Aura:GetColor()
-		return self.isHelpful and NORMAL_FONT_COLOR
-		    or self.isHarmful and RED_FONT_COLOR
-		    or BLUE_FONT_COLOR;
-	end
+function Aura:GetColor(data)
+	return (data and data.isHelpful) and NORMAL_FONT_COLOR
+	    or (data and data.isHarmful) and RED_FONT_COLOR
+	    or BLUE_FONT_COLOR;
+end
 
-	function Aura:SetCooldown(data)
-		local duration = C_UnitAuras.GetAuraDuration(self:GetUnit(), data.auraInstanceID)
-		self.cooldown:SetSwipeColor(self:GetColor(data):GetRGBA())
-		if duration then
-			self.cooldown:SetCooldownFromDurationObject(duration)
-		else
-			ClearTimer(self.cooldown)
-		end
-	end
-else
-	function Aura:GetColor(data)
-		return (data and data.isHelpful) and NORMAL_FONT_COLOR
-		    or (data and data.isHarmful) and RED_FONT_COLOR
-		    or BLUE_FONT_COLOR;
-	end
-
-	function Aura:SetCooldown(data)
-		self.cooldown:SetSwipeColor(self:GetColor(data):GetRGBA())
-		if data.duration > 0 then
-			self.cooldown:SetHideCountdownNumbers(data.duration > 60)
-			SetTimer(self.cooldown, data.expirationTime - data.duration, data.duration, true)
-		else
-			ClearTimer(self.cooldown)
-		end
+function Aura:SetCooldown(data)
+	self.cooldown:SetSwipeColor(self:GetColor(data):GetRGBA())
+	if data.duration > 0 then
+		self.cooldown:SetHideCountdownNumbers(data.duration > 60)
+		SetTimer(self.cooldown, data.expirationTime - data.duration, data.duration, true)
+	else
+		ClearTimer(self.cooldown)
 	end
 end
 
@@ -98,11 +75,7 @@ end
 function Aura:UpdateTooltip()
 	local data = self:GetData();
 	if not data then return end;
-	if CPAPI.IsRetailVersion then
-		GameTooltip:SetUnitAuraByAuraInstanceID(self:GetUnit(), data.auraInstanceID, self:GetFilter())
-	else
-		GameTooltip:SetUnitAura(self:GetArguments())
-	end
+	GameTooltip:SetUnitAura(self:GetArguments())
 
 	if not self.isHelpful then return end;
 	local text = env:GetTooltipPromptForClick('RightButton', CANCEL)

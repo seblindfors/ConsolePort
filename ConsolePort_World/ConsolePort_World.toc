@@ -13,7 +13,7 @@
 
 Database.lua
 
-Controller\Auras.lua
+Controller\Auras[Family].lua
 Controller\Pet.lua
 Controller\Items.lua
 Controller\Ping.lua
