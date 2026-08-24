@@ -50,7 +50,9 @@ function Bindings:SetEmulation(button, key)
 end
 
 function Bindings:OnEmulationChanged()
+	ClearOverrideBindings(self)
 	for _, button in ipairs(self.Emulated) do
+		self[button] = nil;
 		self:UpdateEmulation(button)
 	end
 end
@@ -156,7 +158,7 @@ end
 -- Events and callbacks
 ---------------------------------------------------------------
 
-function Bindings:UPDATE_BINDINGS()
+function Bindings:OnNewBindings()
 	-- Deferred a frame so override owners (e.g. the action bar)
 	-- have reclaimed their combos before emulation resolves what
 	-- each real button actually does.
@@ -168,10 +170,9 @@ function Bindings:UPDATE_BINDINGS()
 	end
 end
 
-Bindings:RegisterEvent('UPDATE_BINDINGS')
 Bindings:HookScript('OnAttributeChanged', Bindings.OnAttributeChanged)
 
-db:RegisterSafeCallback('OnDataLoaded', Bindings.OnEmulationChanged, Bindings)
+db:RegisterSafeCallback('OnNewBindings', Bindings.OnNewBindings, Bindings)
 db:RegisterSafeCallback('OnDataLoaded', Bindings.OnConditionChanged, Bindings)
 db:RegisterSafeCallback('Gamepad/Active', Bindings.OnEmulationChanged, Bindings)
 db:RegisterSafeCallback('Settings/bindingPresetCondition', Bindings.OnConditionChanged, Bindings)
