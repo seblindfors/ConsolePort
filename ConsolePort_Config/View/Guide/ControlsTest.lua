@@ -338,7 +338,7 @@ function ButtonTest:GetButtonEmulation(button)
 			return emulation;
 		end
 	end
-	return db.Paddles:GetEmulatedButton(button) or button;
+	return db.Bindings:GetEmulatedButton(button) or button;
 end
 
 function ButtonTest:IsButtonValid(button)
