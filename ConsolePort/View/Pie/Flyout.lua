@@ -214,8 +214,10 @@ function Selector:AddButton(i, size)
 		button:SetSize(64, 64)
 		button.Name:Hide()
 	end
-	button:SetPoint(p, x, self.axisInversion * y)
+	local itemScale = self:GetItemSizeForCount(size, 64) / 64;
 	button:SetRotation(self:GetRotation(x, y))
+	button:SetScale(itemScale)
+	button:SetPoint(p, x / itemScale, self.axisInversion * y / itemScale)
 	button:SetID(i)
 	button:Show()
 	return button;
