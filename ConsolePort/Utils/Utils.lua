@@ -70,8 +70,9 @@ CPAPI.SecureEnvironmentMixin = {
 	Wrap = function(self, scriptHandler, body)
 		return self:WrapScript(self, scriptHandler, CPAPI.ConvertSecureBody(body))
 	end;
-	Hook = function(self, target, scriptHandler, body)
-		return self:WrapScript(target, scriptHandler, CPAPI.ConvertSecureBody(body))
+	Hook = function(self, target, scriptHandler, body, postBody)
+		return self:WrapScript(target, scriptHandler, CPAPI.ConvertSecureBody(body),
+			postBody and CPAPI.ConvertSecureBody(postBody) or nil)
 	end;
 }
 

@@ -122,13 +122,35 @@ function Manager:UnregisterOverrides(owner) self:Parse([[
 Manager:SetFrameRef('Cursor', db.Raid)
 Manager:SetFrameRef('Mouse', db.Interact)
 Manager:SetFrameRef('Pager', db.Pager)
+Manager:SetFrameRef('Ring', ConsolePortTargetRing)
 Manager:Run([[
 	bindings = {};
 	owners   = {};
 	manager  = self;
 	mouse    = self:GetFrameRef('Mouse');
 	cursor   = self:GetFrameRef('Cursor');
+	ring     = self:GetFrameRef('Ring');
 ]])
+
+---------------------------------------------------------------
+-- Unit rerouting
+---------------------------------------------------------------
+-- While the target ring is held open, route clicks to the unit
+-- under the radial stick without committing the target.
+function Manager:RegisterReroute(button)
+	self:Hook(button, 'OnClick', [[
+		if not ring:IsShown() then return end;
+		local unit = ring::GetHoveredUnit()
+		if unit then
+			self:SetAttribute('backup-unit', self:GetAttribute('unit'))
+			self:SetAttribute('unit', unit)
+			return nil, 'reroute';
+		end
+	]], [[
+		self:SetAttribute('unit', self:GetAttribute('backup-unit'))
+		self:SetAttribute('backup-unit', nil)
+	]])
+end
 
 ---------------------------------------------------------------
 -- Frontend
