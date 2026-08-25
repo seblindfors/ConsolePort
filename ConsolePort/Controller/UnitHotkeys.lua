@@ -8,12 +8,6 @@
 local _, db = ...;
 ---------------------------------------------------------------
 local NUM_COMBO_BUTTONS    = 8;
-local UNIT_DRIVER_FORMAT   = '[@%s,exists] 1; %s';
-local UNIT_DRIVER_UPDATE   = 'units[%q][%q] = newstate; self:RunAttribute("RefreshUnits")';
-local UNIT_DRIVER_CLLBCK   = '_onstate-%s';
-local UNIT_POOL_DELIMITER  = '[^;]+';
-local UNIT_RANGE_DELIMITER = '-';
-local UNIT_TOKEN_GMATCH    = '(%a+)(%d+)%'..UNIT_RANGE_DELIMITER..'?(%d*)(.*)';
 local UH_BINDING_NAME      = 'CLICK ConsolePortEasyMotionButton:LeftButton';
 local INPUT_SEQ_DELIMITER  = '%d';
 local INPUT_SEQ_FILTER     = '^%s';
@@ -67,14 +61,14 @@ end
 ---------------------------------------------------------------
 -- Secure environment
 ---------------------------------------------------------------
-local UH    = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton, {'PLAYER_ENTERING_WORLD'}), CPAPI.SecureEnvironmentMixin)
+local UH    = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton), CPAPI.SecureEnvironmentMixin)
 local Scan  = db.Scan;
 local Input = ConsolePortEasyMotionInput;
-UH.Assignments, UH.UnitDrivers, UH.UnitFrames = {}, {}, {};
+UH.Assignments, UH.UnitFrames = {}, {};
 
 UH:Run([[bindRef = %q;
 	-- Unit and binding tables
-	units, sorted, lookup = newtable(), newtable(), newtable()
+	sorted, lookup, sequence = newtable(), newtable(), newtable()
 ]], ConsolePortEasyMotionInput:GetName())
 
 UH:CreateEnvironment({
@@ -112,47 +106,22 @@ UH:CreateEnvironment({
 		table.sort(sequence)
 	]];
 
+	OnUnitPoolChanged = [[
+		local list = ...;
+		sorted = wipe(sorted)
+		for unit in list:gmatch('[^;]+') do
+			sorted[#sorted + 1] = unit;
+		end
+		self::RefreshUnits()
+	]];
+
 	RefreshUnits = [[
-		self::SortUnits()
 		self::AssignUnits()
 		if isActive then
 			self::ClearInput()
 			self:::SecureRefreshDisplayBindings()
 		end
 	]];
-
-	SortUnits = ([[
-		local pool, c = self:GetAttribute('unitpool'), 0;
-		local hasBeenInserted = {};
-		sorted = wipe(sorted)
-
-		if ( not pool or pool:len() == 0 ) then
-			for group in pairs(units) do
-				for unit in pairs(group) do
-					if not hasBeenInserted[unit] then
-						hasBeenInserted[unit] = true;
-						table.insert(sorted, unit)
-					end
-				end
-			end
-			return table.sort(sorted)
-		end
-
-		for group in pool:gmatch(%q) do
-			local set = {};
-			for unit in pairs(units[group]) do
-				if not hasBeenInserted[unit] then
-					hasBeenInserted[unit] = true;
-					table.insert(set, unit)
-				end
-			end
-			table.sort(set)
-			for i, unit in ipairs(set) do
-				sorted[c + i] = unit;
-			end
-			c = #sorted;
-		end
-	]]):format(UNIT_POOL_DELIMITER);
 
 	AssignUnits = [[
 		lookup = wipe(lookup)
@@ -258,10 +227,6 @@ function UH:OnDataLoaded()
 	return CPAPI.BurnAfterReading;
 end
 
-function UH:PLAYER_ENTERING_WORLD()
-	self:OnUnitPoolChanged()
-end
-
 function UH:OnDisplaySettingsChanged()
 	self.display = {
 		alpha   = db('unitHotkeyGhostAlpha') or 0.5;
@@ -294,20 +259,7 @@ function UH:OnTargetSettingsChanged()
 	end
 end
 
-function UH:OnUnitPoolChanged()
-	self:ClearWatchedUnits()
-
-	-- Reparse the unit pool and rebuild the unit drivers
-	local tokens = db('unitHotkeyTokens')
-	local static = db('unitHotkeyStaticMode')
-	self.driverFallback = static and '0' or 'nil';
-	self:SetAttribute('unitpool', tokens)
-	self:SetAttribute('useStatic', static)
-	self:Execute('units = wipe(units)')
-	for token in tokens:gmatch(UNIT_POOL_DELIMITER) do
-		self:ParseToken(token, token)
-	end
-
+function UH:OnHotkeySetChanged()
 	-- Reparse the hotkey set and rebuild the hotkey buttons
 	local evaluator = SetEvaluator[db('unitHotkeySet')]
 	assert(evaluator, 'Invalid hotkey set: '..tostring(db('unitHotkeySet')))
@@ -325,45 +277,6 @@ function UH:OnUnitPoolChanged()
 	]])
 end
 
-function UH:ParseToken(token, group)
-	local hasRangeToResolve = token:find(UNIT_RANGE_DELIMITER)
-	if hasRangeToResolve then
-		for unitID, n, range, rest in token:gmatch(UNIT_TOKEN_GMATCH) do
-			hasRangeToResolve, n, range = true, tonumber(n), tonumber(range);
-			for i = n, range or n do
-				self:ParseToken(unitID..i..rest, group)
-			end
-		end
-	end
-	if not hasRangeToResolve then
-		self:AddUnitToWatch(token, group)
-	end
-end
-
-function UH:ClearWatchedUnits()
-	for unitID in pairs(self.UnitDrivers) do
-		UnregisterStateDriver(self, unitID)
-		self:SetAttribute(UNIT_DRIVER_CLLBCK:format(unitID), nil)
-	end
-	wipe(self.UnitDrivers)
-end
-
-function UH:AddUnitToWatch(unitID, group) unitID = unitID:trim();
-	if self.UnitDrivers[unitID] then
-		return false;
-	end
-	local driver = UNIT_DRIVER_FORMAT:format(unitID, self.driverFallback)
-	self.UnitDrivers[unitID] = true;
-	self:Run([[
-		local unitID, group, driver = %q, %q, %q;
-		units[group] = units[group] or {};
-		units[group][unitID] = tonumber((SecureCmdOptionParse(driver)));
-	]], unitID, group, driver)
-	RegisterStateDriver(self, unitID, driver)
-	self:SetAttribute(UNIT_DRIVER_CLLBCK:format(unitID), UNIT_DRIVER_UPDATE:format(group, unitID))
-	return true;
-end
-
 ---------------------------------------------------------------
 -- Callbacks
 ---------------------------------------------------------------
@@ -376,11 +289,9 @@ db:RegisterSafeCallbacks(UH.OnModifiersChanged, UH,
 	'Gamepad/Active',
 	'OnModifierChanged'
 );
-db:RegisterSafeCallbacks(UH.OnUnitPoolChanged, UH,
+db:RegisterSafeCallbacks(UH.OnHotkeySetChanged, UH,
 	'OnNewBindings',
 	'Settings/unitHotkeySet',
-	'Settings/unitHotkeyTokens',
-	'Settings/unitHotkeyStaticMode',
 	(function(n)
 		local res = {};
 		for i=1, n do
@@ -533,7 +444,11 @@ end
 ---------------------------------------------------------------
 UH.QueueDisplayBindings = CPAPI.Debounce(UH.DisplayBindings, UH)
 UH.QueueUnitFrameRefresh = CPAPI.Debounce(UH.RefreshAll, UH)
-db:RegisterCallback('OnScanUpdate', function(self) self:QueueUnitFrameRefresh() end, UH)
+db:RegisterCallback('OnScanUpdate', function(self)
+	if self.isActiveComponent then
+		self:QueueUnitFrameRefresh()
+	end
+end, UH)
 
 function UH:SecureRefreshDisplayBindings()
 	self:QueueDisplayBindings()
@@ -721,3 +636,28 @@ function AnimationScriptMixin:OnFinishRedraw()
 	parent:OnDisplayUpdated()
 	parent:SetAlpha(UH.display.alpha)
 end
+
+function UH:UpdateActiveState()
+	local active = not db('lazyLoadingEnable') or not not db.Gamepad:GetBindingKey(UH_BINDING_NAME)
+	if ( active == self.isActiveComponent ) then return end;
+	self.isActiveComponent = active;
+	Scan:SetInterest(self, active)
+	if active then
+		db.UnitPool:RegisterConsumer(self, 'UnitHotkeys')
+	else
+		db.UnitPool:UnregisterConsumer('UnitHotkeys')
+		self:ClearUnitFrames()
+	end
+end
+
+db:RegisterSafeCallbacks(UH.UpdateActiveState, UH,
+	'OnNewBindings',
+	'Settings/lazyLoadingEnable'
+);
+
+UH:HookScript('PreClick', function(self)
+	if not self.isActiveComponent then
+		db('Settings/lazyLoadingEnable', false)
+		CPAPI.Log('Lazy loading has been disabled to activate unit hotkeys.')
+	end
+end)
