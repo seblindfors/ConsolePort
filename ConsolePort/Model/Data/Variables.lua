@@ -508,10 +508,10 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Higher values appear on top of lower values. Valid range 0-10000.';
 		advd = true;
 	};
-	unitHotkeyTokens = _{String('raid1-9; raid10-40; party1-4; player; boss1-4; arena1-5; party1-4pet; raid1-40target');
+	unitHotkeyTokens = _{String('[group:party] party1-4, player, party1-4pet, boss1-8, arena1-5 [group:raid] raid1-40, boss1-8 [] player');
 		name = 'Unit Pool';
-		desc = 'Match criteria for unit pool, each type separated by semicolon.';
-		note = 'E.g. '..BLUE('party1-4')..'; '..BLUE('player')..' will match party1, party2, party3, party4, and player.';
+		desc = 'Units to watch, as lists of unit tokens selected by macro conditions. Use [] for the unconditional fallback.';
+		note = 'E.g. '..BLUE('[group:party] party1-4, player [] player')..' watches your party while grouped, otherwise only yourself.';
 		advd = true;
 	};
 	unitHotkeySet = _{Select('Dynamic', 'Dynamic', 'Left', 'Right', 'Custom');

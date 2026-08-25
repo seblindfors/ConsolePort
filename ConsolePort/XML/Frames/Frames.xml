@@ -23,7 +23,7 @@
 			<!-- Controllers\Bindings.lua, Model\Game\Bindings.lua -->
 			<Frame name="$parentBindings" inherits="SecureHandlerStateTemplate"/>
 			<!-- Controllers\UnitPool.lua -->
-			<Frame name="$parentUnitPool" inherits="SecureHandlerStateTemplate"/>
+			<Frame name="$parentUnitPool" inherits="SecureHandlerAttributeTemplate"/>
 			<!-- Controllers\UnitMenu.lua -->
 			<Button name="$parentUnit" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
 		</Frames>
