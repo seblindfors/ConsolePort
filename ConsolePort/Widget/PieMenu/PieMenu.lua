@@ -103,6 +103,10 @@ function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
 	end
 	self.SlicePool:ReleaseAll()
 	local slices = numSlices or self:GetNumVisible()
+	if ( slices == 0 ) then
+		slices = 1;
+		self.ActiveSlice:SetIndex(1, 1)
+	end
 	local width, height = self:GetSize()
 	for i = 1, slices do
 		local slice, newObj = self.SlicePool:Acquire()
