@@ -44,7 +44,10 @@ end
 function CPAPI.GetPlayerName(classColored, unit) unit = unit or 'player';
 	local name = UnitName(unit)
 	if classColored then
-		return GetClassColorObj(select(2, UnitClass(unit))):WrapTextInColorCode(name)
+		local color = GetClassColorObj(CPAPI.Scrub(select(2, UnitClass(unit))))
+		if color and not CPAPI.IsSecret(name) then
+			return color:WrapTextInColorCode(name)
+		end
 	end
 	return name;
 end
