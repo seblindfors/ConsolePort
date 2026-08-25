@@ -218,9 +218,30 @@ do	local Scrub, IsProtected, IsRestricted, GetChildren =
 end
 
 ---------------------------------------------------------------
+-- Interest
+---------------------------------------------------------------
+local Interest = {};
+
+function Scan:SetInterest(owner, enabled)
+	Interest[owner] = enabled or nil;
+	if enabled then
+		ScanGlobal()
+	elseif not next(Interest) then
+		ScanGlobal.Cancel()
+		self.scanQueued = nil;
+		self:StopGlobalScan()
+	end
+end
+
+function Scan:HasInterest()
+	return next(Interest) ~= nil;
+end
+
+---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
 function Scan:GROUP_ROSTER_UPDATE()
+	if not self:HasInterest() then return end;
 	if InCombatLockdown() then
 		self.scanQueued = true;
 	else
@@ -245,7 +266,9 @@ end
 function Scan:OnDataLoaded()
 	self:RegisterEvent('ADDON_LOADED')
 	self.ADDON_LOADED = self.GROUP_ROSTER_UPDATE;
-	ScanGlobal()
+	if self:HasInterest() then
+		ScanGlobal()
+	end
 end
 
 Scan.PLAYER_ENTERING_WORLD = Scan.GROUP_ROSTER_UPDATE;

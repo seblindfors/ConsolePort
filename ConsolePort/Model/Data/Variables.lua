@@ -14,6 +14,12 @@ local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', CPAPI.Callable({
 	_(GENERAL, SETTING_GROUP_SYSTEM);
+	lazyLoadingEnable = _{Bool(true);
+		name = 'Enable Lazy Loading';
+		desc = 'Activate targeting components only while their bindings are in use.';
+		note = 'Automatically disabled if an inactive component is clicked from a macro.';
+		advd = true;
+	};
 	useCharacterSettings = _{Bool(false);
 		name = 'Character Specific';
 		desc = 'Use character specific addon settings for this character.';
@@ -347,6 +353,13 @@ db:Register('Variables', CPAPI.Callable({
 	keyboardEnable = _{Bool(false);
 		name = 'Enable';
 		desc = 'Enables a radial on-screen keyboard that can be used to type messages.';
+	};
+	--------------------------------------------------------------------------------------------------------
+	_('Target Ring', BINDING_HEADER_TARGETING);
+	--------------------------------------------------------------------------------------------------------
+	targetRingClassColor = _{Bool(true);
+		name = 'Class Colored Health';
+		desc = 'Color the health bars in the target ring by class.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	_('Raid Cursor', BINDING_HEADER_TARGETING);
