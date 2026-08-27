@@ -190,6 +190,12 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Explicit only matches hard locked targets through using a targeting binding, while implicit matches targets you attack.';
 		advd = true;
 	};
+	unitHotkeyTokens = _{String('[group:party] party1-4, player, party1-4pet, boss1-8, arena1-5 [group:raid] raid1-40, boss1-8 [] player');
+		name = 'Unit Pool';
+		desc = 'Units to watch, as lists of unit tokens selected by macro conditions. Use [] for the unconditional fallback.';
+		note = 'E.g. '..BLUE('[group:party] party1-4, player [] player')..' watches your party while grouped, otherwise only yourself.';
+		advd = true;
+	};
 	--------------------------------------------------------------------------------------------------------
 	_(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT, BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
@@ -506,12 +512,6 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Frame Level Offset';
 		desc = 'Frame level offset of the hotkey prompt, relative to the unit frame.';
 		note = 'Higher values appear on top of lower values. Valid range 0-10000.';
-		advd = true;
-	};
-	unitHotkeyTokens = _{String('[group:party] party1-4, player, party1-4pet, boss1-8, arena1-5 [group:raid] raid1-40, boss1-8 [] player');
-		name = 'Unit Pool';
-		desc = 'Units to watch, as lists of unit tokens selected by macro conditions. Use [] for the unconditional fallback.';
-		note = 'E.g. '..BLUE('[group:party] party1-4, player [] player')..' watches your party while grouped, otherwise only yourself.';
 		advd = true;
 	};
 	unitHotkeySet = _{Select('Dynamic', 'Dynamic', 'Left', 'Right', 'Custom');
