@@ -327,3 +327,18 @@ env.SharedConfig = {
 		end)
 	end;
 };
+
+---------------------------------------------------------------
+-- Mover
+---------------------------------------------------------------
+local function GetMover()
+	return ConsolePortConfig:GetEnvironment():GetMover()
+end
+
+env:RegisterSafeCallback('OnMoveFrame', function(frame, callback, snapPixels)
+	GetMover():MoveFrame(frame, callback, snapPixels)
+end)
+
+env:RegisterSafeCallback('OnHighlightFrame', function(frame, show)
+	GetMover():MarkFrame(frame, show)
+end)

@@ -1,4 +1,4 @@
-local _, env, Node = ...; Node = LibStub('ConsolePortNode')
+local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local GridLine = { pixelWidth = 1.2 };
 ---------------------------------------------------------------
@@ -211,15 +211,19 @@ function Mover:MarkFrame(frame, show)
 	self:MimeFrame(frame, -1)
 	self:SetSnapPixels(1)
 	self:SetInputEnabled(false)
-	env.db.Alpha.FadeIn(self, 0.2, 0, 1)
+	db.Alpha.FadeIn(self, 0.2, 0, 1)
 end
 
 function Mover:OnShow()
-	env:RegisterCallback('OnCombatLockdown', self.RestorePoint, self)
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
 end
 
 function Mover:OnHide()
-	env:UnregisterCallback('OnCombatLockdown', self)
+	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
+end
+
+function Mover:OnEvent()
+	self:RestorePoint()
 end
 
 function Mover:SetKit(kit)
@@ -402,20 +406,11 @@ end
 ---------------------------------------------------------------
 -- Factory
 ---------------------------------------------------------------
-do local function CreateMover()
-		if not env.Mover then
-			env.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
-			env.Mover:OnLoad()
-			env.Mover:Hide()
-		end
-		return env.Mover;
+function env:GetMover()
+	if not self.Mover then
+		self.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
+		self.Mover:OnLoad()
+		self.Mover:Hide()
 	end
-
-	env:RegisterSafeCallback('OnMoveFrame', function(frame, callback, snapPixels)
-		CreateMover():MoveFrame(frame, callback, snapPixels)
-	end)
-
-	env:RegisterSafeCallback('OnHighlightFrame', function(frame, show)
-		CreateMover():MarkFrame(frame, show)
-	end)
+	return self.Mover;
 end
