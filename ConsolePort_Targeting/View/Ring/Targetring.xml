@@ -1,0 +1,7 @@
+<Ui>
+	<PieMenu name="ConsolePortTargetRing" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+	</PieMenu>
+</Ui>

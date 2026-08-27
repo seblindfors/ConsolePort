@@ -50,14 +50,7 @@
 		</KeyValues>
 	</PieMenu>
 
-	<PieMenu name="ConsolePortTargetRing" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
-		<Anchors>
-			<Anchor point="CENTER"/>
-		</Anchors>
-	</PieMenu>
-
 	<!-- Single file views -->
 	<Script file="Flyout.lua"/>
 	<Script file="Petring.lua"/>
-	<Script file="Targetring.lua"/>
 </Ui>

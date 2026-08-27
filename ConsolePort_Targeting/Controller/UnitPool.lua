@@ -7,15 +7,15 @@
 -- a macro condition selecting a comma-separated list of units,
 -- so the watched set follows group state in combat.
 
-local _, db = ...;
+local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local POOL_STATE = 'pool';
 
-local Pool = db:Register('UnitPool', Mixin(
-	CPAPI.EventHandler(ConsolePortUnitPool),
+local Pool = env:Register('UnitPool', Mixin(
+	CreateFrame('Frame', '$parentUnitPool', ConsolePort, 'SecureHandlerAttributeTemplate'),
 	CPAPI.SecureEnvironmentMixin
 ));
-Pool.Sorted, Pool.Consumers = {}, {};
+Pool.Consumers = {};
 
 Pool:Run([[
 	units, sorted, order, wanted, watched, CONSUMERS =
@@ -104,7 +104,6 @@ Pool:CreateEnvironment({
 		for name, consumer in pairs(CONSUMERS) do
 			consumer::OnUnitPoolChanged(list)
 		end
-		self:::OnSortedUnitsChanged(list)
 	]];
 })
 
@@ -140,18 +139,6 @@ function Pool:UnregisterConsumer(name)
 	if not next(self.Consumers) then
 		self:OnUnitPoolChanged()
 	end
-end
-
-function Pool:OnSortedUnitsChanged(list)
-	local sorted = wipe(self.Sorted)
-	for unit in list:gmatch('[^;]+') do
-		sorted[#sorted + 1] = unit;
-	end
-	db:TriggerEvent('OnUnitPoolChanged', sorted)
-end
-
-function Pool:GetSortedUnits()
-	return self.Sorted;
 end
 
 ---------------------------------------------------------------

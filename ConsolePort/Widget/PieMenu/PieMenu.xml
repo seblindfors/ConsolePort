@@ -35,7 +35,7 @@
 		</Anchors>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-7">
-				<Texture parentKey="Slice" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Background.png">
+				<Texture parentKey="Slice" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Background">
 					<Size x="500" y="500"/>
 					<Anchors>
 						<Anchor point="CENTER"/>

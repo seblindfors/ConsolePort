@@ -6,8 +6,8 @@
 -- Gathers all nodes by recursively scanning UIParent for
 -- secure frames with the 'unit' attribute assigned.
 
-local _, db  = ...;
-local Scan   = db.Scan;
+local env, db = CPAPI.GetEnv(...);
+local Scan   = env.Scan;
 local Cursor = db:Register('Raid', db.Pager:RegisterHeader(db.Nav(ConsolePortRaidCursor)))
 
 ---------------------------------------------------------------

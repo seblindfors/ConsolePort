@@ -275,11 +275,12 @@ function CPPieSliceMixin:RotateLines(centerAngle)
 
 	-- String metrics are secret when the text is secret.
 	local flatDirection = (endX < 1) and -1 or 1;
-	local flatLength = (CPAPI.Scrub(self.Text:GetStringWidth()) or radius / 4) * LINE_MUL;
+	local flatLength = self:GetParent().flatLineLength or (CPAPI.Scrub(self.Text:GetStringWidth()) or radius / 4) * LINE_MUL;
 	local textYDelta = (endY < 1) and -1 or 1;
 	local textYOffset = CPAPI.Scrub(self.Text:GetStringHeight()) or select(2, self.Text:GetFont());
 	local flipLines = startX > endX;
 	local textPoint = flipLines and 'RIGHT' or 'LEFT';
+	self.labelSide, self.labelOffset = textPoint, textYDelta * textYOffset;
 
 	self.Line1:SetStartPoint('CENTER', startX, startY)
 	self.Line1:SetEndPoint('CENTER', endX, endY)
@@ -305,9 +306,20 @@ end
 
 function CPPieSliceMixin:SetVertexColor(r, g, b)
 	self.Slice:SetVertexColor(r, g, b)
-	self:SetLineColor(r, g, b)
+	if self.lineColor then
+		self:SetLineColor(self.lineColor:GetRGB())
+	else
+		self:SetLineColor(r, g, b)
+	end
 	if not self.isActiveSlice then
 		self:SetSeparatorColor(r, g, b, 0.25)
+	end
+end
+
+function CPPieSliceMixin:SetLineColorOverride(color)
+	self.lineColor = color;
+	if color then
+		self:SetLineColor(color:GetRGB())
 	end
 end
 
