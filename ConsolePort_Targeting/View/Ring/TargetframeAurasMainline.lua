@@ -1,11 +1,11 @@
-if not CPAPI.IsRetailVersion then return end;
 ---------------------------------------------------------------
 -- Target frame auras (Mainline)
 ---------------------------------------------------------------
 -- Blizzard's custom aura containers drive the buttons from the
 -- secure side, so aura data never has to be read by the addon.
 
-local Ring = ConsolePortTargetRing;
+local env, db = CPAPI.GetEnv(...);
+local Ring = db.TargetRing;
 
 local function InitializeAuraButton(size, button)
 	button:SetSize(size, size)

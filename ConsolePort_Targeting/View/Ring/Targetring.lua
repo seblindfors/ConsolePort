@@ -6,7 +6,8 @@
 -- Each unit renders a health slice, which shrinks radially
 -- with the unit's remaining health.
 
-local Ring, Unitbutton, _, db = CPAPI.EventHandler(ConsolePortTargetRing), {}, ...;
+local env, db = CPAPI.GetEnv(...);
+local Ring, Unitbutton = db:Register('TargetRing', CPAPI.EventHandler(ConsolePortTargetRing)), {};
 local TR_BINDING_NAME = 'CLICK ConsolePortTargetRing:LeftButton';
 
 ---------------------------------------------------------------
@@ -498,9 +499,9 @@ function Ring:UpdateActiveState()
 			self:OnAxisInversionChanged()
 		end
 		self:RegisterEvents()
-		db.UnitPool:RegisterConsumer(self, 'TargetRing')
+		env.UnitPool:RegisterConsumer(self, 'TargetRing')
 	else
-		db.UnitPool:UnregisterConsumer('TargetRing')
+		env.UnitPool:UnregisterConsumer('TargetRing')
 		self:UnregisterAllEvents()
 		for button in self:EnumerateActive() do
 			button:UnregisterAllEvents()

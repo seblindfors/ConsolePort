@@ -1,7 +1,7 @@
-local _, db = ...;
+local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local Widgets, Cache, Owners = EnumUtil.MakeEnum('Any', 'UnitFrames', 'ActionBars'), {}, {};
-local Scan = db:Register('Scan', CPAPI.CreateEventHandler({'Frame', '$parentScanHandler', ConsolePort}, {
+local Scan = env:Register('Scan', CPAPI.CreateEventHandler({'Frame', '$parentScanHandler', ConsolePort}, {
 ---------------------------------------------------------------
 	'GROUP_ROSTER_UPDATE';
 	'CINEMATIC_STOP';
@@ -281,7 +281,7 @@ Scan.Refresh = ScanGlobal;
 Scan.Execute = ScanFrames;
 
 Scan.QueueAttributionUpdate = CPAPI.Debounce(function(self)
-	db:TriggerEvent('OnScanUpdate', Widgets.UnitFrames, Cache[Widgets.UnitFrames])
+	env:TriggerEvent('OnScanUpdate', Widgets.UnitFrames, Cache[Widgets.UnitFrames])
 end, Scan)
 
 function Scan:RegisterCallback(widgetType, callback, owner)
@@ -298,7 +298,7 @@ function Scan:FireCallbacks(widgetType)
 			callback(node, widgetType)
 		end
 	end
-	db:TriggerEvent('OnScanUpdate', widgetType, nodes);
+	env:TriggerEvent('OnScanUpdate', widgetType, nodes);
 end
 
 function Scan:GetCache(widgetType)

@@ -4,7 +4,8 @@
 -- Unit frame for the unit hovered on the target ring, hanging
 -- off the active slice label: portrait, health, power and auras.
 
-local Ring, Unitframe = ConsolePortTargetRing, {};
+local env, db = CPAPI.GetEnv(...);
+local Ring, Unitframe = db.TargetRing, {};
 
 local FRAME_WIDTH, PORTRAIT_SIZE, LABEL_OFFSET = 180, 36, 4;
 local LINE_CLEARANCE = 8;

@@ -124,7 +124,7 @@ function CPActionBar:OnDriverChanged()
 end
 
 function CPActionBar:OnHierarchyChanged()
-	db.Raid:CacheActionBar(self)
+	env.Manager:CacheActionBar(self)
 end
 
 function CPActionBar:OnRelease()

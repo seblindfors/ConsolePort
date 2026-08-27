@@ -5,7 +5,7 @@
 -- in order to alleviate targeting. A healer's delight.
 -- Thanks to Yoki for original concept! :)
 
-local _, db = ...;
+local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local NUM_COMBO_BUTTONS    = 8;
 local UH_BINDING_NAME      = 'CLICK ConsolePortEasyMotionButton:LeftButton';
@@ -62,7 +62,7 @@ end
 -- Secure environment
 ---------------------------------------------------------------
 local UH    = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton), CPAPI.SecureEnvironmentMixin)
-local Scan  = db.Scan;
+local Scan  = env.Scan;
 local Input = ConsolePortEasyMotionInput;
 UH.Assignments, UH.UnitFrames = {}, {};
 
@@ -224,6 +224,7 @@ end
 function UH:OnDataLoaded()
 	self:OnDisplaySettingsChanged()
 	self:OnTargetSettingsChanged()
+	self:OnModifiersChanged()
 	return CPAPI.BurnAfterReading;
 end
 
@@ -444,7 +445,7 @@ end
 ---------------------------------------------------------------
 UH.QueueDisplayBindings = CPAPI.Debounce(UH.DisplayBindings, UH)
 UH.QueueUnitFrameRefresh = CPAPI.Debounce(UH.RefreshAll, UH)
-db:RegisterCallback('OnScanUpdate', function(self)
+env:RegisterCallback('OnScanUpdate', function(self)
 	if self.isActiveComponent then
 		self:QueueUnitFrameRefresh()
 	end
@@ -643,9 +644,9 @@ function UH:UpdateActiveState()
 	self.isActiveComponent = active;
 	Scan:SetInterest(self, active)
 	if active then
-		db.UnitPool:RegisterConsumer(self, 'UnitHotkeys')
+		env.UnitPool:RegisterConsumer(self, 'UnitHotkeys')
 	else
-		db.UnitPool:UnregisterConsumer('UnitHotkeys')
+		env.UnitPool:UnregisterConsumer('UnitHotkeys')
 		self:ClearUnitFrames()
 	end
 end

@@ -1,0 +1,27 @@
+## Interface: 120100, 50504, 38010, 20506, 11509
+## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
+## Title: Console Port |cff69ccf0Targeting|r
+## Notes: Targeting module
+## RequiredDeps: ConsolePort
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+## X-Curse-Project-ID: 91376
+## X-WoWI-ID: 23536
+## X-Wago-ID: LvNAYjNo
+
+Database.lua
+
+View\Cursor\Raid.xml
+View\Hotkeys\UnitHotkeys.xml
+View\Ring\Targetring.xml
+
+Controller\Securescan.lua
+Controller\UnitPool.lua
+
+View\Cursor\Raid.lua
+View\Hotkeys\UnitHotkeys.lua
+View\Ring\Targetring.lua
+View\Ring\Targetframe.lua
+View\Ring\TargetframeAuras[Family].lua

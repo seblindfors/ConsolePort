@@ -48,7 +48,7 @@ function UnitMenuSecure:SetUnit(unit)
 end
 
 function UnitMenuSecure:GetPreferredUnit()
-	local raid = db.Raid:GetAttribute(CPAPI.RaidCursorUnit)
+	local raid = db.Raid and db.Raid:GetAttribute(CPAPI.RaidCursorUnit)
 	return ( raid and UnitExists(raid) and raid )
 		or ( UnitExists('target') and 'target' )
 		or 'player';
@@ -76,10 +76,15 @@ end
 
 function UnitMenuSecure:OnDataLoaded()
 	self:SetAttribute('clickbutton', db.UnitMenu.SecureProxy)
-	self:SetFrameRef('Cursor', db.Raid)
-	self:Execute([[cursor = self:GetFrameRef('Cursor')]])
 	return CPAPI.BurnAfterReading;
 end
+
+EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetingAddOn, function()
+	db:RunSafe(function()
+		UnitMenuSecure:SetFrameRef('Cursor', db.Raid)
+		UnitMenuSecure:Execute([[cursor = self:GetFrameRef('Cursor')]])
+	end)
+end)
 
 ---------------------------------------------------------------
 -- Secure
@@ -133,7 +138,7 @@ UnitMenuSecure:CreateEnvironment({
 		self:CallMethod('ToggleMenu', unit)
 	]];
 	GetPreferredUnit = ([[
-		return cursor:GetAttribute(%q)
+		return cursor and cursor:GetAttribute(%q)
 			or UnitExists('target') and 'target'
 			or 'player';
 	]]):format(CPAPI.RaidCursorUnit);

@@ -1,0 +1,31 @@
+<Ui>
+	<Button name="ConsolePortEasyMotionButton" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">
+		<Attributes>
+			<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
+			<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
+		</Attributes>
+		<Frames> <!-- Need a separate input feeder so the targeting button (parent) doesn't process a release event prematurely -->
+			<Button name="ConsolePortEasyMotionInput" inherits="SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">
+				<Attributes>
+					<Attribute name="type" type="string" value="macro"/>
+					<Attribute name="useOnKeyDown" type="boolean" value="true"/>
+				</Attributes>
+			</Button>
+		</Frames>
+	</Button>
+
+	<Frame name="CPUnitHotkeyTemplate" virtual="true" hidden="true" frameStrata="TOOLTIP">
+		<Size x="1" y="1" />
+	</Frame>
+
+	<AnimationGroup name="CPUnitHotkeyMatchAnimTemplate" virtual="true">
+		<Scale parentKey="Enlarge" scaleX="2" scaleY="2" duration="0.1" smoothing="OUT"/>
+		<Scale parentKey="Shrink" scaleX="0.25" scaleY="0.25" duration="0.1" smoothing="OUT" startDelay="0.1"/>
+		<Alpha parentKey="Alpha" fromAlpha="1" toAlpha="0" duration="0.1" startDelay="0.1"/>
+	</AnimationGroup>
+
+	<AnimationGroup name="CPUnitHotkeyFilterAnimTemplate" virtual="true">
+		<Scale parentKey="Enlarge" scaleX="1.35" scaleY="1.35" duration="0.1" smoothing="OUT" />
+		<Alpha parentKey="Alpha" fromAlpha="1" toAlpha="0.5" duration="0.1" startDelay="0.1"/>
+	</AnimationGroup>
+</Ui>

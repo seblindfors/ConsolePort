@@ -10,7 +10,7 @@ Manager.Env = {
 	_onshow = [[
 		self::ApplyBindings()
 		mouse::OnBindingsChanged()
-		cursor::ActionPageChanged()
+		if cursor then cursor::ActionPageChanged() end
 	]];
 	RefreshBindings = [[
 		local owner = ...;
@@ -18,7 +18,7 @@ Manager.Env = {
 		self::ApplyBindings()
 		if owner then
 			mouse::OnBindingsChanged()
-			cursor::OwnerChanged(owner)
+			if cursor then cursor::OwnerChanged(owner) end
 		end
 	]];
 	ApplyBindings = [[
@@ -119,18 +119,41 @@ function Manager:UnregisterOverrides(owner) self:Parse([[
 ---------------------------------------------------------------
 -- Initialize manager
 ---------------------------------------------------------------
-Manager:SetFrameRef('Cursor', db.Raid)
 Manager:SetFrameRef('Mouse', db.Interact)
 Manager:SetFrameRef('Pager', db.Pager)
-Manager:SetFrameRef('Ring', ConsolePortTargetRing)
 Manager:Run([[
 	bindings = {};
 	owners   = {};
 	manager  = self;
 	mouse    = self:GetFrameRef('Mouse');
-	cursor   = self:GetFrameRef('Cursor');
-	ring     = self:GetFrameRef('Ring');
 ]])
+
+---------------------------------------------------------------
+-- Targeting module
+---------------------------------------------------------------
+local PendingBars = {};
+
+function Manager:CacheActionBar(bar)
+	if db.Raid then
+		return db.Raid:CacheActionBar(bar)
+	end
+	PendingBars[bar] = true;
+end
+
+EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetingAddOn, function()
+	db:RunSafe(function()
+		Manager:SetFrameRef('Cursor', db.Raid)
+		Manager:SetFrameRef('Ring', db.TargetRing)
+		Manager:Run([[
+			cursor = self:GetFrameRef('Cursor');
+			ring   = self:GetFrameRef('Ring');
+		]])
+		for bar in pairs(PendingBars) do
+			db.Raid:CacheActionBar(bar)
+		end
+		PendingBars = nil;
+	end)
+end)
 
 ---------------------------------------------------------------
 -- Unit rerouting
@@ -139,7 +162,7 @@ Manager:Run([[
 -- under the radial stick without committing the target.
 function Manager:RegisterReroute(button)
 	self:Hook(button, 'OnClick', [[
-		if not ring:IsShown() then return end;
+		if not ring or not ring:IsShown() then return end;
 		local unit = ring::GetHoveredUnit()
 		if unit then
 			self:SetAttribute('backup-unit', self:GetAttribute('unit'))

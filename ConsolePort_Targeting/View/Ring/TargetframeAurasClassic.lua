@@ -1,8 +1,8 @@
-if CPAPI.IsRetailVersion then return end;
 ---------------------------------------------------------------
 -- Target frame auras (Classic)
 ---------------------------------------------------------------
-local Ring, Container, Aura = ConsolePortTargetRing, {}, {};
+local env, db = CPAPI.GetEnv(...);
+local Ring, Container, Aura = db.TargetRing, {}, {};
 local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex;
 local DEBUFF_BORDER = [[Interface\Buttons\UI-Debuff-Overlays]];
 
