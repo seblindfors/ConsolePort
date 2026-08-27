@@ -17,11 +17,11 @@ Mixin(Ring, CPAPI.SecureEnvironmentMixin)
 Ring.Units, Ring.Slices = {}, {};
 
 Ring:SetAttribute(CPAPI.ActionPressAndHold, true)
-Ring:SetAttribute(CPAPI.ActionTypeRelease, 'target')
 Ring:SetAttribute('size', 0)
 Ring:Run([[
 	UNITS = newtable();
-]])
+	TYPE  = %q;
+]], CPAPI.ActionTypeRelease)
 
 Ring:CreateEnvironment({
 	GetHoveredUnit = [[
@@ -39,17 +39,43 @@ Ring:CreateEnvironment({
 		self::SetDynamicRadius(#UNITS)
 		self:CallMethod('OnUnitsChanged', list)
 	]];
+	SetAcceptBinding = [[
+		local enabled = ...;
+		local button = self:GetAttribute('acceptButton')
+		for _, binding in ipairs({ self::GetBindingsForButton(button) }) do
+			if enabled then
+				self:SetBindingClick(true, binding, self, 'accept')
+			else
+				self:ClearBinding(binding)
+			end
+		end
+	]];
+	Open = [[
+		self:SetAttribute('unit', nil)
+		self::UpdateSize()
+		self:Show()
+		if not self:GetAttribute('pressAndHold') then
+			self::SetAcceptBinding(true)
+		end
+	]];
+	Commit = [[
+		local index = self::GetIndex()
+		local unit = index and UNITS[index] or nil;
+		self:SetAttribute('unit', unit)
+		self:SetAttribute(TYPE, unit and 'target' or nil)
+		self::SetAcceptBinding(false)
+		self:Hide()
+	]];
 })
 
 Ring:Wrap('PreClick', [[
-	self:SetAttribute('unit', nil)
-	if down then
-		self::UpdateSize()
-		self:Show()
-	else
-		local index = self::GetIndex()
-		self:SetAttribute('unit', index and UNITS[index] or nil)
-		self:Hide()
+	self:SetAttribute(TYPE, nil)
+	if ( button == 'accept' ) then
+		if not down then self::Commit() end
+	elseif self:GetAttribute('pressAndHold') then
+		if down then self::Open() else self::Commit() end
+	elseif not down then
+		if self:IsShown() then self::Commit() else self::Open() end
 	end
 ]])
 
@@ -464,6 +490,14 @@ function Ring:OnPrimaryStickChanged()
 	self:SetSticks(db.Radial:GetStickStruct(db('targetRingPrimaryStick')))
 end
 
+function Ring:OnPressAndHoldChanged()
+	self:SetAttribute('pressAndHold', db('targetRingPressAndHold'))
+end
+
+function Ring:OnAcceptButtonChanged()
+	self:SetAttribute('acceptButton', db('targetRingAcceptButton'))
+end
+
 function Ring:RegisterEvents()
 	for _, event in ipairs({
 		'UNIT_SPELLCAST_START',
@@ -497,6 +531,8 @@ function Ring:UpdateActiveState()
 			self.Unitframe  = self:CreateUnitframe()
 			AddHoleMask(self.CastSlice)
 			self:OnAxisInversionChanged()
+			self:OnPressAndHoldChanged()
+			self:OnAcceptButtonChanged()
 		end
 		self:RegisterEvents()
 		env.UnitPool:RegisterConsumer(self, 'TargetRing')
@@ -529,6 +565,8 @@ db:RegisterSafeCallbacks(Ring.OnPrimaryStickChanged, Ring,
 	'Settings/targetRingPrimaryStick'
 );
 db:RegisterCallback('Settings/targetRingClassColor', Ring.UpdateHealthSlices, Ring)
+db:RegisterSafeCallback('Settings/targetRingPressAndHold', Ring.OnPressAndHoldChanged, Ring)
+db:RegisterSafeCallback('Settings/targetRingAcceptButton', Ring.OnAcceptButtonChanged, Ring)
 
 Ring:HookScript('OnShow', GenerateClosure(Ring.UpdateButtons, Ring))
 Ring:HookScript('PreClick', function(self)
