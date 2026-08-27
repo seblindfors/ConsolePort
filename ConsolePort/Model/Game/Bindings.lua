@@ -16,6 +16,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		RaidCursorFocus   = click 'RaidCursorFocus';
 		RaidCursorTarget  = click 'RaidCursorTarget';
 		RaidCursorToggle  = click 'RaidCursorToggle';
+		TargetRing        = click 'TargetRing';
 		UICursorToggle    = click 'Cursor';
 		UtilityRing       = click 'UtilityToggle';
 		MenuRing          = click 'MenuTrigger';
@@ -32,6 +33,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		RaidCursorFocus   = true;
 		RaidCursorTarget  = true;
 		RaidCursorToggle  = true;
+		TargetRing        = true;
 		UICursorToggle    = true;
 		UnitMenu          = true;
 		UnitMenuPlayer    = true;
@@ -72,6 +74,10 @@ do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end
 		};
 		{	binding = Bindings.Custom.RaidCursorTarget;
 			name    = L.NAME_RAID_CURSOR_TARGET;
+		};
+		{	binding = Bindings.Custom.TargetRing;
+			name    = L.NAME_RING_TARGET;
+			desc    = L.DESC_RING_TARGET;
 		};
 		{	binding = Bindings.Custom.UnitMenu;
 			name    = ('%s: %s'):format(PLAYER_OPTIONS_LABEL, DYNAMIC);
@@ -417,6 +423,7 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		[Bindings.Custom.RaidCursorToggle] = CustomIcons.Group;
 		[Bindings.Custom.RaidCursorFocus]  = CustomIcons.Group;
 		[Bindings.Custom.RaidCursorTarget] = CustomIcons.Group;
+		[Bindings.Custom.TargetRing]       = CustomIcons.Ring;
 		[Bindings.Custom.UtilityRing]      = CustomIcons.Ring;
 		[Bindings.Custom.MenuRing]         = CustomIcons.Menu;
 		[Bindings.Custom.UICursorToggle]   = CustomIcons.Menu;

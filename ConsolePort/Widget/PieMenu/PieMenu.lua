@@ -103,6 +103,10 @@ function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
 	end
 	self.SlicePool:ReleaseAll()
 	local slices = numSlices or self:GetNumVisible()
+	if ( slices == 0 ) then
+		slices = 1;
+		self.ActiveSlice:SetIndex(1, 1)
+	end
 	local width, height = self:GetSize()
 	for i = 1, slices do
 		local slice, newObj = self.SlicePool:Acquire()
@@ -111,9 +115,9 @@ function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
 		slice:SetText(nil)
 		slice:UpdateSize(width, height)
 		slice:SetIndex(i, slices)
+		slice:SynchronizeAnimation(self.ActiveSlice)
 		slice:Show()
 		if newObj then
-			slice:SynchronizeAnimation(self.ActiveSlice)
 			slice:SetTextSize(self.sliceTextSize)
 			slice:SetTextAlpha(self.sliceTextAlpha)
 		end
@@ -269,10 +273,11 @@ function CPPieSliceMixin:RotateLines(centerAngle)
 	local startX, startY = -(radius * math.cos(centerAngle)), (radius * math.sin(centerAngle));
 	local endX, endY = startX * LINE_MUL, startY * LINE_MUL;
 
+	-- String metrics are secret when the text is secret.
 	local flatDirection = (endX < 1) and -1 or 1;
-	local flatLength = self.Text:GetStringWidth() * LINE_MUL;
+	local flatLength = (CPAPI.Scrub(self.Text:GetStringWidth()) or radius / 4) * LINE_MUL;
 	local textYDelta = (endY < 1) and -1 or 1;
-	local textYOffset = self.Text:GetStringHeight();
+	local textYOffset = CPAPI.Scrub(self.Text:GetStringHeight()) or select(2, self.Text:GetFont());
 	local flipLines = startX > endX;
 	local textPoint = flipLines and 'RIGHT' or 'LEFT';
 
@@ -333,7 +338,7 @@ function CPPieSliceMixin:SetSeparatorColor(r, g, b, a)
 end
 
 function CPPieSliceMixin:SetText(text)
-	local isTextEnabled = text and (text:trim()) ~= '';
+	local isTextEnabled = text and ( CPAPI.IsSecret(text) or (text:trim()) ~= '' );
 	self.Line1:SetShown(isTextEnabled)
 	self.Line2:SetShown(isTextEnabled)
 	self.Text:SetShown(isTextEnabled)

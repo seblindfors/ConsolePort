@@ -32,13 +32,14 @@ Dispatcher.tracker = {};
 
 function Dispatcher:OnGamePadStick(stick, x, y, len)
 	local this = self.focusFrame;
-	if this and this.interrupt and this.interrupt[stick] then
+	if this and this.sticks and this.sticks[stick] then
+		self.tracker[stick] = len;
 		local canDisable = self:CheckDeadzone(stick, len)
 		if self.disabled then
 			if canDisable then
 				return self:ClearFocusInstantly(this)
 			end
-		elseif this.intercept[stick] then
+		elseif this:IsDominantStick(stick, self.tracker) then
 			this:OnInput(x, y, len, stick)
 		end
 	end
@@ -119,11 +120,17 @@ Dispatcher:EnableGamePadStick(false)
 RadialMixin.Env = {
 	GetIndex = [[
 		local stickID, size = ...;
-		return radial::GetIndexForStickPosition(
-			stickID or self:GetAttribute('stick'),
-			size or UpdateSize and self::UpdateSize() or
-			self:GetAttribute('size')
-		);
+		size = size or UpdateSize and self::UpdateSize() or self:GetAttribute('size');
+		if stickID then
+			return radial::GetIndexForStickPosition(stickID, size);
+		end
+		local index, i = nil, 1;
+		repeat
+			local stick = self:GetAttribute('stick'..i)
+			if not stick then break end;
+			index, i = radial::GetIndexForStickPosition(stick, size), i + 1;
+		until index
+		return index;
 	]];
 	IsButtonHeld = [[
 		local id = ...;
@@ -145,14 +152,18 @@ RadialMixin.Env = {
 		local id = ...;
 		return radial::GetStickPosition(stickID or self:GetAttribute('stick'))
 	]];
-	SetDynamicRadius = ([[
+	SetDynamicRadius = [[
 		local numItems, itemSize, padding = ...;
-		local preferSize = self:GetAttribute('preferSize')
-		local minSize = radial::CalculateMinimumDiameter(numItems, itemSize or %d, padding or %d)
-		local size = math.max(preferSize, minSize)
+		local size = self:GetAttribute('preferSize')
 		self:SetWidth(size)
 		self:SetHeight(size)
-		return self::GetRadius()
+		return self::GetRadius(), self::GetItemSize(numItems, itemSize, padding);
+	]];
+	GetItemSize = ([[
+		local numItems, itemSize, padding = ...;
+		itemSize, padding = itemSize or %d, padding or %d;
+		local available = (math.pi * self:GetAttribute('preferSize')) / math.max(numItems or 1, 1) - padding;
+		return math.max(math.min(available, itemSize), itemSize * 0.35);
 	]]):format(DEFAULT_ITEM_SIZE, DEFAULT_ITEM_PADDING);
 	SpaceEvenly = [[
 		local children = { self:GetChildren() };
@@ -248,17 +259,22 @@ end
 function RadialCalc:SetDynamicRadius(numItems, itemSize, padding)
 	if self:IsProtected() then
 		assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
-		return self:Execute(([[
+		self:Execute(([[
 			self:RunAttribute('SetDynamicRadius', %d, %d, %d)
 		]]):format(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING))
+		return self:GetRadius(), self:GetItemSizeForCount(numItems, itemSize, padding);
 	end
 
 	local preferSize = self:GetAttribute('preferSize')
 	assert(preferSize, 'Prefer size not set.')
-	local minSize = Radial:CalculateMinimumDiameter(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING)
-	local size = math.max(preferSize, minSize)
-	self:SetSize(size, size)
-	return self:GetRadius()
+	self:SetSize(preferSize, preferSize)
+	return self:GetRadius(), self:GetItemSizeForCount(numItems, itemSize, padding);
+end
+
+function RadialCalc:GetItemSizeForCount(numItems, itemSize, padding)
+	itemSize, padding = itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING;
+	local available = (math.pi * self:GetAttribute('preferSize')) / math.max(numItems or 1, 1) - padding;
+	return math.max(math.min(available, itemSize), itemSize * 0.35);
 end
 
 function RadialCalc:GetRadius()
@@ -273,16 +289,27 @@ end
 Mixin(RadialMixin, RadialCalc); Radial.CalcMixin = RadialCalc;
 ---------------------------------------------------------------
 
-function RadialMixin:SetInterrupt(sticks)
-	-- sets the sticks that should be interrupted
-	self.interrupt = sticks and tInvert(sticks) or {}
+function RadialMixin:SetSticks(sticks)
+	-- Sticks drive the radial in dominance order, which is
+	-- mirrored to the secure env as numbered attributes.
+	sticks = Radial:GetExpandedSticks(sticks)
+	self.sticks = tInvert(sticks);
+	self:SetAttribute('stick', sticks[1])
+	for i = 1, math.max(#(self.stickOrder or {}), #sticks) do
+		self:SetAttribute('stick'..i, sticks[i])
+	end
+	self.stickOrder = sticks;
 end
 
-function RadialMixin:SetIntercept(sticks)
-	-- sets the stick(s) that should be processed,
-	-- 1st argument is used implicitly in secure env
-	self.intercept = sticks and tInvert(sticks) or {}
-	self:SetAttribute('stick', sticks and sticks[1])
+function RadialMixin:IsDominantStick(stick, tracker)
+	for _, name in ipairs(self.stickOrder) do
+		if ( name == stick ) then
+			return true;
+		end
+		if ( (tracker[name] or 0) >= self:GetValidThreshold() ) then
+			return false;
+		end
+	end
 end
 
 function RadialMixin:SetDynamicSizeFunction(body)
@@ -295,8 +322,7 @@ end
 
 function RadialMixin:OnLoad(data)
 	self:CreateEnvironment()
-	self:SetInterrupt(data.sticks)
-	self:SetIntercept(data.target)
+	self:SetSticks(data.sticks)
 	self:SetDynamicSizeFunction(data.sizer)
 	if data.clicks then
 		self:RegisterForClicks(data.clicks)
@@ -377,13 +403,6 @@ Radial:CreateEnvironment({
 		return COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 	]];
 	-- @param  items    : number, how many items
-	-- @param  size     : number, size of each item
-	-- @param  padding  : number, padding between items
-	-- @return diameter : number, minimum diameter for items
-	CalculateMinimumDiameter = [[
-        local items, size, padding = ...;
-        return (items * (size + (padding or 0))) / math.pi;
-    ]];
 	-- @param  id  : numberID or name
 	-- @return x   : number [-1,1], X-position
 	-- @return y   : number [-1,1], Y-position
@@ -543,6 +562,22 @@ function Radial:GetStickStruct(type)
 	})[type]
 end
 
+do local STICK_ORDER = {'Left', 'Movement', 'Right', 'Camera'};
+	-- Expands a stick struct to cover all sticks, given sticks first.
+	function Radial:GetExpandedSticks(sticks)
+		local expanded, seen = {}, {};
+		for _, stick in ipairs(sticks or {}) do
+			expanded[#expanded + 1], seen[stick] = stick, true;
+		end
+		for _, stick in ipairs(STICK_ORDER) do
+			if not seen[stick] then
+				expanded[#expanded + 1] = stick;
+			end
+		end
+		return expanded;
+	end
+end
+
 
 ---------------------------------------------------------------
 -- Unrestricted data access
@@ -592,10 +627,6 @@ function Radial:GetIndexForStickPosition(x, y, len, size)
 		end
 	end
 	return len and len >= self.VALID_VEC_LEN and index or nil, index;
-end
-
-function Radial:CalculateMinimumDiameter(itemCount, itemSize, padding)
-	return (itemCount * (itemSize + (padding or 0))) / math.pi
 end
 
 function Radial:ToggleFocusFrame(frame, enabled)

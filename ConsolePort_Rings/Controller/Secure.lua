@@ -25,13 +25,14 @@ Secure:CreateEnvironment({
 		end
 
 		local numActive = #RING;
-		local radius    = self::SetDynamicRadius(numActive)
-		local invertY   = self:GetAttribute('axisInversion')
+		local radius, itemSize = self::SetDynamicRadius(numActive)
+		local invertY = self:GetAttribute('axisInversion')
 
 		self:SetAttribute(%q, self::GetButtonsHeld())
 		self:SetAttribute('state', set)
 		control:ChildUpdate('state', set)
 
+		local itemScale = itemSize / 64;
 		for i, action in ipairs(RING) do
 			local x, y = radial::GetPointForIndex(i, numActive, radius)
 			local widget = self:GetFrameRef(self::GetButtonRef(set, i))
@@ -39,7 +40,8 @@ Secure:CreateEnvironment({
 			widget:::SetRotation(-math.atan2(x, y))
 			widget:Show()
 			widget:ClearAllPoints()
-			widget:SetPoint('CENTER', '$parent', 'CENTER', x, invertY * y)
+			widget:SetScale(itemScale)
+			widget:SetPoint('CENTER', '$parent', 'CENTER', x / itemScale, invertY * y / itemScale)
 		end
 		for i=numActive+1, self:GetAttribute('numButtons') do
 			self:GetFrameRef(tostring(i)):Hide()
@@ -402,9 +404,7 @@ function Secure:OnAxisInversionChanged()
 end
 
 function Secure:OnPrimaryStickChanged()
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
-	self:SetInterrupt(sticks)
-	self:SetIntercept({sticks[1]})
+	self:SetSticks(db.Radial:GetStickStruct(db('radialPrimaryStick')))
 end
 
 function Secure:OnAcceptButtonChanged()
@@ -450,7 +450,6 @@ env:AddLoader(function(self)
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
 	db.Radial:Register(self, 'UtilityRing', {
 		sticks = sticks;
-		target = {sticks[1]};
 		sizer  = [[
 			local size = self:GetAttribute('size');
 		]];

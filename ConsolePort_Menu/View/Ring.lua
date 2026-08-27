@@ -172,7 +172,6 @@ function Selector:OnDataLoaded(...)
 
 	db.Radial:Register(self, 'GameMenu', {
 		sticks = { primary, secondary };
-		target = { primary, secondary };
 		sizer  = ([[
 			local size = %d;
 		]]):format(#env.Buttons);
@@ -226,8 +225,7 @@ function Selector:OnControlsChanged()
 
 	self.buttons = buttons;
 
-	self:SetInterrupt({ primary, secondary })
-	self:SetIntercept({ primary, secondary })
+	self:SetSticks({ primary, secondary })
 
 	self:Run([[
 		SWITCH, ACCEPT, PLURAL, PRIMARY_STICK, SECONDARY_STICK = %q, %q, %q, %q, %q;

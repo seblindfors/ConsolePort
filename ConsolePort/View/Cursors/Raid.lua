@@ -617,7 +617,9 @@ db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
 -- UI Caching
 ---------------------------------------------------------------
 local CachedFrames = {[Cursor] = true; [Cursor.Toggle] = true};
+local PendingBars  = {};
 local function CursorCacheNode(node)
+	if not Cursor.isActiveComponent then return end;
 	if not CachedFrames[node] then
 		CachedFrames[node] = true;
 		Cursor:AddFrame(node)
@@ -634,8 +636,44 @@ function Cursor:AddFrame(frame)
 end
 
 function Cursor:CacheActionBar(bar)
+	if not self.isActiveComponent then
+		PendingBars[bar] = true;
+		return
+	end
 	local iterator = GenerateClosure(next, tInvert { bar:GetChildren() })
 	Scan.Execute(CursorCacheNode, iterator(), iterator, true)
+end
+
+function Cursor:UpdateActiveState()
+	local bindings = db.Bindings.Custom;
+	local active = not db('lazyLoadingEnable') or not not (
+		db.Gamepad:GetBindingKey(bindings.RaidCursorToggle) or
+		db.Gamepad:GetBindingKey(bindings.RaidCursorFocus)  or
+		db.Gamepad:GetBindingKey(bindings.RaidCursorTarget)
+	);
+	if ( active == self.isActiveComponent ) then return end;
+	self.isActiveComponent = active;
+	Scan:SetInterest(self, active)
+	if active then
+		for bar in pairs(PendingBars) do
+			self:CacheActionBar(bar)
+		end
+		wipe(PendingBars)
+	end
+end
+
+db:RegisterSafeCallbacks(Cursor.UpdateActiveState, Cursor,
+	'OnNewBindings',
+	'Settings/lazyLoadingEnable'
+);
+
+for _, clicker in ipairs({Cursor.Toggle, Cursor.SetFocus, Cursor.SetTarget}) do
+	clicker:HookScript('PreClick', function()
+		if not Cursor.isActiveComponent then
+			db('Settings/lazyLoadingEnable', false)
+			CPAPI.Log('Lazy loading has been disabled to activate the raid cursor.')
+		end
+	end)
 end
 
 do 	local FILTER_SIGNATURE, DEFAULT_NODE_PREDICATE = 'local unit = unit or ...; return %s;', 'true';

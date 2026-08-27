@@ -6,7 +6,8 @@ local ActionButton = LibStub('ConsolePortActionButton')
 
 function Petring:UpdateButtons()
 	self:ReleaseAll()
-	self:SetDynamicRadius(NUM_PET_ACTION_SLOTS)
+	local _, itemSize = self:SetDynamicRadius(NUM_PET_ACTION_SLOTS)
+	local itemScale = itemSize / 64;
 	for i=1, NUM_PET_ACTION_SLOTS do
 		local button, newObj = self:Acquire(i)
 		local p, x, y = self:GetPointForIndex(i, NUM_PET_ACTION_SLOTS)
@@ -17,8 +18,9 @@ function Petring:UpdateButtons()
 			button:SetSize(64, 64)
 		end
 		button:SetRotation(self:GetRotation(x, y))
+		button:SetScale(itemScale)
 		button:SetState('', 'custom', {func = nop})
-		button:SetPoint(p, x, self.axisInversion * y)
+		button:SetPoint(p, x / itemScale, self.axisInversion * y / itemScale)
 		button:Show()
 		self:SetFrameRef(tostring(i), button)
 	end
@@ -38,7 +40,6 @@ function Petring:OnDataLoaded()
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
 	db.Radial:Register(self, 'UtilityRing', {
 		sticks = sticks;
-		target = {sticks[1]};
 		sizer  = [[
 			local size = self:GetAttribute('size');
 		]];
@@ -66,9 +67,7 @@ function Petring:OnAxisInversionChanged()
 end
 
 function Petring:OnPrimaryStickChanged()
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
-	self:SetInterrupt(sticks)
-	self:SetIntercept({sticks[1]})
+	self:SetSticks(db.Radial:GetStickStruct(db('radialPrimaryStick')))
 end
 
 function Petring:OnInput(x, y, len)

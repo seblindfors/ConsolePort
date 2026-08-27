@@ -82,6 +82,7 @@ local SlotButton = Mixin({
 function SlotButton:OnLoad()
 	self:CreateEnvironment()
 	self:SetAttribute(env.Attributes.GUID, true)
+	env.Manager:RegisterReroute(self)
 	env.LIB.Skin.SlotButton(self)
 	env.LIB.SkinUtility.SkinRotationHelper(self)
 end
