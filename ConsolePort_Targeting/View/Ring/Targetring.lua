@@ -461,7 +461,7 @@ end
 
 function Ring:OnPrimaryStickChanged()
 	if not self.radialLoaded then return end;
-	self:SetSticks(db.Radial:GetStickStruct(db('radialPrimaryStick')))
+	self:SetSticks(db.Radial:GetStickStruct(db('targetRingPrimaryStick')))
 end
 
 function Ring:RegisterEvents()
@@ -483,7 +483,7 @@ function Ring:UpdateActiveState()
 	if active then
 		if not self.radialLoaded then
 			self.radialLoaded = true;
-			local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+			local sticks = db.Radial:GetStickStruct(db('targetRingPrimaryStick'))
 			db.Radial:Register(self, 'TargetRing', {
 				sticks = sticks;
 				sizer  = [[
@@ -524,7 +524,10 @@ db:RegisterSafeCallbacks(Ring.UpdateActiveState, Ring,
 	'Settings/lazyLoadingEnable'
 );
 db:RegisterSafeCallback('Settings/radialCosineDelta', Ring.OnAxisInversionChanged, Ring)
-db:RegisterSafeCallback('Settings/radialPrimaryStick', Ring.OnPrimaryStickChanged, Ring)
+db:RegisterSafeCallbacks(Ring.OnPrimaryStickChanged, Ring,
+	'Settings/radialPrimaryStick',
+	'Settings/targetRingPrimaryStick'
+);
 db:RegisterCallback('Settings/targetRingClassColor', Ring.UpdateHealthSlices, Ring)
 
 Ring:HookScript('OnShow', GenerateClosure(Ring.UpdateButtons, Ring))

@@ -24,6 +24,11 @@ env.Variables = {
 	--------------------------------------------------------------------------------------------------------
 	_('Target Ring', BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
+	targetRingPrimaryStick = _{Data.Select(DEFAULT, DEFAULT, 'Movement', 'Camera', 'Gyro');
+		name = 'Primary Stick';
+		desc = 'Stick to use for this ring. Default follows the radial menu primary stick.';
+		advd = true;
+	};
 	targetRingClassColor = _{Data.Bool(true);
 		name = 'Class Colored Health';
 		desc = 'Color the health bars in the target ring by class.';

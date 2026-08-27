@@ -176,7 +176,6 @@ function Selector:OnDataLoaded(...)
 	local sticks = {'Left', 'Right'};
 	db.Radial:Register(self, 'SpellFlyout', {
 		sticks = sticks;
-		target = sticks;
 		sizer  = [[
 			local size = self:RunAttribute('GetNumActive')
 		]];

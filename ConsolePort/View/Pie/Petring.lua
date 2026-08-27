@@ -37,7 +37,7 @@ function Petring:UpdateButtons()
 end
 
 function Petring:OnDataLoaded()
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	local sticks = db.Radial:GetStickStruct(db('petRingPrimaryStick'))
 	db.Radial:Register(self, 'UtilityRing', {
 		sticks = sticks;
 		sizer  = [[
@@ -67,7 +67,7 @@ function Petring:OnAxisInversionChanged()
 end
 
 function Petring:OnPrimaryStickChanged()
-	self:SetSticks(db.Radial:GetStickStruct(db('radialPrimaryStick')))
+	self:SetSticks(db.Radial:GetStickStruct(db('petRingPrimaryStick')))
 end
 
 function Petring:OnInput(x, y, len)
@@ -76,7 +76,10 @@ function Petring:OnInput(x, y, len)
 end
 
 db:RegisterSafeCallback('Settings/radialCosineDelta', Petring.OnAxisInversionChanged, Petring)
-db:RegisterSafeCallback('Settings/radialPrimaryStick', Petring.OnPrimaryStickChanged, Petring)
+db:RegisterSafeCallbacks(Petring.OnPrimaryStickChanged, Petring,
+	'Settings/radialPrimaryStick',
+	'Settings/petRingPrimaryStick'
+);
 
 Petring:SetAttribute(CPAPI.ActionPressAndHold, true)
 Petring:WrapScript(Petring, 'PreClick', (([[
