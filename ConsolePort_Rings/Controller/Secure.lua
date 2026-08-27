@@ -404,7 +404,7 @@ function Secure:OnAxisInversionChanged()
 end
 
 function Secure:OnPrimaryStickChanged()
-	self:SetSticks(db.Radial:GetStickStruct(db('radialPrimaryStick')))
+	self:SetSticks(db.Radial:GetStickStruct(db('ringPrimaryStick')))
 end
 
 function Secure:OnAcceptButtonChanged()
@@ -426,7 +426,10 @@ function Secure:OnStickySelectChanged()
 end
 
 db:RegisterSafeCallback('Settings/radialCosineDelta',  Secure.OnAxisInversionChanged, Secure)
-db:RegisterSafeCallback('Settings/radialPrimaryStick', Secure.OnPrimaryStickChanged,  Secure)
+db:RegisterSafeCallbacks(Secure.OnPrimaryStickChanged, Secure,
+	'Settings/radialPrimaryStick',
+	'Settings/ringPrimaryStick'
+);
 db:RegisterSafeCallback('Settings/ringRemoveButton',   Secure.OnRemoveButtonChanged,  Secure)
 db:RegisterSafeCallback('Settings/ringAcceptButton',   Secure.OnAcceptButtonChanged,  Secure)
 db:RegisterSafeCallback('Settings/ringPressAndHold',   Secure.OnPressAndHoldChanged,  Secure)
@@ -447,7 +450,7 @@ env:AddLoader(function(self)
 		config = env.LABConfig;
 	}))
 
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	local sticks = db.Radial:GetStickStruct(db('ringPrimaryStick'))
 	db.Radial:Register(self, 'UtilityRing', {
 		sticks = sticks;
 		sizer  = [[

@@ -300,6 +300,11 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Stick to use for main radial actions.';
 		note = 'Make sure your choice does not conflict with your bindings.';
 	};
+	petRingPrimaryStick = _{Select(DEFAULT, DEFAULT, unpack(STICK_SELECT));
+		name = 'Pet Ring Stick';
+		desc = 'Stick to use for the pet ring. Default follows the radial menu primary stick.';
+		advd = true;
+	};
 	radialScale = _{Number(1, 0.025, true);
 		name = 'Ring Scale';
 		desc = 'Scale of all radial menus, relative to UI scale.';

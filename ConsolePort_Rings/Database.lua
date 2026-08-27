@@ -23,6 +23,11 @@ env.Variables = {
 		name = 'Sticky Selection';
 		desc = 'Selecting an item on a ring will stick until another item is chosen.';
 	};
+	ringPrimaryStick = _{Data.Select(DEFAULT, DEFAULT, 'Movement', 'Camera', 'Gyro');
+		name = 'Primary Stick';
+		desc = 'Stick to use for this ring. Default follows the radial menu primary stick.';
+		advd = true;
+	};
 	ringAcceptButton = _{Data.Button('PAD1');
 		name = 'Accept Button';
 		desc = 'Button used to confirm a selected item from a ring.';

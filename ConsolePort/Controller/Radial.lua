@@ -627,10 +627,13 @@ function Radial:OnActiveDeviceChanged()
 end
 
 function Radial:GetStickStruct(type)
+	if ( not type or type == DEFAULT ) then
+		type = db('radialPrimaryStick');
+	end
 	return ({
 		Movement = {'Left', 'Movement'};
 		Camera   = {'Right', 'Camera'};
-		Gyro     = {'Gyro'};
+		Gyro     = {'Gyro', 'Look'};
 	})[type]
 end
 
