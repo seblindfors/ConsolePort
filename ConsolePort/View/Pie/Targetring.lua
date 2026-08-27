@@ -145,6 +145,18 @@ else
 	end
 end
 
+function Ring:GetUnitColor(unit)
+	return IsHostileUnit(unit) and HOSTILE_COLOR
+		or GetClassColorObj(CPAPI.Scrub(select(2, UnitClass(unit))))
+		or NEUTRAL_COLOR;
+end
+
+function Ring:GetHealthBarColor(unit)
+	return IsHostileUnit(unit) and HOSTILE_COLOR
+		or db('targetRingClassColor') and GetClassColorObj(CPAPI.Scrub(select(2, UnitClass(unit))))
+		or GetHealthColor(unit);
+end
+
 ---------------------------------------------------------------
 -- Unit button
 ---------------------------------------------------------------
@@ -207,19 +219,22 @@ function Unitbutton:SetUnit(unit)
 	self:RegisterUnitEvent('UNIT_CONNECTION', unit)
 	self:RegisterUnitEvent('UNIT_PORTRAIT_UPDATE', unit)
 	SetPortraitTexture(self.Portrait, unit)
-	local color = IsHostileUnit(unit) and HOSTILE_COLOR
-		or GetClassColorObj(CPAPI.Scrub(select(2, UnitClass(unit))))
-		or NEUTRAL_COLOR;
-	self.Border:SetVertexColor(color:GetRGB())
+	self.Border:SetVertexColor(Ring:GetUnitColor(unit):GetRGB())
 	self:UpdateRole()
 end
 
 function Unitbutton:OnFocus()
 	Ring:SetActiveSliceText(self.unit and UnitName(self.unit) or nil)
+	if self.unit then
+		Ring.Unitframe:SetUnit(self.unit)
+	else
+		Ring.Unitframe:ClearUnit()
+	end
 end
 
 function Unitbutton:OnClear()
 	Ring:SetActiveSliceText(nil)
+	Ring.Unitframe:ClearUnit()
 end
 
 ---------------------------------------------------------------
@@ -314,9 +329,7 @@ function Ring:UpdateHealthSlice(index)
 	slice:SetIndex(index, #self.Units)
 	UpdateSliceHealth(slice, unit)
 
-	local color = IsHostileUnit(unit) and HOSTILE_COLOR
-		or db('targetRingClassColor') and GetClassColorObj(CPAPI.Scrub(select(2, UnitClass(unit))))
-		or GetHealthColor(unit);
+	local color = self:GetHealthBarColor(unit)
 	if color then
 		slice:SetVertexColor(color:GetRGB())
 	end
@@ -480,6 +493,7 @@ function Ring:UpdateActiveState()
 			self.HealthPool = CreateFramePool('PieSlice', self)
 			self.CastSlice  = self:CreateCastSlice()
 			self.FlashSlice = self:CreateCastSlice()
+			self.Unitframe  = self:CreateUnitframe()
 			AddHoleMask(self.CastSlice)
 			self:OnAxisInversionChanged()
 		end
@@ -494,6 +508,7 @@ function Ring:UpdateActiveState()
 		self:ReleaseAll()
 		if self.HealthPool then
 			self.HealthPool:ReleaseAll()
+			self.Unitframe:ClearUnit()
 		end
 		wipe(self.Slices)
 		wipe(self.Units)

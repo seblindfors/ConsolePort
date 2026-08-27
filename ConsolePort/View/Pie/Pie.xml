@@ -60,4 +60,7 @@
 	<Script file="Flyout.lua"/>
 	<Script file="Petring.lua"/>
 	<Script file="Targetring.lua"/>
+	<Script file="Targetframe.lua"/>
+	<Script file="TargetframeAurasMainline.lua"/>
+	<Script file="TargetframeAurasClassic.lua"/>
 </Ui>
