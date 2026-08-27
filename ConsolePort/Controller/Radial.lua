@@ -23,27 +23,85 @@ db:Register('Radial', Radial):Execute([[
 local DEFAULT_ANGLE_OFFSET = 90;
 local DEFAULT_ITEM_SIZE    = 64;
 local DEFAULT_ITEM_PADDING = 32;
+local RAW_ORDER     = { 'Left', 'Right', 'Gyro' };
+local VIRTUAL_STICK = { Left = 'Movement', Right = 'Camera', Gyro = 'Look' };
+local RAW_STICK     = tInvert(VIRTUAL_STICK);
 
 ---------------------------------------------------------------
-Dispatcher.tracker = {};
+-- Stick input
 ---------------------------------------------------------------
--- This frame is necessary to intercept the stick input, and
--- needs to be insecure to propagate input based on stickID.
+-- Observed, not documented: each frame delivers raw stick events
+-- in order (Left > Right > Gyro), then their virtual twins in the
+-- same order, and a twin fires only if its raw stick fired that
+-- frame. The game acts on the twins. Propagation flags cannot
+-- change in combat; show/hide can.
+local Blocker = CreateFrame('Frame');
+Dispatcher.tracker, Dispatcher.pending, Dispatcher.seen = {}, {}, {};
 
-function Dispatcher:OnGamePadStick(stick, x, y, len)
-	local this = self.focusFrame;
-	if this and this.sticks and this.sticks[stick] then
-		self.tracker[stick] = len;
-		local canDisable = self:CheckDeadzone(stick, len)
-		if self.disabled then
-			if canDisable then
-				return self:ClearFocusInstantly(this)
-			end
-		elseif this:IsDominantStick(stick, self.tracker) then
-			this:OnInput(x, y, len, stick)
+function Dispatcher:RaiseBlocker(this, stick)
+	self.pending[VIRTUAL_STICK[stick]] = true;
+	local waitFor;
+	for _, raw in ipairs(RAW_ORDER) do
+		if ( raw == stick ) then break end;
+		if ( self.seen[raw] and not this.sticks[raw] ) then
+			waitFor = VIRTUAL_STICK[raw];
 		end
 	end
+	if waitFor then
+		self.armed = waitFor;
+	else
+		Blocker:Show()
+	end
 end
+
+function Dispatcher:OnGamePadStick(stick, x, y, len)
+	local this, virtual = self.focusFrame, VIRTUAL_STICK[stick];
+	if not this then return end;
+	if not virtual then
+		if ( stick == self.armed ) then
+			self.armed = nil;
+			Blocker:Show()
+		end
+		return
+	end
+	self.seen[stick] = true;
+	if not ( this.sticks and this.sticks[stick] ) then return end;
+	if ( len > 0 ) then
+		self:RaiseBlocker(this, stick)
+	end
+	self.tracker[stick] = len;
+	local canDisable = self:CheckDeadzone(stick, len)
+	if self.disabled then
+		if canDisable then
+			return self:ClearFocusInstantly(this)
+		end
+	elseif this:IsDominantStick(stick, self.tracker) then
+		this:OnInput(x, y, len, stick)
+	end
+end
+
+function Dispatcher:LowerBlocker()
+	wipe(self.pending)
+	Blocker:Hide()
+end
+
+function Dispatcher:OnFrameEnd()
+	wipe(self.seen)
+	self.armed = nil;
+	if Blocker:IsShown() then
+		self:LowerBlocker()
+	end
+end
+
+Blocker:SetScript('OnGamePadStick', function(_, stick, ...)
+	if VIRTUAL_STICK[stick] then
+		return Dispatcher:OnGamePadStick(stick, ...)
+	end
+	Dispatcher.pending[stick] = nil;
+	if not next(Dispatcher.pending) then
+		Blocker:Hide()
+	end
+end)
 
 function Dispatcher:CheckDeadzone(stick, len)
 	if not self.enableDeadzone then return end;
@@ -63,6 +121,8 @@ end
 function Dispatcher:SetFocus(frame)
 	self.focusFrame = frame;
 	self:EnableGamePadStick(true)
+	SetGamePadCursorControl(false)
+	self:SetScript('OnUpdate', self.OnFrameEnd)
 	if self:ClearTimer() then
 		self.disabled = nil;
 	end
@@ -106,13 +166,19 @@ function Dispatcher.Disable() -- callback
 	Dispatcher.disabled = nil;
 	Dispatcher.focusFrame = nil;
 	Dispatcher.focusTimer = nil;
-	Dispatcher:EnableGamePadStick(false);
+	Dispatcher:LowerBlocker()
+	Dispatcher:SetScript('OnUpdate', nil)
+	Dispatcher:EnableGamePadStick(false)
 end
 
 CPAPI.Start(Dispatcher)
-Dispatcher:SetPropagateKeyboardInput(false)
+Dispatcher:SetFrameStrata('BACKGROUND')
+Dispatcher:SetPropagateKeyboardInput(true)
 Dispatcher:EnableGamePadStick(false)
-
+Blocker:SetFrameStrata('TOOLTIP')
+Blocker:SetPropagateKeyboardInput(false)
+Blocker:EnableGamePadStick(true)
+Blocker:Hide()
 
 ---------------------------------------------------------------
 -- RadialMixin, for headers registered as radials
@@ -292,13 +358,19 @@ Mixin(RadialMixin, RadialCalc); Radial.CalcMixin = RadialCalc;
 function RadialMixin:SetSticks(sticks)
 	-- Sticks drive the radial in dominance order, which is
 	-- mirrored to the secure env as numbered attributes.
-	sticks = Radial:GetExpandedSticks(sticks)
-	self.sticks = tInvert(sticks);
-	self:SetAttribute('stick', sticks[1])
-	for i = 1, math.max(#(self.stickOrder or {}), #sticks) do
-		self:SetAttribute('stick'..i, sticks[i])
+	local order, consumed = {}, {};
+	for _, stick in ipairs(sticks) do
+		local raw = RAW_STICK[stick] or stick;
+		if not consumed[raw] then
+			consumed[raw] = true;
+			order[#order + 1] = raw;
+		end
 	end
-	self.stickOrder = sticks;
+	for i = 1, math.max(#(self.stickOrder or {}), #order) do
+		self:SetAttribute('stick'..i, order[i])
+	end
+	self:SetAttribute('stick', order[1])
+	self.sticks, self.stickOrder = consumed, order;
 end
 
 function RadialMixin:IsDominantStick(stick, tracker)
@@ -561,23 +633,6 @@ function Radial:GetStickStruct(type)
 		Gyro     = {'Gyro'};
 	})[type]
 end
-
-do local STICK_ORDER = {'Left', 'Movement', 'Right', 'Camera'};
-	-- Expands a stick struct to cover all sticks, given sticks first.
-	function Radial:GetExpandedSticks(sticks)
-		local expanded, seen = {}, {};
-		for _, stick in ipairs(sticks or {}) do
-			expanded[#expanded + 1], seen[stick] = stick, true;
-		end
-		for _, stick in ipairs(STICK_ORDER) do
-			if not seen[stick] then
-				expanded[#expanded + 1] = stick;
-			end
-		end
-		return expanded;
-	end
-end
-
 
 ---------------------------------------------------------------
 -- Unrestricted data access
