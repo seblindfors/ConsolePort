@@ -386,9 +386,13 @@ end
 ---------------------------------------------------------------
 local function WrappedExecute(func, execEnv, ...)
 	local fenv = getfenv(func)
-	setfenv(func, setmetatable(execEnv, {__index = fenv}))
+	-- Protected functions no longer accept environment changes.
+	if not pcall(setfenv, func, setmetatable(execEnv, {__index = fenv})) then
+		return false, func(...);
+	end
 	func(...)
 	setfenv(func, fenv)
+	return true;
 end
 
 function Hooknode:OnContainerButtonModifiedClick(...)
@@ -400,7 +404,9 @@ function Hooknode:OnContainerButtonModifiedClick(...)
 end
 
 function Hooknode:OnDressupButtonModifiedClick()
-	WrappedExecute(HandleModifiedItemClick, {
+	local item = Hooks.dressupItem;
+	Hooks.dressupItem = nil;
+	if not WrappedExecute(HandleModifiedItemClick, {
 		IsModifiedClick = function(action)
 			if (action == 'CHATLINK') then
 				return false;
@@ -408,8 +414,9 @@ function Hooknode:OnDressupButtonModifiedClick()
 				return true;
 			end
 		end;
-	}, Hooks.dressupItem)
-	Hooks.dressupItem = nil;
+	}, item) then
+		DressUpItemLink(item)
+	end
 end
 
 function Hooknode:OnInventoryButtonModifiedClick()
