@@ -1,7 +1,7 @@
 ## Interface: 120100, 50504, 38010, 20506, 11509
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
-## Title: Console Port |cff69ccf0Targeting|r
-## Notes: Targeting module
+## Title: Console Port |cff69ccf0Target|r
+## Notes: Target module
 ## RequiredDeps: ConsolePort
 
 ## Author: Sebastian Lindfors

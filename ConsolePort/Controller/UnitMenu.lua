@@ -79,7 +79,7 @@ function UnitMenuSecure:OnDataLoaded()
 	return CPAPI.BurnAfterReading;
 end
 
-EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetingAddOn, function()
+EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetAddOn, function()
 	db:RunSafe(function()
 		UnitMenuSecure:SetFrameRef('Cursor', db.Raid)
 		UnitMenuSecure:Execute([[cursor = self:GetFrameRef('Cursor')]])

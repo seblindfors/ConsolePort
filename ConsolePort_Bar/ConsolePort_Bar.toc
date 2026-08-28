@@ -14,7 +14,7 @@
 ## SavedVariables: ConsolePort_BarPresets
 ## SavedVariablesPerCharacter: ConsolePort_BarLayout, ConsolePort_BarDB
 
-## OptionalDeps: ConsolePort_Targeting
+## OptionalDeps: ConsolePort_Target
 
 Model\Utils.lua
 Model\Assets.lua

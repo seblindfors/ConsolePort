@@ -19,7 +19,7 @@ move-folders:
   ConsolePort/ConsolePort_Keyboard: ConsolePort_Keyboard
   ConsolePort/ConsolePort_Menu: ConsolePort_Menu
   ConsolePort/ConsolePort_Rings: ConsolePort_Rings
-  ConsolePort/ConsolePort_Targeting: ConsolePort_Targeting
+  ConsolePort/ConsolePort_Target: ConsolePort_Target
   ConsolePort/ConsolePort_World: ConsolePort_World
 
 ignore:

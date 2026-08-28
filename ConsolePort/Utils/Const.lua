@@ -37,7 +37,7 @@ CPAPI.MAX_CHARACTER_MACROS = MAX_CHARACTER_MACROS or Constants.MacroConsts.MAX_C
 ---------------------------------------------------------------
 CPAPI.ConfigAddOn         = 'ConsolePort_Config';
 CPAPI.CursorAddOn         = 'ConsolePort_Cursor';
-CPAPI.TargetingAddOn      = 'ConsolePort_Targeting';
+CPAPI.TargetAddOn         = 'ConsolePort_Target';
 
 ---------------------------------------------------------------
 -- For use with OnDataLoaded.
