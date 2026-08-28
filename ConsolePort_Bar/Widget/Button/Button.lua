@@ -236,8 +236,13 @@ local ProxyButton = CreateFromMixins(SlotButton, {
 
 function ProxyButton:OnLoad()
 	SlotButton.OnLoad(self)
-	env:RegisterCallback('OnConfigChanged', self.UpdateConfig, self)
+	env:RegisterCallback('OnConfigChanged', self.OnConfigChanged, self)
 	self.icon.SetTexture = env.LIB.SkinUtility.SetTexture;
+end
+
+function ProxyButton:OnConfigChanged(config)
+	self:UpdateConfig(config)
+	self:SetAttribute('checkmouseovercast', config.mouseoverCast)
 end
 
 function ProxyButton:RefreshBinding(state, binding)
@@ -308,6 +313,7 @@ end
 function Button:CreateConfig()
 	self.config = {
 		clickOnDown           = env('LABclickOnDown');
+		mouseoverCast         = env('LABmouseoverCast');
 		tooltip               = env('LABtooltip'):lower();
 		showGrid              = true;
 		colors                = {
@@ -371,6 +377,7 @@ end
 
 env:RegisterCallbacks(Button.OnDataChanged, Button,
 	'Settings/LABclickOnDown',
+	'Settings/LABmouseoverCast',
 	'Settings/LABtooltip',
 	'Settings/LABcolorsRange',
 	'Settings/LABcolorsMana',

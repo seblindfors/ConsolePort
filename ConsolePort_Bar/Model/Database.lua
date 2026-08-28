@@ -64,6 +64,11 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Disable Drag and Drop';
 		desc = 'Disable dragging and dropping abilities on action bars.';
 	};
+	LABmouseoverCast = _{Data.Bool(false);
+		name = 'Mouseover Cast';
+		desc = 'Allow casting on mouseover targets, when enabled in the game options.';
+		note = 'Requires the mouseover cast option in the game combat settings.';
+	};
 	LABclickOnDown = _{Data.Bool(true);
 		name = 'Click on Down';
 		desc = 'Trigger button actions on press instead of release.';

@@ -171,6 +171,10 @@ Cursor:CreateEnvironment({
 				action:SetAttribute('checkfocuscast', action:GetAttribute('backup-checkfocuscast'))
 				action:SetAttribute('backup-checkfocuscast', nil)
 			end
+			if action:GetAttribute('backup-checkmouseovercast') ~= nil then
+				action:SetAttribute('checkmouseovercast', action:GetAttribute('backup-checkmouseovercast'))
+				action:SetAttribute('backup-checkmouseovercast', nil)
+			end
 		end
 	]];
 	RerouteUnit = [[
@@ -202,8 +206,10 @@ Cursor:CreateEnvironment({
 			action:SetAttribute('unit', unit)
 			action:SetAttribute('backup-checkselfcast', action:GetAttribute('checkselfcast'))
 			action:SetAttribute('backup-checkfocuscast', action:GetAttribute('checkfocuscast'))
+			action:SetAttribute('backup-checkmouseovercast', action:GetAttribute('checkmouseovercast'))
 			action:SetAttribute('checkselfcast', nil)
 			action:SetAttribute('checkfocuscast', nil)
+			action:SetAttribute('checkmouseovercast', nil)
 		end
 	]];
 	PostNodeSelect = [[
