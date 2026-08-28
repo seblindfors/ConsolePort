@@ -28,6 +28,16 @@ env.Variables = {
 		desc = 'Stick to use for this ring. Default follows the radial menu primary stick.';
 		advd = true;
 	};
+	ringPosition = _{Data.Point {
+			point    = { Data.Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			relPoint = { Data.Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			x        = { Data.Number(0, 1, true) };
+			y        = { Data.Number(0, 1, true) };
+		};
+		name  = 'Position';
+		desc  = 'Screen position of the ring.';
+		frame = 'ConsolePortUtilityToggle';
+	};
 	ringAcceptButton = _{Data.Button('PAD1');
 		name = 'Accept Button';
 		desc = 'Button used to confirm a selected item from a ring.';

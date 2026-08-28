@@ -43,6 +43,16 @@ env.Variables = {
 		desc = 'Button used to confirm a selected item from a ring.';
 		deps = { targetRingPressAndHold = false };
 	};
+	targetRingPosition = _{Data.Point {
+			point    = { Data.Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			relPoint = { Data.Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			x        = { Data.Number(0, 1, true) };
+			y        = { Data.Number(0, 1, true) };
+		};
+		name  = 'Position';
+		desc  = 'Screen position of the ring.';
+		frame = 'ConsolePortTargetRing';
+	};
 	--------------------------------------------------------------------------------------------------------
 	_('Raid Cursor', BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------

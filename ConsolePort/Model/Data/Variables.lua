@@ -305,6 +305,17 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Stick to use for the pet ring. Default follows the radial menu primary stick.';
 		advd = true;
 	};
+	petRingPosition = _{Point {
+			point    = { Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			relPoint = { Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			x        = { Number(0, 1, true) };
+			y        = { Number(0, 1, true) };
+		};
+		name  = 'Pet Ring Position';
+		desc  = 'Screen position of the ring.';
+		frame = 'ConsolePortPetRing';
+		advd  = true;
+	};
 	radialScale = _{Number(1, 0.025, true);
 		name = 'Ring Scale';
 		desc = 'Scale of all radial menus, relative to UI scale.';

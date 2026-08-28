@@ -498,6 +498,12 @@ function Ring:OnAcceptButtonChanged()
 	self:SetAttribute('acceptButton', db('targetRingAcceptButton'))
 end
 
+function Ring:OnPositionChanged()
+	local pos = db('targetRingPosition')
+	self:ClearAllPoints()
+	self:SetPoint(pos.point, UIParent, pos.relPoint, pos.x, pos.y)
+end
+
 function Ring:RegisterEvents()
 	for _, event in ipairs({
 		'UNIT_SPELLCAST_START',
@@ -533,6 +539,7 @@ function Ring:UpdateActiveState()
 			self:OnAxisInversionChanged()
 			self:OnPressAndHoldChanged()
 			self:OnAcceptButtonChanged()
+			self:OnPositionChanged()
 		end
 		self:RegisterEvents()
 		env.UnitPool:RegisterConsumer(self, 'TargetRing')
@@ -567,6 +574,7 @@ db:RegisterSafeCallbacks(Ring.OnPrimaryStickChanged, Ring,
 db:RegisterCallback('Settings/targetRingClassColor', Ring.UpdateHealthSlices, Ring)
 db:RegisterSafeCallback('Settings/targetRingPressAndHold', Ring.OnPressAndHoldChanged, Ring)
 db:RegisterSafeCallback('Settings/targetRingAcceptButton', Ring.OnAcceptButtonChanged, Ring)
+db:RegisterSafeCallback('Settings/targetRingPosition', Ring.OnPositionChanged, Ring)
 
 Ring:HookScript('OnShow', GenerateClosure(Ring.UpdateButtons, Ring))
 Ring:HookScript('PreClick', function(self)

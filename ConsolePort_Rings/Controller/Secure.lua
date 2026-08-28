@@ -407,6 +407,12 @@ function Secure:OnPrimaryStickChanged()
 	self:SetSticks(db.Radial:GetStickStruct(db('ringPrimaryStick')))
 end
 
+function Secure:OnPositionChanged()
+	local pos = db('ringPosition')
+	self:ClearAllPoints()
+	self:SetPoint(pos.point, UIParent, pos.relPoint, pos.x, pos.y)
+end
+
 function Secure:OnAcceptButtonChanged()
 	self:SetAttribute(env.Attributes.AcceptButton, db('ringAcceptButton'))
 end
@@ -430,6 +436,7 @@ db:RegisterSafeCallbacks(Secure.OnPrimaryStickChanged, Secure,
 	'Settings/radialPrimaryStick',
 	'Settings/ringPrimaryStick'
 );
+db:RegisterSafeCallback('Settings/ringPosition', Secure.OnPositionChanged, Secure)
 db:RegisterSafeCallback('Settings/ringRemoveButton',   Secure.OnRemoveButtonChanged,  Secure)
 db:RegisterSafeCallback('Settings/ringAcceptButton',   Secure.OnAcceptButtonChanged,  Secure)
 db:RegisterSafeCallback('Settings/ringPressAndHold',   Secure.OnPressAndHoldChanged,  Secure)
@@ -459,6 +466,7 @@ env:AddLoader(function(self)
 	});
 
 	self:OnAcceptButtonChanged()
+	self:OnPositionChanged()
 	self:OnRemoveButtonChanged()
 	self:OnAxisInversionChanged()
 	self:OnStickySelectChanged()
