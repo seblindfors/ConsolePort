@@ -30,7 +30,6 @@ CPActionBar = Mixin({
 		OnLoad = [[
 			manager = self:GetFrameRef('Manager')
 			cursor  = manager:GetFrameRef('Cursor')
-			pager   = manager:GetFrameRef('Pager')
 		]];
 	};
 	-----------------------------------------------------------
@@ -38,6 +37,7 @@ CPActionBar = Mixin({
 ---------------------------------------------------------------
 
 function CPActionBar:OnLoad()
+	self:CreateEnvironment()
 	db.Pager:RegisterHeader(self)
 	self:SetFrameRef('Manager', env.Manager)
 	self:Run(self.Env.OnLoad)
