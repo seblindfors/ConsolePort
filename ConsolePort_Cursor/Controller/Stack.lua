@@ -314,6 +314,12 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 			elseif openMenu then
 				Stack:Flush(openMenu)
 			end
+			if openMenu then
+				-- Deferred so the menu has been laid out and drawn.
+				RunNextFrame(function()
+					db.Cursor:SetCurrentNodeIfActive(openMenu, true)
+				end)
+			end
 		end
 		hooksecurefunc(mgr, 'OpenMenu', CatchOpenMenu)
 		hooksecurefunc(mgr, 'OpenContextMenu', CatchOpenMenu)
