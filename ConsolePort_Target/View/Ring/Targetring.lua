@@ -19,8 +19,9 @@ Ring.Units, Ring.Slices = {}, {};
 Ring:SetAttribute(CPAPI.ActionPressAndHold, true)
 Ring:SetAttribute('size', 0)
 Ring:Run([[
-	UNITS = newtable();
-	TYPE  = %q;
+	UNITS  = newtable();
+	ASSIST = newtable();
+	TYPE   = %q;
 ]], CPAPI.ActionTypeRelease)
 
 Ring:CreateEnvironment({
@@ -65,6 +66,24 @@ Ring:CreateEnvironment({
 		self:SetAttribute(TYPE, unit and 'target' or nil)
 		self::SetAcceptBinding(false)
 		self:Hide()
+	]];
+	OpenAssist = [[
+		local spellID = ...;
+		if not spellID or not ASSIST[spellID] then return end;
+		if self:IsShown() then return end;
+		if ( (self:GetAttribute('size') or 0) == 0 ) then return end;
+		if ( #UNITS == 1 and UNITS[1] == 'player' ) then return end;
+		assistOpen = true;
+		self:SetAttribute('unit', nil)
+		self::UpdateSize()
+		self:Show()
+		return true;
+	]];
+	CloseAssist = [[
+		if assistOpen then
+			assistOpen = nil;
+			self:Hide()
+		end
 	]];
 })
 
@@ -498,6 +517,29 @@ function Ring:OnAcceptButtonChanged()
 	self:SetAttribute('acceptButton', db('targetRingAcceptButton'))
 end
 
+function Ring:GetAssistSpells()
+	ConsolePortAssist = ConsolePortAssist or {};
+	return ConsolePortAssist;
+end
+
+function Ring:IsAssistSpell(spellID)
+	return not not self:GetAssistSpells()[spellID];
+end
+
+function Ring:SetAssistSpell(spellID, enabled)
+	self:GetAssistSpells()[spellID] = enabled or nil;
+	db:RunSafe(self.OnAssistSpellsChanged, self)
+	db:RunSafe(self.UpdateActiveState, self)
+end
+
+function Ring:OnAssistSpellsChanged()
+	local body = { 'ASSIST = wipe(ASSIST)' };
+	for spellID in pairs(self:GetAssistSpells()) do
+		body[#body + 1] = ('ASSIST[%d] = true'):format(spellID);
+	end
+	self:Run(table.concat(body, '\n'))
+end
+
 function Ring:OnPositionChanged()
 	local pos = db('targetRingPosition')
 	self:ClearAllPoints()
@@ -517,7 +559,9 @@ function Ring:RegisterEvents()
 end
 
 function Ring:UpdateActiveState()
-	local active = not db('lazyLoadingEnable') or not not db.Gamepad:GetBindingKey(TR_BINDING_NAME)
+	local active = not db('lazyLoadingEnable')
+		or not not db.Gamepad:GetBindingKey(TR_BINDING_NAME)
+		or not not next(self:GetAssistSpells());
 	if ( active == self.isActiveComponent ) then return end;
 	self.isActiveComponent = active;
 	if active then
@@ -540,6 +584,7 @@ function Ring:UpdateActiveState()
 			self:OnPressAndHoldChanged()
 			self:OnAcceptButtonChanged()
 			self:OnPositionChanged()
+			self:OnAssistSpellsChanged()
 		end
 		self:RegisterEvents()
 		env.UnitPool:RegisterConsumer(self, 'TargetRing')

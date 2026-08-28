@@ -8,7 +8,7 @@
 --   Settings/actionPageCondition : macro condition
 --   Settings/actionPageResponse  : response to condition
 
-local Pager, _, db = CPAPI.EventHandler(ConsolePortPager, {'UPDATE_MACROS', 'UPDATE_BONUS_ACTIONBAR'}), ...;
+local Pager, _, db = Mixin(CPAPI.EventHandler(ConsolePortPager, {'UPDATE_MACROS', 'UPDATE_BONUS_ACTIONBAR'}), CPAPI.SecureEnvironmentMixin), ...;
 db:Register('Pager', Pager)
 Pager:Execute('headers = newtable()')
 
@@ -202,6 +202,9 @@ Pager.Env = {
 		end
 	]];
 }
+
+Pager:SetFrameRef('pager', Pager)
+Pager:CreateEnvironment(Pager.Env)
 
 function Pager:RegisterHeader(header, anonymous)
 	assert(not InCombatLockdown(), 'Header cannot be registered in combat.')

@@ -126,6 +126,7 @@ Manager:Run([[
 	owners   = {};
 	manager  = self;
 	mouse    = self:GetFrameRef('Mouse');
+	pager    = self:GetFrameRef('Pager');
 ]])
 
 ---------------------------------------------------------------
@@ -162,16 +163,56 @@ end)
 -- under the radial stick without committing the target.
 function Manager:RegisterReroute(button)
 	self:Hook(button, 'OnClick', [[
-		if not ring or not ring:IsShown() then return end;
+		if not ring then return end;
+		if down then
+			-- Assist spell pressed with no assistable target: block the press
+			-- and bring up the ring, so the release casts on the hovered unit.
+			if ( not ring:IsShown()
+				and button == 'ControllerInput'
+				and not ( cursor and cursor:IsShown() )
+				and not PlayerCanAssist('target')
+				and self:GetAttribute('type') == 'action' ) then
+				local spellID = pager::GetSpellID(self:GetAttribute('action'))
+				if ( spellID and ring::OpenAssist(spellID) ) then
+					assist = self;
+					self:SetAttribute('backup-pressAndHold', self:GetAttribute('pressAndHoldAction'))
+					self:SetAttribute('pressAndHoldAction', true)
+					return false, 'assist';
+				end
+			end
+			return
+		end
+		if not ring:IsShown() then return end;
 		local unit = ring::GetHoveredUnit()
 		if unit then
 			self:SetAttribute('backup-unit', self:GetAttribute('unit'))
 			self:SetAttribute('unit', unit)
+			if ( assist == self ) then
+				-- The press was blocked, so there is no held action to
+				-- release; perform the full action instead.
+				self:SetAttribute('backup-typerelease', self:GetAttribute('typerelease'))
+				self:SetAttribute('typerelease', 'action')
+			end
 			return nil, 'reroute';
 		end
+		if ( assist == self ) then
+			return nil, 'assist';
+		end
 	]], [[
-		self:SetAttribute('unit', self:GetAttribute('backup-unit'))
-		self:SetAttribute('backup-unit', nil)
+		if ( message == 'reroute' ) then
+			self:SetAttribute('unit', self:GetAttribute('backup-unit'))
+			self:SetAttribute('backup-unit', nil)
+			if ( assist == self ) then
+				self:SetAttribute('typerelease', self:GetAttribute('backup-typerelease'))
+				self:SetAttribute('backup-typerelease', nil)
+			end
+		end
+		if ( not down and assist == self ) then
+			assist = nil;
+			self:SetAttribute('pressAndHoldAction', self:GetAttribute('backup-pressAndHold'))
+			self:SetAttribute('backup-pressAndHold', nil)
+			ring::CloseAssist()
+		end
 	]])
 end
 

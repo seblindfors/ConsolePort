@@ -282,10 +282,12 @@ end, GamepadAPI)
 db:RegisterSafeCallback('OnNewBindings', function(self)
 	local allowSticks = db('bindingAllowSticks')
 	if not self.stickCvarApplied then
+		self:UnregisterEvent('GAME_PAD_CONFIGS_CHANGED')
 		-- The client loads the persisted value without applying it, so
 		-- stick buttons don't emit until the cvar is actually set (#208).
 		self.stickCvarApplied = true;
 		SetCVar('GamePadStickAxisButtons', not allowSticks and 1 or 0)
+		CPAPI.Next(self.RegisterEvent, self, 'GAME_PAD_CONFIGS_CHANGED')
 	end
 	db:SetCVar('GamePadStickAxisButtons', allowSticks)
 	if ( self:GetBindingKey('INTERACTTARGET') and not GetCVarBool('SoftTargetInteract') ) then
