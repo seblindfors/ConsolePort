@@ -44,6 +44,7 @@ function Petring:OnDataLoaded()
 			local size = self:GetAttribute('size');
 		]];
 	});
+	self:OnPositionChanged()
 
 	self:OnAxisInversionChanged()
 	self:OnPrimaryStickChanged()
@@ -70,6 +71,12 @@ function Petring:OnPrimaryStickChanged()
 	self:SetSticks(db.Radial:GetStickStruct(db('petRingPrimaryStick')))
 end
 
+function Petring:OnPositionChanged()
+	local pos = db('petRingPosition')
+	self:ClearAllPoints()
+	self:SetPoint(pos.point, UIParent, pos.relPoint, pos.x, pos.y)
+end
+
 function Petring:OnInput(x, y, len)
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, NUM_PET_ACTION_SLOTS))
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, self:IsValidThreshold(len))
@@ -80,6 +87,7 @@ db:RegisterSafeCallbacks(Petring.OnPrimaryStickChanged, Petring,
 	'Settings/radialPrimaryStick',
 	'Settings/petRingPrimaryStick'
 );
+db:RegisterSafeCallback('Settings/petRingPosition', Petring.OnPositionChanged, Petring)
 
 Petring:SetAttribute(CPAPI.ActionPressAndHold, true)
 Petring:WrapScript(Petring, 'PreClick', (([[

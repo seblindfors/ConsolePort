@@ -1061,3 +1061,67 @@ function Color:OnValueChanged(value, valueExists)
 end
 
 ColorPickerFrame:HookScript('OnHide', function(self) self.owner = nil; end)
+
+---------------------------------------------------------------
+-- Point
+---------------------------------------------------------------
+local Point = CreateWidget('Point', Widget, {
+	Move = {
+		_Type  = 'Button';
+		_Setup = 'CPSquareButtonTemplate';
+		_Size  = {38, 38};
+		_Point = {'RIGHT', -8, 0};
+		_OnLoad = function(self)
+			SquareIconButtonMixin.OnLoad(self)
+		end;
+		icon     = [[Interface\CURSOR\UI-Cursor-Move]];
+		iconSize = 20;
+		onClickHandler = function(self)
+			self:GetParent():OnMoveClicked()
+		end;
+	};
+})
+
+function Point:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self.disableTooltipHints = true;
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+	self.Move:SetTooltipInfo(env.L'Move', env.L'Move the frame with the sticks or the mouse. Confirm to save, cancel to restore.')
+	if not self.Summary then
+		self.Summary = self:CreateFontString(nil, 'ARTWORK', 'GameFontHighlightSmall')
+		self.Summary:SetPoint('RIGHT', self.Move, 'LEFT', -8, 0)
+	end
+end
+
+function Point:GetFrame()
+	local name = self.metaData.frame;
+	return name and _G[name];
+end
+
+function Point:OnMoveClicked()
+	local frame = self:GetFrame()
+	if not frame then return end;
+	env.Frame:Hide()
+	env:GetMover():MoveFrame(frame, GenerateClosure(self.OnMoveCompleted, self), 10, true)
+end
+
+function Point:OnMoveCompleted(point, _, relPoint, x, y)
+	env.Frame:Show()
+	if point then
+		self:Set({ point = point, relPoint = relPoint, x = Round(x), y = Round(y) })
+	end
+end
+
+function Point:OnValueChanged(value)
+	if ( type(value) == 'table' ) then
+		self.Summary:SetText(('%s %d, %d'):format(value.point, value.x, value.y))
+	end
+end
+
+function Point:OnClick(button)
+	Widget.OnClick(self)
+	if ( button == 'RightButton' ) then
+		return self:SetDefault()
+	end
+	self:OnMoveClicked()
+end

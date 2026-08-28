@@ -1,4 +1,10 @@
-local _, env, Node = ...; Node = LibStub('ConsolePortNode')
+local env, db = CPAPI.GetEnv(...);
+---------------------------------------------------------------
+local function GetScaledCursorPosition()
+	local x, y = GetCursorPosition()
+	local scale = UIParent:GetEffectiveScale()
+	return x / scale, y / scale;
+end
 ---------------------------------------------------------------
 local GridLine = { pixelWidth = 1.2 };
 ---------------------------------------------------------------
@@ -191,12 +197,13 @@ function Mover:MimeFrame(frame, delta)
 	self:Show()
 end
 
-function Mover:MoveFrame(frame, callback, snapPixels)
+function Mover:MoveFrame(frame, callback, snapPixels, autoAnchor)
 	if ( self.frame == frame ) then
 		return self:ClearAndHide()
 	end
 	self.frame = frame;
 	self.callback = callback;
+	self.autoAnchor = autoAnchor;
 	if tonumber(snapPixels) then
 		self:SetSnapPixels(snapPixels)
 	end
@@ -211,15 +218,19 @@ function Mover:MarkFrame(frame, show)
 	self:MimeFrame(frame, -1)
 	self:SetSnapPixels(1)
 	self:SetInputEnabled(false)
-	env.db.Alpha.FadeIn(self, 0.2, 0, 1)
+	db.Alpha.FadeIn(self, 0.2, 0, 1)
 end
 
 function Mover:OnShow()
-	env:RegisterCallback('OnCombatLockdown', self.RestorePoint, self)
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
 end
 
 function Mover:OnHide()
-	env:UnregisterCallback('OnCombatLockdown', self)
+	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
+end
+
+function Mover:OnEvent()
+	self:RestorePoint()
 end
 
 function Mover:SetKit(kit)
@@ -243,10 +254,38 @@ function Mover:ClearAndHide()
 	self:ClearAllPoints()
 	self:Hide()
 	self:ResetCursorNode()
+	if ( self.frame and self.autoAnchor and not self.restored ) then
+		self:AnchorToNearestRegion(self.frame)
+	end
 	if ( self.frame and type(self.callback) == 'function' ) then
 		securecallfunction(self.callback, self.frame:GetPoint())
 	end
 	self.frame, self.show, self.callback, self.relativeTo, self.isMoving, self.origPoint = nil;
+	self.autoAnchor, self.restored = nil;
+end
+
+-- Re-anchors the frame to the screen region it ended up in, so
+-- the stored point survives resolution and scale changes.
+function Mover:AnchorToNearestRegion(frame)
+	local scale = frame:GetEffectiveScale() / UIParent:GetEffectiveScale();
+	local width, height = UIParent:GetSize()
+	local cx, cy = frame:GetCenter()
+	cx, cy = cx * scale, cy * scale;
+
+	local vertical   = cy > height * 2/3 and 'TOP'  or cy < height / 3 and 'BOTTOM' or '';
+	local horizontal = cx > width  * 2/3 and 'RIGHT' or cx < width  / 3 and 'LEFT'  or '';
+	local anchor = vertical..horizontal;
+	if ( anchor == '' ) then anchor = 'CENTER' end;
+
+	local frameX = horizontal == 'LEFT' and frame:GetLeft() * scale
+		or horizontal == 'RIGHT' and frame:GetRight() * scale or cx;
+	local frameY = vertical == 'TOP' and frame:GetTop() * scale
+		or vertical == 'BOTTOM' and frame:GetBottom() * scale or cy;
+	local parentX = horizontal == 'LEFT' and 0 or horizontal == 'RIGHT' and width  or width  / 2;
+	local parentY = vertical == 'BOTTOM' and 0 or vertical == 'TOP'   and height or height / 2;
+
+	frame:ClearAllPoints()
+	frame:SetPoint(anchor, UIParent, anchor, Round((frameX - parentX) / scale), Round((frameY - parentY) / scale))
 end
 
 function Mover:StoreCursorNode()
@@ -308,6 +347,7 @@ function Mover:RestorePoint()
 	if not self.frame then return end;
 	self.frame:ClearAllPoints()
 	self.frame:SetPoint(unpack(self.origPoint))
+	self.restored = true;
 	self:ClearAndHide()
 end
 
@@ -402,20 +442,11 @@ end
 ---------------------------------------------------------------
 -- Factory
 ---------------------------------------------------------------
-do local function CreateMover()
-		if not env.Mover then
-			env.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
-			env.Mover:OnLoad()
-			env.Mover:Hide()
-		end
-		return env.Mover;
+function env:GetMover()
+	if not self.Mover then
+		self.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
+		self.Mover:OnLoad()
+		self.Mover:Hide()
 	end
-
-	env:RegisterSafeCallback('OnMoveFrame', function(frame, callback, snapPixels)
-		CreateMover():MoveFrame(frame, callback, snapPixels)
-	end)
-
-	env:RegisterSafeCallback('OnHighlightFrame', function(frame, show)
-		CreateMover():MarkFrame(frame, show)
-	end)
+	return self.Mover;
 end

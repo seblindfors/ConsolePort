@@ -33,6 +33,26 @@ env.Variables = {
 		name = 'Class Colored Health';
 		desc = 'Color the health bars in the target ring by class.';
 	};
+	targetRingPressAndHold = _{Data.Bool(true);
+		name = 'Press and Hold';
+		desc = 'Use press and hold to navigate and use rings. Press, point, release.';
+		note = 'When disabled, you will need to press the accept button to confirm a selection.';
+	};
+	targetRingAcceptButton = _{Data.Button('PAD1');
+		name = 'Accept Button';
+		desc = 'Button used to confirm a selected item from a ring.';
+		deps = { targetRingPressAndHold = false };
+	};
+	targetRingPosition = _{Data.Point {
+			point    = { Data.Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			relPoint = { Data.Select('CENTER', 'CENTER', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOPLEFT', 'TOPRIGHT', 'BOTTOMLEFT', 'BOTTOMRIGHT') };
+			x        = { Data.Number(0, 1, true) };
+			y        = { Data.Number(0, 1, true) };
+		};
+		name  = 'Position';
+		desc  = 'Screen position of the ring.';
+		frame = 'ConsolePortTargetRing';
+	};
 	--------------------------------------------------------------------------------------------------------
 	_('Raid Cursor', BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
