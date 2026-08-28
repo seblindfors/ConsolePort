@@ -280,7 +280,14 @@ db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
 end, GamepadAPI)
 
 db:RegisterSafeCallback('OnNewBindings', function(self)
-	db:SetCVar('GamePadStickAxisButtons', db('bindingAllowSticks'))
+	local allowSticks = db('bindingAllowSticks')
+	if not self.stickCvarApplied then
+		-- The client loads the persisted value without applying it, so
+		-- stick buttons don't emit until the cvar is actually set (#208).
+		self.stickCvarApplied = true;
+		SetCVar('GamePadStickAxisButtons', not allowSticks and 1 or 0)
+	end
+	db:SetCVar('GamePadStickAxisButtons', allowSticks)
 	if ( self:GetBindingKey('INTERACTTARGET') and not GetCVarBool('SoftTargetInteract') ) then
 		-- FIX: On Classic, the interact key is not enabled by default.
 		-- If it's bound and disabled, enable it. 1 = GamePad, see Console.lua.
