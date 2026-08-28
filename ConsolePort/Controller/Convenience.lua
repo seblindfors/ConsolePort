@@ -21,8 +21,12 @@ end
 
 -- Remove experimental cvar confirmation:
 -- This event shows an annoying popup on login/modifications to things
--- like the action camera settings.
+-- like the action camera settings. Handled by UIParent on older
+-- flavors, by the internal event router on Mainline.
 UIParent:UnregisterEvent('EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED')
+if ( GameEvent and GameEvent.UnregisterInternalEvent ) then
+	GameEvent.UnregisterInternalEvent('EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED')
+end
 
 -- Cancel cinematics
 do local MovieControls = {

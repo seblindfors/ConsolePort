@@ -65,21 +65,21 @@ end
 ---------------------------------------------------------------
 -- Autocast overlay
 ---------------------------------------------------------------
--- Clients with AutoCastOverlayManagerMixin route ShowAutoCastEnabled
--- through a global manager, where insecurely registered shines taint
--- the shared state and spread to the pet action bar and spell book.
--- A private manager keeps addon overlays out of the shared one.
+-- Classic clients route ShowAutoCastEnabled through a global manager,
+-- where insecurely registered shines taint the shared state and spread
+-- to the pet action bar and spell book. A private manager keeps addon
+-- overlays out of the shared one. Mainline overlays are self-contained.
 do	local OverlayManager;
 	local function GetOverlayManager()
-		if ( OverlayManager == nil ) then
-			OverlayManager = AutoCastOverlayManagerMixin
-				and Mixin(CreateFrame('Frame'), AutoCastOverlayManagerMixin) or false;
-			if OverlayManager then
-				OverlayManager:OnLoad()
-				OverlayManager:SetScript('OnUpdate', OverlayManager.OnUpdate)
-			end
+		if not OverlayManager then
+			OverlayManager = Mixin(CreateFrame('Frame'), AutoCastOverlayManagerMixin)
+			OverlayManager:OnLoad()
+			OverlayManager:SetScript('OnUpdate', OverlayManager.OnUpdate)
 		end
-		return OverlayManager or nil;
+		return OverlayManager;
+	end
+	if not AutoCastOverlayManagerMixin then
+		GetOverlayManager = nop;
 	end
 
 	function Lib.ShowAutoCastEnabled(overlay, isEnabled)
@@ -92,10 +92,8 @@ do	local OverlayManager;
 		else
 			manager:RemoveActiveShine(overlay)
 		end
-		if overlay.sparkles then
-			for _, sparkle in ipairs(overlay.sparkles) do
-				sparkle:SetShown(isEnabled)
-			end
+		for _, sparkle in ipairs(overlay.sparkles) do
+			sparkle:SetShown(isEnabled)
 		end
 	end
 end

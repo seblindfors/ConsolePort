@@ -140,7 +140,7 @@ function Manager:CacheActionBar(bar)
 	PendingBars[bar] = true;
 end
 
-EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetingAddOn, function()
+EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetAddOn, function()
 	db:RunSafe(function()
 		Manager:SetFrameRef('Cursor', db.Raid)
 		Manager:SetFrameRef('Ring', db.TargetRing)

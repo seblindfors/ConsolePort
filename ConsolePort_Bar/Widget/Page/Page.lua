@@ -174,6 +174,7 @@ function CPActionPage:OnConfigChanged(generic)
 	config.hideElements.hotkey = not self.props.hotkeys;
 	for _, slot in ipairs(self.buttons) do
 		slot:UpdateConfig(config)
+		slot:SetAttribute('checkmouseovercast', config.mouseoverCast)
 	end
 end
 

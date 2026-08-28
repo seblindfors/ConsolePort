@@ -543,7 +543,7 @@ function Ring:UpdateActiveState()
 		end
 		self:RegisterEvents()
 		env.UnitPool:RegisterConsumer(self, 'TargetRing')
-	else
+	elseif self.radialLoaded then
 		env.UnitPool:UnregisterConsumer('TargetRing')
 		self:UnregisterAllEvents()
 		for button in self:EnumerateActive() do
