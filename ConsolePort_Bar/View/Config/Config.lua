@@ -247,9 +247,17 @@ function Config:OnLoad()
 		ConsolePort()
 	end)
 	self.EditMode:SetTooltipInfo(HUD_EDIT_MODE_MENU or L'Edit Mode', L'Open the main edit mode window.')
-	self.EditMode:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
-	self.EditMode:SetAttribute(CPAPI.ActionPressAndHold, true)
-	self.EditMode:SetAttribute('macrotext', '/editmode')
+	if CPAPI.IsRetailVersion then
+		self.EditMode:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
+		self.EditMode:SetAttribute(CPAPI.ActionPressAndHold, true)
+		self.EditMode:SetAttribute('macrotext', '/editmode')
+	else -- The /editmode slash command does not exist on Classic.
+		self.EditMode:SetScript('OnClick', function()
+			if not InCombatLockdown() then
+				ShowUIPanel(EditModeManagerFrame)
+			end
+		end)
+	end
 	self.EditMode:HookScript('OnClick', GenerateClosure(self.Hide, self))
 
 	Mixin(self.SettingsContainer, SettingsContainer):OnLoad()
