@@ -356,6 +356,24 @@ do  -- Create input proxy for basic controls
 	function Cursor:GetEmuClick(node, button)
 		return button, 'UIOnMouse', EmuClick, EmuClickInit, EmuClickClear, node, button;
 	end
+
+	-- Modern dropdowns open from an intrinsic OnMouseDown, which is
+	-- invisible to GetScript and not fired by binding clicks. Opens on
+	-- release, so the release cannot leak into the focused menu item.
+	local MenuClick = function(self, down)
+		local node = self.node;
+		if ( node and down == false ) then
+			node:SetMenuOpen(not node:IsMenuOpen())
+		end
+	end
+
+	function Cursor:GetMenuClick(node, button)
+		return button, 'UIOnMenu', MenuClick, EmuClickInit, EmuClickClear, node, button;
+	end
+
+	function Cursor:IsDropdownNode(node)
+		return node.SetMenuOpen and node.IsMenuOpen;
+	end
 end
 
 function Cursor:ReverseScanUI(node, key, target, changed)
@@ -608,6 +626,8 @@ function Cursor:SetClickButtonsForNode(node, macroReplacement, isClickable)
 			if macroReplacement then
 				local unit = UIDROPDOWNMENU_INIT_MENU.unit
 				Input:SetMacro(modifier .. button, self, macroReplacement:format(unit or ''), true)
+			elseif ( click == 'LeftButton' and self:IsDropdownNode(node) ) then
+				Input:SetCommand(modifier .. button, self, true, self:GetMenuClick(node, click))
 			elseif isClickable then
 				Input:SetButton(modifier .. button, self, node, true, click)
 			else
