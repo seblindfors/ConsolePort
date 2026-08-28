@@ -8,7 +8,7 @@
 --   Settings/actionPageCondition : macro condition
 --   Settings/actionPageResponse  : response to condition
 
-local Pager, _, db = Mixin(CPAPI.EventHandler(ConsolePortPager, {'UPDATE_MACROS', 'UPDATE_BONUS_ACTIONBAR'}), CPAPI.SecureEnvironmentMixin), ...;
+local Pager, _, db = Mixin(CPAPI.EventHandler(ConsolePortPager, {'UPDATE_BONUS_ACTIONBAR'}), CPAPI.SecureEnvironmentMixin), ...;
 db:Register('Pager', Pager)
 Pager:Execute('headers = newtable()')
 
@@ -160,20 +160,6 @@ Pager.Env = {
 			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]];
-	IsHelpfulMacro = [[
-		local body = ...
-		if body then
-			local condition = body:match('#raidcursor (%[.+%])')
-			return condition and condition:match('help')
-		end
-	]];
-	IsHarmfulMacro = [[
-		local body = ...
-		if body then
-			local condition = body:match('#raidcursor (%[.+%])')
-			return condition and condition:match('harm')
-		end
-	]];
 	IsHarmfulAction = [[
 		local type, id, subType = self::GetActionInfo(...)
 		if ( type == 'spell' and subType == 'spell' and id and id ~= 0 ) then
@@ -187,8 +173,6 @@ Pager.Env = {
 			end
 		elseif ( type == 'item' and id ) then
 			return IsHarmfulItem(id)
-		elseif ( type == 'macro' and id ) then
-			return self::IsHarmfulMacro(self:GetAttribute(tostring(id)))
 		end
 	]];
 	IsHelpfulAction = [[
@@ -204,8 +188,6 @@ Pager.Env = {
 			end
 		elseif ( type == 'item' and id ) then
 			return IsHelpfulItem(id)
-		elseif ( type == 'macro' and id ) then
-			return self::IsHelpfulMacro(self:GetAttribute(tostring(id)))
 		end
 	]];
 }
@@ -221,21 +203,6 @@ function Pager:RegisterHeader(header)
 	self:Execute('headers[#headers + 1] = self:GetFrameRef("header")')
 	return header
 end
-
----------------------------------------------------------------
--- Macro body indexing
----------------------------------------------------------------
-function Pager:OnUpdateMacros(macroInfo)
-	for id, info in pairs(macroInfo) do
-		self:SetAttribute(tostring(id), info.body)
-	end
-end
-
-function Pager:UPDATE_MACROS()
-	db:TriggerEvent('OnUpdateMacros', CPAPI.GetAllMacroInfo())
-end
-
-db:RegisterSafeCallback('OnUpdateMacros', Pager.OnUpdateMacros, Pager)
 
 ---------------------------------------------------------------
 -- Cache information dispatch
