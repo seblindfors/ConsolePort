@@ -380,8 +380,10 @@ function Stack:OnDataLoaded()
 
 	self:RegisterEvent('ADDON_LOADED')
 	self.ADDON_LOADED = function(stack, addonName)
-		stack:LoadAddonFrames(addonName)
-		stack:UpdateFrames()
+		CPAPI.Next(function()
+			stack:LoadAddonFrames(addonName)
+			stack:UpdateFrames()
+		end)
 	end;
 
 	db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
