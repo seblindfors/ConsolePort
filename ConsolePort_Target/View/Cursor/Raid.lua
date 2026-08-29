@@ -130,9 +130,9 @@ Cursor:CreateEnvironment({
 
 		for actionButton in pairs(buttons) do
 			local action = actionButton:GetAttribute('action')
-			if self::IsHelpfulAction(action) then
+			if pager::IsHelpfulAction(action) then
 				helpful[actionButton] = true;
-			elseif self::IsHarmfulAction(action) then
+			elseif pager::IsHarmfulAction(action) then
 				harmful[actionButton] = true;
 			else
 				helpful[actionButton] = true;
@@ -276,20 +276,6 @@ Cursor:CreateEnvironment({
 			end
 		end
 		widget = nil;
-	]];
-	IsHelpfulMacro = [[
-		local body = ...
-		if body then
-			local condition = body:match('#raidcursor (%[.+%])')
-			return condition and condition:match('help')
-		end
-	]];
-	IsHarmfulMacro = [[
-		local body = ...
-		if body then
-			local condition = body:match('#raidcursor (%[.+%])')
-			return condition and condition:match('harm')
-		end
 	]];
 })
 

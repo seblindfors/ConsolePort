@@ -3,6 +3,7 @@
 ## Title: Console Port |cff69ccf0Target|r
 ## Notes: Target module
 ## RequiredDeps: ConsolePort
+## SavedVariablesPerCharacter: ConsolePortAssist
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
@@ -17,6 +18,7 @@ View\Cursor\Raid.xml
 View\Hotkeys\UnitHotkeys.xml
 View\Ring\Targetring.xml
 
+Controller\Config.lua
 Controller\Securescan.lua
 Controller\UnitPool.lua
 

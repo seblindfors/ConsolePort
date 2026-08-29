@@ -8,7 +8,7 @@
 --   Settings/actionPageCondition : macro condition
 --   Settings/actionPageResponse  : response to condition
 
-local Pager, _, db = CPAPI.EventHandler(ConsolePortPager, {'UPDATE_MACROS', 'UPDATE_BONUS_ACTIONBAR'}), ...;
+local Pager, _, db = Mixin(CPAPI.EventHandler(ConsolePortPager, {'UPDATE_BONUS_ACTIONBAR'}), CPAPI.SecureEnvironmentMixin), ...;
 db:Register('Pager', Pager)
 Pager:Execute('headers = newtable()')
 
@@ -50,35 +50,40 @@ function Pager:GetDefaultPageCondition()
 	return cond
 end
 
-function Pager:GetDefaultPageResponse()
-	-- Replica of ActionBarController_UpdateAll (FrameXML\ActionBarController.lua)
-	return ([[
-		if HasVehicleActionBar and HasVehicleActionBar() then
-			newstate = GetVehicleBarIndex()
-		elseif HasOverrideActionBar and HasOverrideActionBar() then
-			newstate = GetOverrideBarIndex()
-		elseif HasTempShapeshiftActionBar() then
-			newstate = GetTempShapeshiftBarIndex()
-		elseif GetBonusBarOffset() > 0 then
-			newstate = GetBonusBarOffset() + %s
-		else
-			newstate = GetActionBarPage()
+-- Replica of ActionBarController_UpdateAll (FrameXML\ActionBarController.lua)
+local DEFAULT_PAGE_RESPONSE = ([[
+	if HasVehicleActionBar and HasVehicleActionBar() then
+		newstate = GetVehicleBarIndex()
+	elseif HasOverrideActionBar and HasOverrideActionBar() then
+		newstate = GetOverrideBarIndex()
+	elseif HasTempShapeshiftActionBar() then
+		newstate = GetTempShapeshiftBarIndex()
+	elseif GetBonusBarOffset() > 0 then
+		newstate = GetBonusBarOffset() + %s
+	else
+		newstate = GetActionBarPage()
+	end
+]]):format(NUM_ACTIONBAR_PAGES);
+
+local HEADER_RESPONSE = [[
+	self:SetAttribute('actionpage', newstate)
+	for i = #headers, 1, -1 do
+		local header = headers[i];
+		header:SetAttribute('actionpage', newstate)
+		local snippet = header:GetAttribute('ActionPageChanged')
+		if snippet then
+			header:Run(snippet, newstate)
 		end
-	]]):format(NUM_ACTIONBAR_PAGES)
+	end
+	self:CallMethod('OnActionPageChanged', newstate)
+]];
+
+function Pager:GetDefaultPageResponse()
+	return DEFAULT_PAGE_RESPONSE;
 end
 
 function Pager:GetHeaderResponse()
-	return [[
-		for i = #headers, 1, -1 do
-			local header = headers[i];
-			header:SetAttribute('actionpage', newstate)
-			local snippet = header:GetAttribute('ActionPageChanged')
-			if snippet then
-				header:Run(snippet, newstate)
-			end
-		end
-		self:CallMethod('OnActionPageChanged', newstate)
-	]]
+	return HEADER_RESPONSE;
 end
 
 function Pager:SetConditionAndResponse(condition, response)
@@ -113,9 +118,13 @@ db:RegisterSafeCallback('Settings/actionPageResponse', Pager.OnDataLoaded, Pager
 ---------------------------------------------------------------
 -- Spell headers
 ---------------------------------------------------------------
--- Mixin API (called by header:RunAttribute(func, ...)):
+-- Headers registered with the pager receive continuous action
+-- page updates, and a pager upvalue in their restricted
+-- environment to access the extended action API, e.g.
+-- pager::IsHelpfulAction(action):
 --  GetActionID        : correct ID for an action slot
 --  GetActionInfo      : information about an action slot
+--  GetSpellID         : spell ID for an action slot
 --  GetActionSpellInfo : spell information about an action slot
 --  IsHarmfulAction    : check if the action slot is harmful
 --  IsHelpfulAction    : check if the action slot is helpful
@@ -146,22 +155,15 @@ Pager.Env = {
 		end
 	]];
 	GetActionSpellInfo = [[
-		local type, spellID, subType = self::GetActionInfo(...)
-		if type == 'spell' and spellID and spellID ~= 0 and subType == 'spell' then
+		local spellID = self::GetSpellID(...)
+		if spellID then
 			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]];
-	IsHelpfulMacro = [[
-		return false -- default, override in header
-	]];
-	IsHarmfulMacro = [[
-		return false -- default, override in header
-	]];
 	IsHarmfulAction = [[
-		local type, id = self::GetActionInfo(...)
-		if type == 'spell' then
-			local slot = self::GetActionSpellInfo(...)
-			if slot then
+		local type, id, subType = self::GetActionInfo(...)
+		if ( type == 'spell' and subType == 'spell' and id and id ~= 0 ) then
+			if FindSpellBookSlotBySpellID(id) then
 				return ]]..(function()
 					if CPAPI.IsRetailVersion then
 						return ('IsSpellHarmful(id, %d)'):format(Enum.SpellBookSpellBank.Player)
@@ -169,21 +171,14 @@ Pager.Env = {
 					return 'IsSpellHarmful(id)'
 				end)()..[[;
 			end
-		elseif type == 'item' and id then
+		elseif ( type == 'item' and id ) then
 			return IsHarmfulItem(id)
-		elseif type == 'macro' and id then
-			local pager = self:GetFrameRef('pager')
-			if pager then
-				local body = pager:GetAttribute(tostring(id))
-				return self::IsHarmfulMacro(body)
-			end
 		end
 	]];
 	IsHelpfulAction = [[
-		local type, id = self::GetActionInfo(...)
-		if type == 'spell' then
-			local slot = self::GetActionSpellInfo(...)
-			if slot then
+		local type, id, subType = self::GetActionInfo(...)
+		if ( type == 'spell' and subType == 'spell' and id and id ~= 0 ) then
+			if FindSpellBookSlotBySpellID(id) then
 				return ]]..(function()
 					if CPAPI.IsRetailVersion then
 						return ('IsSpellHelpful(id, %d)'):format(Enum.SpellBookSpellBank.Player)
@@ -191,46 +186,23 @@ Pager.Env = {
 					return 'IsSpellHelpful(id)'
 				end)()..[[;
 			end
-		elseif type == 'item' and id then
+		elseif ( type == 'item' and id ) then
 			return IsHelpfulItem(id)
-		elseif type == 'macro' and id then
-			local pager = self:GetFrameRef('pager')
-			if pager then
-				local body = pager:GetAttribute(tostring(id))
-				return self::IsHelpfulMacro(body)
-			end
 		end
 	]];
 }
 
-function Pager:RegisterHeader(header, anonymous)
+Pager:CreateEnvironment(Pager.Env)
+
+function Pager:RegisterHeader(header)
 	assert(not InCombatLockdown(), 'Header cannot be registered in combat.')
-	assert(header.CreateEnvironment, 'Header is missing SecureEnvironmentMixin.')
-	header:CreateEnvironment(self.Env)
-	if not anonymous then
-		local page = self:GetCurrentPage()
-		header:SetAttribute('actionpage', page)
-		header:SetFrameRef('pager', self)
-		self:SetFrameRef('header', header)
-		self:Execute('headers[#headers + 1] = self:GetFrameRef("header")')
-	end
+	header:SetAttribute('actionpage', self:GetCurrentPage())
+	header:SetFrameRef('pager', self)
+	header:Execute('pager = self:GetFrameRef("pager")')
+	self:SetFrameRef('header', header)
+	self:Execute('headers[#headers + 1] = self:GetFrameRef("header")')
 	return header
 end
-
----------------------------------------------------------------
--- Macro body indexing
----------------------------------------------------------------
-function Pager:OnUpdateMacros(macroInfo)
-	for id, info in pairs(macroInfo) do
-		self:SetAttribute(tostring(id), info.body)
-	end
-end
-
-function Pager:UPDATE_MACROS()
-	db:TriggerEvent('OnUpdateMacros', CPAPI.GetAllMacroInfo())
-end
-
-db:RegisterSafeCallback('OnUpdateMacros', Pager.OnUpdateMacros, Pager)
 
 ---------------------------------------------------------------
 -- Cache information dispatch
