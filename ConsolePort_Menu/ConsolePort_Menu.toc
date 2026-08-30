@@ -3,6 +3,7 @@
 ## Title: Console Port |cff69ccf0Menu|r
 ## Notes: Game menu module
 ## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

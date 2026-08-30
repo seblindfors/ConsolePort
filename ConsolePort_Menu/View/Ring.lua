@@ -277,6 +277,9 @@ function Selector:AddButton(i, data, size)
 	button:SetID(i)
 	button:Show()
 	button:SetData(data)
+	if ( IsLoggedIn() and button.OnEvent ) then
+		button:OnEvent('PLAYER_ENTERING_WORLD')
+	end
 	self:SetAttribute('numbuttons', math.max(i, self:GetAttribute('numbuttons')))
 	self:SetFrameRef(tostring(i), button)
 	self:Run([[

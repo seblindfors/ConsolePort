@@ -14,6 +14,9 @@ Menu:SetFrameLevel(GameMenu:GetFrameLevel() - 1)
 ---------------------------------------------------------------
 function Menu:OnDataLoaded()
 	self:OnSizingChanged()
+	if IsLoggedIn() then
+		self:PLAYER_LOGIN()
+	end
 	RunNextFrame(function()
 		self:SetPoint('CENTER', UIParent, 'BOTTOMLEFT', self:GetTargetOffsets(MenuRing))
 	end)

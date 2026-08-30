@@ -3,6 +3,7 @@
 ## Title: Console Port |cff69ccf0Target|r
 ## Notes: Target module
 ## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
 ## SavedVariablesPerCharacter: ConsolePortAssist
 
 ## Author: Sebastian Lindfors

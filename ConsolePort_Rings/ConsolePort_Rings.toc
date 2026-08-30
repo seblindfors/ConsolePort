@@ -3,6 +3,7 @@
 ## Title: Console Port |cff69ccf0Rings|r
 ## Notes: Rings module
 ## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

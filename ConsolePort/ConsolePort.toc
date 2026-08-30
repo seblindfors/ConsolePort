@@ -30,3 +30,4 @@ Model\__manifest.xml
 Controller\__manifest.xml
 Widget\__manifest.xml
 View\__manifest.xml
+Controller\Modules.lua

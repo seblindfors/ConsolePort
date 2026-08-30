@@ -357,6 +357,29 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
+	_('Modules', SETTING_GROUP_SYSTEM);
+	--------------------------------------------------------------------------------------------------------
+	moduleActionBar = _{Bool(true);
+		name = 'Action Bar';
+		desc = 'Replaces the default action bars with a layout designed for gamepad play.';
+	};
+	moduleGameMenu = _{Bool(true);
+		name = 'Game Menu';
+		desc = 'Replaces the game menu with a controller-friendly menu and a quick access ring.';
+	};
+	moduleRings = _{Bool(true);
+		name = 'Rings';
+		desc = 'Utility rings for spells, items and macros, selected with the radial stick.';
+	};
+	moduleWorld = _{Bool(true);
+		name = 'World';
+		desc = 'World interaction helpers: quick menu, loot frame and temporary ability prompts.';
+	};
+	moduleTarget = _{Bool(true);
+		name = 'Target';
+		desc = 'Targeting tools: raid cursor, unit hotkeys and the target ring.';
+	};
+	--------------------------------------------------------------------------------------------------------
 	_('Keyboard', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	keyboardEnable = _{Bool(false);
