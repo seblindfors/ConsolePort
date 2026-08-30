@@ -40,6 +40,8 @@ function Movement:OnDataLoaded()
 	self:UpdateConditionals()
 	self:UnregisterAllEvents()
 	CPAPI.RegisterFrameForUnitEvents(self, self.Events, 'player')
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
+	self:RegisterEvent('PLAYER_REGEN_ENABLED')
 	return CPAPI.BurnAfterReading;
 end
 
@@ -62,9 +64,30 @@ function Movement:UpdateRunWalkThreshold(value)
 	self.Proxy.RunWalkThreshold:Set(value or db('mvmtRunThreshold'))
 end
 
-function Movement:UpdateTurnWithCamera(value)
-	self.Proxy.TurnWithCamera:Set(value or db('mvmtTurnWithCamera'))
+-- Out of combat is not a cvar value; it resolves to always or never
+-- depending on combat state, and is re-evaluated on combat changes.
+local TURN_NEVER, TURN_ALWAYS, TURN_OUT_OF_COMBAT = 0, 2, 3;
+
+function Movement:GetTurnWithCameraValue(value)
+	value = value or db('mvmtTurnWithCamera')
+	if ( value == TURN_OUT_OF_COMBAT ) then
+		return InCombatLockdown() and TURN_NEVER or TURN_ALWAYS;
+	end
+	return value;
 end
+
+function Movement:UpdateTurnWithCamera(value)
+	self.Proxy.TurnWithCamera:Set(self:GetTurnWithCameraValue(value))
+end
+
+function Movement:PLAYER_REGEN_DISABLED()
+	if ( self.fmSpellOverride ~= nil or self.fmVehicleOverride ~= nil ) then return end;
+	if ( db('mvmtTurnWithCamera') == TURN_OUT_OF_COMBAT ) then
+		self:UpdateTurnWithCamera()
+	end
+end
+
+Movement.PLAYER_REGEN_ENABLED = Movement.PLAYER_REGEN_DISABLED;
 
 db:RegisterCallback('Settings/mvmtAnalog',            Movement.UpdateAnalogMovement,    Movement)
 db:RegisterCallback('Settings/mvmtStrafeAngleTravel', Movement.UpdateStrafeAngleTravel, Movement)
