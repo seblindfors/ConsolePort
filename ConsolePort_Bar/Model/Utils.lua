@@ -457,13 +457,31 @@ ConsolePort:AddSlashCommand('layout', {
 		if not layout then
 			return CPAPI.Log('Layout "%s" does not exist.', layoutName);
 		end
-		env:RunSafe(function(e, newLayout)
-			e:ReleaseAll()
-			e('Layout', newLayout)
-			e:TriggerEvent('OnLayoutChanged', true)
-		end, env, layout);
+		env:RunSafe(env.ApplyPreset, env, layout);
 	end
 })
+
+---------------------------------------------------------------
+-- Presets
+---------------------------------------------------------------
+function env:ApplyPreset(preset)
+	preset = CopyTable(preset)
+	self:ReleaseAll()
+	if preset.settings then
+		for path, data in pairs(preset.settings) do
+			self(path, data)
+		end
+		preset.settings = nil;
+	end
+	if preset.pager then
+		for path, data in pairs(preset.pager) do
+			self.db(path, data)
+		end
+		preset.pager = nil;
+	end
+	self('Layout', self.BuildLayout(preset))
+	self:TriggerEvent('OnLayoutChanged', true)
+end
 
 ---------------------------------------------------------------
 -- State handler helpers
