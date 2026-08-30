@@ -164,11 +164,10 @@ end)
 function Manager:RegisterReroute(button)
 	self:Hook(button, 'OnClick', [[
 		if not ring then return end;
-		if down then
+		if ( down and not ring:IsShown() ) then
 			-- Assist spell pressed with no assistable target: block the press
 			-- and bring up the ring, so the release casts on the hovered unit.
-			if ( not ring:IsShown()
-				and button == 'ControllerInput'
+			if ( button == 'ControllerInput'
 				and not ( cursor and cursor:IsShown() )
 				and not PlayerCanAssist('target')
 				and self:GetAttribute('type') == 'action' ) then
@@ -187,7 +186,7 @@ function Manager:RegisterReroute(button)
 		if unit then
 			self:SetAttribute('backup-unit', self:GetAttribute('unit'))
 			self:SetAttribute('unit', unit)
-			if ( assist == self ) then
+			if ( not down and assist == self ) then
 				-- The press was blocked, so there is no held action to
 				-- release; perform the full action instead.
 				self:SetAttribute('backup-typerelease', self:GetAttribute('typerelease'))
@@ -195,7 +194,7 @@ function Manager:RegisterReroute(button)
 			end
 			return nil, 'reroute';
 		end
-		if ( assist == self ) then
+		if ( not down and assist == self ) then
 			return nil, 'assist';
 		end
 	]], [[
