@@ -99,7 +99,7 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Run / Walk Threshold';
 		desc = 'Controls when your character starts running. Expressed as a fraction of your total movement stick radius.';
 	};
-	mvmtTurnWithCamera = _{Map(db:GetCVar('GamePadTurnWithCamera', 2), {[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
+	mvmtTurnWithCamera = _{Map(db:GetCVar('GamePadTurnWithCamera', 2), {[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS, [3] = 'Out of Combat'});
 		name = 'Turn Character With Camera';
 		desc = 'Turn your character facing when you turn your camera angle.';
 	};
@@ -205,6 +205,11 @@ db:Register('Variables', CPAPI.Callable({
 	trgtEnablePlayerInteract = _{Bool(true);
 		name = 'Enable Player Interact';
 		desc = 'Open unit menu when interacting with other players.';
+	};
+	trgtPlayerInteractFriendlyOnly = _{Bool(false);
+		name = 'Friendly Players Only';
+		desc = 'Only open the unit menu when interacting with friendly players.';
+		deps = { trgtEnablePlayerInteract = true };
 	};
 	--------------------------------------------------------------------------------------------------------
 	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse

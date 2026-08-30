@@ -249,7 +249,8 @@ if C_PlayerInteractionManager and C_PlayerInteractionManager.InteractUnit then
 	hooksecurefunc(C_PlayerInteractionManager, 'InteractUnit', function(unit)
 		if not InCombatLockdown() and IsGamePadFreelookEnabled()
 		and CPAPI.Scrub(UnitExists(unit)) and CPAPI.Scrub(UnitIsPlayer(unit))
-		and db('trgtEnablePlayerInteract') then
+		and db('trgtEnablePlayerInteract')
+		and ( not db('trgtPlayerInteractFriendlyOnly') or CPAPI.Scrub(UnitIsFriend('player', unit)) ) then
 			UnitMenuSecure:Run([[ self::SetUnit(%q) ]], unit)
 		end
 	end)

@@ -31,20 +31,23 @@ function Aura:GetFilter()
 end
 
 function Aura:GetData()
-	-- Accessing a secret aura throws while tainted; treat a
-	-- throw and a secret return value the same.
+	-- Accessing a secret aura throws while tainted; the data can also
+	-- come back as a plain table with secret fields, which the aura
+	-- instance APIs then refuse as arguments.
 	local ok, data = pcall(GetAuraDataByIndex, 'player', self:GetID(), self:GetFilter())
 	if not ok or IsSecret(data) then
 		return nil, true;
 	end
-	return data, false;
+	return data, data and IsSecret(data.auraInstanceID);
 end
 
 function Aura:Update()
 	local data, secret = self:GetData()
 	if secret then
 		self:Show()
-		self:SetIcon(UNKNOWN_ICON)
+		if not ( data and pcall(self.SetIcon, self, data.icon) ) then
+			self:SetIcon(UNKNOWN_ICON)
+		end
 		self:SetCount(nil, true, true)
 		CooldownFrame_Clear(self.cooldown)
 		return
@@ -75,14 +78,11 @@ end
 function Aura:OnEnter()
 	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
 	local data, secret = self:GetData()
-	if secret then
-		GameTooltip:SetText(UNKNOWN)
-	elseif data then
-		if not pcall(GameTooltip.SetUnitAura, GameTooltip, 'player', self:GetID(), self:GetFilter()) then
-			GameTooltip:SetText(UNKNOWN)
-		end
-	else
+	if not ( data or secret ) then
 		return GameTooltip:Hide()
+	end
+	if not pcall(GameTooltip.SetUnitAura, GameTooltip, 'player', self:GetID(), self:GetFilter()) then
+		GameTooltip:SetText(UNKNOWN)
 	end
 	if self:GetParent():IsHelpful() then
 		local text = env:GetTooltipPromptForClick('RightButton', CANCEL)
