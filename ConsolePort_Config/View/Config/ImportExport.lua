@@ -73,7 +73,7 @@ local AliasMap = {
 			if ( tonumber(setID) == 1 ) then
 				return BLUE_FONT_COLOR:WrapTextInColorCode(DEFAULT);
 			end
-			return db.Rings:GetBindingDisplayNameForSet(setID)
+			return db.Rings and db.Rings:GetBindingDisplayNameForSet(setID) or setID;
 		end;
 		[P'Utility%d/%w+/(%d+)'] = function(buttonID)
 			return L('Button |cFF00FFFF%s|r', buttonID)
@@ -189,8 +189,8 @@ local ActionPickupHandlers = {
 -- Generate content for the browser
 ---------------------------------------------------------------
 local Aggregators = {
-	ConsolePortUtility1 = function() return db.Rings.Data end;
-	ConsolePortUtility2 = function() return db.Rings.Shared end;
+	ConsolePortUtility1 = function() return db.Rings and db.Rings.Data end;
+	ConsolePortUtility2 = function() return db.Rings and db.Rings.Shared end;
 	ConsolePortBindings = function() return db.Gamepad:GetBindings(true) end;
 	ConsolePortDevices  = function() return db.Gamepad.Devices end;
 	ConsolePortSettings = function()

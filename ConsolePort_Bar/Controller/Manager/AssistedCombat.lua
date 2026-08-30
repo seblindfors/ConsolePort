@@ -340,3 +340,6 @@ function AssistedCombatManager:OnUpdate(elapsed)
 end
 
 EventRegistry:RegisterFrameEventAndCallback('SPELLS_CHANGED', AssistedCombatManager.OnSpellsChanged, AssistedCombatManager);
+if IsLoggedIn() then
+	AssistedCombatManager:OnSpellsChanged()
+end

@@ -15,6 +15,11 @@ function Container:OnDataLoaded()
 	env:LoadModules()
 	db:Load('Rings/Data', 'ConsolePortRings')
 	db:Load('Rings/Shared', 'ConsolePortRingsShared')
+	if IsLoggedIn() then
+		env.IsDataReady, env.IsSpellValidationReady = true, true;
+		self:UnregisterEvent('PLAYER_ENTERING_WORLD')
+		self:QueueRefresh()
+	end
 	return CPAPI.BurnAfterReading;
 end
 

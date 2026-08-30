@@ -252,6 +252,9 @@ end
 
 function CPExhaustionTickMixin:OnLoad()
 	CPAPI.RegisterFrameForEvents(self, self.Events)
+	if IsLoggedIn() then
+		self:PLAYER_ENTERING_WORLD()
+	end
 end
 
 function CPExhaustionTickMixin:UpdateTickPosition()
