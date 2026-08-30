@@ -206,6 +206,11 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Enable Player Interact';
 		desc = 'Open unit menu when interacting with other players.';
 	};
+	trgtPlayerInteractFriendlyOnly = _{Bool(false);
+		name = 'Friendly Players Only';
+		desc = 'Only open the unit menu when interacting with friendly players.';
+		deps = { trgtEnablePlayerInteract = true };
+	};
 	--------------------------------------------------------------------------------------------------------
 	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse
 	--------------------------------------------------------------------------------------------------------
