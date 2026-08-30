@@ -1080,24 +1080,7 @@ end
 
 function Loadout:OnLoadPreset(preset)
 	self:ReleaseAll()
-	env:ReleaseAll()
-
-	preset = CopyTable(preset)
-	if preset.settings then
-		for path, data in pairs(preset.settings) do
-			env(path, data)
-		end
-		preset.settings = nil;
-	end
-	if preset.pager then
-		for path, data in pairs(preset.pager) do
-			db(path, data)
-		end
-		preset.pager = nil;
-	end
-
-	env(ROOT, env.BuildLayout(preset))
-	env:TriggerEvent('OnLayoutChanged', true)
+	env:ApplyPreset(preset)
 	self:Update()
 end
 

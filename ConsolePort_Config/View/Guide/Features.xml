@@ -1,0 +1,76 @@
+<Ui>
+	<CheckButton name="CPFeatureCardTemplate" virtual="true" inherits="CPCardBaseTemplate">
+		<Size x="376" y="300"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Image">
+					<Size x="344" y="140"/>
+					<Anchors>
+						<Anchor point="TOP" y="-16"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Name" inherits="CPSubtitleFont" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Image" relativePoint="BOTTOMLEFT" y="-10"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Desc" inherits="GameFontHighlight" justifyH="LEFT" justifyV="TOP">
+					<Size x="344" y="0"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" y="-6"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<CheckButton parentKey="Toggle" inherits="CPCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativeKey="$parent.Image" relativePoint="BOTTOMRIGHT" x="4" y="-6"/>
+				</Anchors>
+			</CheckButton>
+		</Frames>
+	</CheckButton>
+
+	<Frame name="CPFeaturesPanel" virtual="true" hidden="true">
+		<Frames>
+			<ScrollFrame parentKey="Browser" inherits="CPSmoothScrollTemplate, CPScrollFrameSettingsTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="12" y="-3"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="70"/>
+				</Anchors>
+				<ScrollChild>
+					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame">
+						<Frames>
+							<Frame parentKey="Grid" inherits="GridLayoutFrame">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="1" type="number"/>
+									<KeyValue key="childXPadding" value="16" type="number"/>
+									<KeyValue key="childYPadding" value="16" type="number"/>
+									<KeyValue key="isHorizontal" value="true" type="boolean"/>
+									<KeyValue key="stride" value="3" type="number"/>
+									<KeyValue key="layoutFramesGoingRight" value="true" type="boolean"/>
+									<KeyValue key="layoutFramesGoingUp" value="false" type="boolean"/>
+								</KeyValues>
+								<Anchors>
+									<Anchor point="TOP" y="-16"/>
+								</Anchors>
+							</Frame>
+						</Frames>
+					</Frame>
+				</ScrollChild>
+			</ScrollFrame>
+			<CheckButton parentKey="Continue" inherits="CPGuideContinueButton" frameLevel="10">
+				<Attributes>
+					<Attribute name="nodepriority" type="number" value="1"/>
+				</Attributes>
+				<Anchors>
+					<Anchor point="BOTTOM" y="10"/>
+				</Anchors>
+			</CheckButton>
+		</Frames>
+	</Frame>
+
+	<Script file="Features.lua"/>
+</Ui>
