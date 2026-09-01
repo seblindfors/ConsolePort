@@ -43,6 +43,7 @@ local ActionBarAPI, _, db = {
 	Lookup = {
 		Buttons = {};
 		Ignore  = {};
+		Native  = {};
 		Stances = {};
 		Types   = {
 			Button = true;
@@ -81,17 +82,14 @@ CPAPI.Proxy(ActionBarAPI.Widget, function(self, id)
 	return _G[ActionBarAPI:GetMappedValue(id, self)]
 end)
 
--- Give default UI action buttons their correct action IDs.
--- This is to make it easier to distinguish action buttons,
--- since action bar addons use this attribute to perform actions.
--- Blizzard's own system does not use the attribute by default,
--- instead resorting to table keys/:GetID() to determine correct action.
--- Assigning the attribute manually unifies default UI with addons.
+-- Cache default UI action IDs without writing attributes to Blizzard-owned
+-- buttons. On modern clients, an addon value in the secure `action` attribute
+-- can taint the stock button's later UpdateAction/UpdateShownButtons path.
 for i=CPAPI.ExtraActionButtonID, 1, -1 do
 	local button = ActionBarAPI.Widget[i]
 	if button then
 		ActionBarAPI.Binding[ActionBarAPI.Action[i]] = i
-		button:SetAttributeNoHandler('action', i)
+		ActionBarAPI.Lookup.Native[button] = i
 	end
 end
 
@@ -104,6 +102,7 @@ end
 do
 	local VALID_BUTTON_TYPE = ActionBarAPI.Lookup.Types;
 	local IGNORE_FRAMES     = ActionBarAPI.Lookup.Ignore;
+	local NATIVE_BUTTONS    = ActionBarAPI.Lookup.Native;
 	local IsFrameWidget     = C_Widget.IsFrameWidget;
 	local IsRestricted      = CPAPI.IsObjectRestricted;
 	local Frame             = GetFrameMetatable().__index;
@@ -118,7 +117,7 @@ do
 	local function ValidateActionID(this)
 		if not Scrub(Frame.IsProtected(this)) then return end
 		if not VALID_BUTTON_TYPE[Scrub(Frame.GetObjectType(this))] then return end
-		return Scrub(Frame.GetAttribute(this, 'action'))
+		return NATIVE_BUTTONS[this] or Scrub(Frame.GetAttribute(this, 'action'))
 	end
 
 	local function IsActionButton(this, action)

@@ -2,43 +2,24 @@
 if not CPAPI.IsRetailVersion then return end;
 local _, env = ...;
 
-local function hideEditModeFrame(frame, clearEvents)
+local function hideEditModeFrame(frame)
 	if frame then
-		if clearEvents then
-			frame:UnregisterAllEvents()
-		end
-
-		-- remove some EditMode hooks
-		if frame.system then
-			-- purge the show state to avoid any taint concerns
-			CPAPI.Purge(frame, 'isShownExternal')
-		end
-
-		-- EditMode overrides the Hide function, avoid calling it as it can taint
-		if frame.HideBase then
-			frame:HideBase()
-		else
-			frame:Hide()
-		end
-		frame:SetParent(env.UIHandler)
+		-- Do not Hide, reparent, unregister, or mutate Edit Mode state on
+		-- Blizzard-owned bars. Those operations invoke Blizzard lifecycle code
+		-- from an addon-tainted stack and can poison action-button fields that
+		-- are later consumed with secret cooldown values in combat.
+		frame:SetAlpha(0)
+		frame:EnableMouse(false)
 	end
 end
 
 local function hideActionButton(button)
 	if not button then return end
-	button:Hide()
-	button:UnregisterAllEvents()
-	button:SetAttributeNoHandler('statehidden', true)
-	-- Shared dispatchers invoke buttons regardless of their own event
-	-- registrations, spreading hidden button taint to the dispatch loop.
-	-- Removal from the keyed dispatchers is taint-safe; the array-backed
-	-- ActionBarButtonEventsFrame is not, so slot changes still get through.
-	if ActionBarActionEventsFrame then
-		ActionBarActionEventsFrame:UnregisterFrame(button)
-	end
-	if ActionBarButtonUpdateFrame then
-		ActionBarButtonUpdateFrame:UnregisterFrame(button)
-	end
+	-- Keep the stock button fully owned and updated by Blizzard. In
+	-- particular, do not set statehidden or remove it from shared dispatchers:
+	-- both approaches leave Blizzard iterating tainted button state.
+	button:SetAlpha(0)
+	button:EnableMouse(false)
 end
 
 local function NPE_LoadUI()
@@ -63,19 +44,9 @@ function env.UIHandler:HideBlizzard()
 	for i = 1, 12 do
 		hideActionButton(_G['ActionButton' .. i])
 	end
-	-- these events drive visibility, we want the MainActionBar to remain invisible
-	for _, event in ipairs({
-		'PLAYER_REGEN_ENABLED';
-		'PLAYER_REGEN_DISABLED';
-		'ACTIONBAR_SHOWGRID';
-		'ACTIONBAR_HIDEGRID';
-	}) do
-		MainActionBar:UnregisterEvent(event)
-	end
-
 	---------------------------------------------------------------
 	-- Action bars
-	for bar, clearEvents in pairs({
+	for bar in pairs({
 		MultiBarBottomLeft  = true;
 		MultiBarBottomRight = true;
 	--	MultiBarLeft        = true;
@@ -84,7 +55,7 @@ function env.UIHandler:HideBlizzard()
 	--	MultiBar6           = true;
 	--	MultiBar7           = true;
 	}) do
-		hideEditModeFrame(_G[bar], clearEvents)
+		hideEditModeFrame(_G[bar])
 		for i = 1, 12 do -- Hide MultiBar Buttons
 			hideActionButton(_G[bar .. 'Button' .. i])
 		end
@@ -92,7 +63,7 @@ function env.UIHandler:HideBlizzard()
 
 	---------------------------------------------------------------
 	-- HUD frames
-	for frame, clearEvents in pairs({
+	for frame in pairs({
 	--	BagsBar                  = true;
 	--	MicroButtonAndBagsBar    = false;
 	--	MicroMenu                = true;
@@ -103,10 +74,16 @@ function env.UIHandler:HideBlizzard()
 		StatusTrackingBarManager = false;
 		OverrideActionBar        = true;
 	}) do
-		hideEditModeFrame(_G[frame], clearEvents)
+		hideEditModeFrame(_G[frame])
 	end
 	for i = 1, NUM_OVERRIDE_BUTTONS or 6 do
 		hideActionButton(_G['OverrideActionBarButton' .. i])
+	end
+	for i = 1, NUM_PET_ACTION_SLOTS or 10 do
+		hideActionButton(_G['PetActionButton' .. i])
+	end
+	for i = 1, NUM_POSSESS_SLOTS or 2 do
+		hideActionButton(_G['PossessButton' .. i])
 	end
 
 	---------------------------------------------------------------
