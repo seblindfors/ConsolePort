@@ -15,7 +15,7 @@ env.Variables = {
 		note = 'Automatically disabled if an inactive component is clicked from a macro.';
 		advd = true;
 	};
-	unitHotkeyTokens = _{Data.String('[group:party] party1-4, player, party1-4pet, boss1-8, arena1-5 [group:raid] raid1-40, boss1-8 [] player');
+	unitHotkeyTokens = _{Data.String('[group:raid] raid1-40, boss1-8 [group:party] party1-4, player, party1-4pet, boss1-8, arena1-5 [] player');
 		name = 'Unit Pool';
 		desc = 'Units to watch, as lists of unit tokens selected by macro conditions. Use [] for the unconditional fallback.';
 		note = 'E.g. '..BLUE('[group:party] party1-4, player [] player')..' watches your party while grouped, otherwise only yourself.';
