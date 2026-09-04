@@ -139,9 +139,10 @@ function PetAction:Update()
 
 	self:SetChecked(isActive and true or false)
 
-	if self.AutoCastOverlay then
-		self.AutoCastOverlay:SetShown(autoCastAllowed)
-		self.AutoCastOverlay:ShowAutoCastEnabled(autoCastEnabled)
+	if autoCastEnabled then
+		CPAPI.AutoCastStart(self, autoCastAllowed)
+	else
+		CPAPI.AutoCastStop(self, autoCastAllowed)
 	end
 
 	self:UpdateCooldown()
