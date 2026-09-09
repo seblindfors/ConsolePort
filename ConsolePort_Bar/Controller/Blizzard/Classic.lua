@@ -1,34 +1,35 @@
 -- Credit: https://github.com/Nevcairiel/Bartender4/blob/master/HideBlizzard.lua
 if CPAPI.IsRetailVersion then return end;
 local _, env = ...;
+local Frame = GetFrameMetatable().__index;
+local Purge = CPAPI.Purge;
+local SetAttributeNoHandler = Frame.SetAttributeNoHandler or Frame.SetAttribute;
 
-local function hideEditModeFrame(frame, clearEvents)
-	if frame then
-		if clearEvents then
-			frame:UnregisterAllEvents()
-		end
-
-		-- remove some EditMode hooks
-		if frame.system then
-			-- purge the show state to avoid any taint concerns
-			CPAPI.Purge(frame, 'isShownExternal')
-		end
-
-		-- EditMode overrides the Hide function, avoid calling it as it can taint
-		if frame.HideBase then
-			frame:HideBase()
-		else
-			frame:Hide()
-		end
-		frame:SetParent(env.UIHandler)
+local function purgeFromDispatchers(button)
+	if ActionBarActionEventsFrame then
+		Purge(ActionBarActionEventsFrame.frames, button)
+	end
+	if ActionBarButtonUpdateFrame then
+		Purge(ActionBarButtonUpdateFrame.frames, button)
 	end
 end
 
+local function hideEditModeFrame(frame, clearEvents)
+	if not frame then return end;
+	if clearEvents then
+		Frame.UnregisterAllEvents(frame)
+	end
+	Purge(frame, 'isShownExternal')
+	Frame.Hide(frame)
+	Frame.SetParent(frame, env.UIHandler)
+end
+
 local function hideActionButton(button)
-	if not button then return end
-	button:Hide()
-	button:UnregisterAllEvents()
-	button:SetAttribute('statehidden', true)
+	if not button then return end;
+	Frame.Hide(button)
+	Frame.UnregisterAllEvents(button)
+	SetAttributeNoHandler(button, 'statehidden', true)
+	purgeFromDispatchers(button)
 end
 
 local function NPE_LoadUI()
@@ -60,7 +61,7 @@ function env.UIHandler:HideBlizzard()
 		'ACTIONBAR_SHOWGRID';
 		'ACTIONBAR_HIDEGRID';
 	}) do
-		MainActionBar:UnregisterEvent(event)
+		Frame.UnregisterEvent(MainActionBar, event)
 	end
 
 	---------------------------------------------------------------
@@ -96,6 +97,15 @@ function env.UIHandler:HideBlizzard()
 		OverrideActionBar        = true;
 	}) do
 		hideEditModeFrame(_G[frame], clearEvents)
+	end
+	for i = 1, NUM_OVERRIDE_BUTTONS or 6 do
+		hideActionButton(_G['OverrideActionBarButton' .. i])
+	end
+	for i = 1, NUM_PET_ACTION_SLOTS or 10 do
+		hideActionButton(_G['PetActionButton' .. i])
+	end
+	for i = 1, NUM_POSSESS_SLOTS or 2 do
+		hideActionButton(_G['PossessButton' .. i])
 	end
 
 	---------------------------------------------------------------

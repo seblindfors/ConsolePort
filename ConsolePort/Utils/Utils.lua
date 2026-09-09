@@ -263,13 +263,17 @@ do local function ModifyMetatable(owner, key, value)
 	end
 end
 
-function CPAPI.Purge(t, k)
-	t[k] = nil;
-	local c = 42;
-	repeat -- credit: foxlit
-		if t[c] == nil then t[c] = nil end;
-		c = c + 1;
-	until issecurevariable(t, k)
+do local PROBE = '__purge';
+	function CPAPI.Purge(t, k)
+		t[k] = nil;
+		local probe = type(k) == 'string' and k or PROBE;
+		if ( probe ~= k ) then t[probe] = nil end;
+		local c = 42;
+		repeat -- credit: foxlit
+			if t[c] == nil then t[c] = nil end;
+			c = c + 1;
+		until issecurevariable(t, probe)
+	end
 end
 
 ---------------------------------------------------------------
