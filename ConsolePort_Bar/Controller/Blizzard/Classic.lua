@@ -3,7 +3,6 @@ if CPAPI.IsRetailVersion then return end;
 local _, env = ...;
 local Frame = GetFrameMetatable().__index;
 local Purge = CPAPI.Purge;
-local SetAttributeNoHandler = Frame.SetAttributeNoHandler or Frame.SetAttribute;
 
 local function purgeFromDispatchers(button)
 	if ActionBarActionEventsFrame then
@@ -28,7 +27,7 @@ local function hideActionButton(button)
 	if not button then return end;
 	Frame.Hide(button)
 	Frame.UnregisterAllEvents(button)
-	SetAttributeNoHandler(button, 'statehidden', true)
+	Frame.SetAttributeNoHandler(button, 'statehidden', true)
 	purgeFromDispatchers(button)
 end
 
