@@ -1,5 +1,4 @@
 -- Credit: https://github.com/Nevcairiel/Bartender4/blob/master/HideBlizzard.lua
-if CPAPI.IsRetailVersion then return end;
 local _, env = ...;
 local Frame = GetFrameMetatable().__index;
 local Purge = CPAPI.Purge;
