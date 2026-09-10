@@ -521,6 +521,14 @@ local function AddDoubleTooltipLine(tbl, left, right)
 	return tinsert(tbl, {left, right, 1, 1, 1, 1, 1, 1});
 end
 
+local function FindPreset(store, key)
+	for index, datapoint in ipairs(store) do
+		if ( datapoint.key == key and not datapoint.readonly ) then
+			return index, datapoint;
+		end
+	end
+end
+
 function BindingPresetIcon:OnIconChanged(result, saveResult)
 	self.NormalTexture:SetAlpha(not result and 0.25 or 1)
 	self.NormalTexture:SetTexture(result or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
@@ -644,8 +652,10 @@ function BindingPreset:Rename(old, new, data)
 	db.Shared:CollectCharacterGarbage()
 	data.key, data.meta = new, meta;
 
-	local object = data.store[data.index];
-	object.key, object.meta = new, meta;
+	local _, object = FindPreset(data.store, old)
+	if object then
+		object.key, object.meta = new, meta;
+	end
 
 	env:TriggerEvent('Settings.OnDirty')
 end
@@ -656,7 +666,10 @@ function BindingPreset:Delete(data)
 
 	if db.Shared:RemoveData(data.key, 'Bindings') then
 		CPAPI.Log('Preset %s has been deleted.', data.meta.Name)
-		tremove(data.store, data.index)
+		local index = FindPreset(data.store, data.key)
+		if index then
+			tremove(data.store, index)
+		end
 		db.Shared:CollectCharacterGarbage()
 		env:TriggerEvent('Settings.OnDirty')
 	end
@@ -699,7 +712,6 @@ function BindingPreset:Data(datapoint)
 		preset   = datapoint.preset;
 		readonly = datapoint.readonly;
 		store    = datapoint.store;
-		index    = datapoint.index;
 		device   = datapoint.device;
 	};
 end
@@ -740,7 +752,6 @@ function BindingPresetAdd:OnAdded(icon, _, name)
 	entry.Meta = MakePresetMeta(name, icon)
 
 	local dp, store = data.add(entry.Meta, data.make(entry.Bindings), false, name)
-	dp.index = #store;
 	dp.store = store;
 
 	env:TriggerEvent('Settings.OnDirty')

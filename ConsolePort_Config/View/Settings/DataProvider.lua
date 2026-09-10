@@ -213,7 +213,6 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	for key, settings in db:For('Shared/Data', true) do
 		if settings.Bindings then
 			local datapoint, store = AddPreset(settings.Meta, MakePreset(settings.Bindings), false, key);
-			datapoint.index = #store;
 			datapoint.store = store;
 		end
 	end
