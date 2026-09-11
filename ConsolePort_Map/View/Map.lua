@@ -183,5 +183,7 @@ Map.QuestLog:SetScript('OnShow', Map.QuestLog.OnShow)
 Map:SetScript('OnShow', Map.OnShow)
 Map:SetScript('OnHide', Map.OnHide)
 
-ConsolePortMapToggle:SetScript('OnClick', function() Map:Toggle() end)
+ConsolePortMapToggle:SetScript('OnClick', function(_, _, down)
+	if down then Map:Toggle() end
+end)
 ConsolePortMapToggle:RegisterForClicks('AnyUp', 'AnyDown')

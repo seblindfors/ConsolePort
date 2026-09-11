@@ -74,5 +74,5 @@ function Redirect:OnDataLoaded()
 end
 
 if RegisterNewSlashCommand then
-	RegisterNewSlashCommand(function() env:TaintProbe() end, 'cpmaptaint')
+	RegisterNewSlashCommand(function() env:TaintProbe() end, 'cpmaptaint', 'cpmt')
 end
