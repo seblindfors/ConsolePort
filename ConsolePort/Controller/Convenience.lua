@@ -173,6 +173,7 @@ end
 local OnDemandModules, TryLoadModule = {
 	ConsolePort_Keyboard = 'keyboardEnable';
 	ConsolePort_Cursor   = 'UIenableCursor';
+	ConsolePort_Map      = 'mapEnable';
 }; do local RawEnableAddOn = CPAPI.EnableAddOn;
 	function TryLoadModule(predicate, module)
 		if not db(predicate) or CPAPI.IsAddOnLoaded(module) then
@@ -249,3 +250,4 @@ end
 
 db:RegisterCallback('Settings/keyboardEnable', GenerateClosure(TryLoadModule, 'keyboardEnable', 'ConsolePort_Keyboard'))
 db:RegisterCallback('Settings/UIenableCursor', GenerateClosure(TryLoadModule, 'UIenableCursor', 'ConsolePort_Cursor'))
+db:RegisterCallback('Settings/mapEnable', GenerateClosure(TryLoadModule, 'mapEnable', 'ConsolePort_Map'))

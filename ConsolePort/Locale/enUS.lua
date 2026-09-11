@@ -19,6 +19,8 @@ L.NAME_RING_MENU              = 'Menu Ring';
 L.NAME_RING_PET               = 'Pet Ring';
 L.NAME_RING_TARGET            = 'Target Ring (Hold)';
 L.NAME_RING_UTILITY           = 'Utility Ring';
+L.NAME_MAP_TOGGLE             = 'Toggle Gamepad Map';
+L.DESC_MAP_TOGGLE             = 'Toggles the gamepad world map and quest log. Requires the World Map module.';
 L.NAME_UI_CURSOR_TOGGLE       = 'Toggle Interface Cursor';
 L.NAME_QUICK_MENU             = 'Quick Menu';
 ---------------------------------------------------------------
