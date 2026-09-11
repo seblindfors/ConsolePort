@@ -28,6 +28,7 @@ QuestLog.QUEST_WATCH_LIST_CHANGED = QuestLog.QUEST_LOG_UPDATE;
 QuestLog.SUPER_TRACKING_CHANGED   = QuestLog.QUEST_LOG_UPDATE;
 
 function QuestLog:QUEST_DATA_LOAD_RESULT(questID, success)
+	self.requests[questID] = 'done';
 	if success then
 		env:TriggerEvent('OnQuestDataLoaded', questID)
 	end
@@ -101,17 +102,20 @@ function QuestLog:HasRewardData(questID)
 end
 
 function QuestLog:RequestRewardData(questID)
-	if C_QuestLog and C_QuestLog.RequestLoadQuestByID then
-		C_QuestLog.RequestLoadQuestByID(questID)
+	if self.requests[questID] or not (C_QuestLog and C_QuestLog.RequestLoadQuestByID) then
+		return false;
 	end
+	self.requests[questID] = 'pending';
+	C_QuestLog.RequestLoadQuestByID(questID)
+	return true;
 end
 
 function QuestLog:GetRewards(questID)
 	if not IsRetail then return nil end
 	local rewards = { items = {}, choices = {} };
 	if not self:HasRewardData(questID) then
+		rewards.pending = self.requests[questID] ~= 'done';
 		self:RequestRewardData(questID)
-		rewards.pending = true;
 		return rewards;
 	end
 	for i = 1, GetNumQuestLogRewards(questID) do
@@ -258,6 +262,8 @@ function QuestLog:GetPositionOnMap(questID, mapID)
 	end
 	return nil;
 end
+
+QuestLog.requests = {};
 
 function QuestLog:OnDataLoaded()
 	self:QUEST_LOG_UPDATE()
