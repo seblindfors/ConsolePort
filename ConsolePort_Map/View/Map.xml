@@ -1,0 +1,73 @@
+<Ui>
+	<Button name="ConsolePortMapToggle" parent="UIParent" hidden="true">
+		<Size x="1" y="1"/>
+	</Button>
+
+	<Frame name="ConsolePortMap" inherits="CPFrameTemplate" parent="UIParent" frameStrata="HIGH" toplevel="true" hidden="true" enableMouse="true" clampedToScreen="true">
+		<Size x="1100" y="720"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Attributes>
+			<Attribute name="nodeignore" type="boolean" value="true"/>
+		</Attributes>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Title" inherits="GameFontNormalLarge">
+					<Anchors>
+						<Anchor point="TOP" x="0" y="-14"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Status" inherits="GameFontDisableSmall">
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="8"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="CanvasArea">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="16" y="-44"/>
+					<Anchor point="BOTTOMRIGHT" x="-16" y="24"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND" textureSubLevel="-8">
+						<Texture parentKey="Backdrop">
+							<Color r="0" g="0" b="0" a="0.85"/>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="Crosshair" frameStrata="DIALOG">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="CENTER" relativeKey="$parent.CanvasArea"/>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Horizontal">
+							<Size x="32" y="2"/>
+							<Anchors><Anchor point="CENTER"/></Anchors>
+							<Color r="1" g="1" b="1" a="0.8"/>
+						</Texture>
+						<Texture parentKey="Vertical">
+							<Size x="2" y="32"/>
+							<Anchors><Anchor point="CENTER"/></Anchors>
+							<Color r="1" g="1" b="1" a="0.8"/>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="QuestLog" inherits="CPMapQuestLogTemplate" frameLevel="600" hidden="true">
+				<Size x="320" y="720"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-2" y="0"/>
+					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="-2" y="0"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Script file="Map.lua"/>
+</Ui>

@@ -25,6 +25,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		UnitMenuTarget    = click ('Unit', 'target');
 		QuickMenu         = click 'QuickMenu';
 		Toolbar           = click 'ToolbarToggle';
+		WorldMap          = click 'MapToggle';
 		CustomRing        = click ('UtilityToggle', '(.*)');
 		--FocusButton     = click 'FocusButton';
 	};
@@ -111,6 +112,10 @@ do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end
 		{	binding = Bindings.Custom.UtilityRing;
 			name    = L.NAME_RING_UTILITY;
 			desc    = L.DESC_RING_UTILITY;
+		};
+		{	binding = Bindings.Custom.WorldMap;
+			name    = L.NAME_MAP_TOGGLE;
+			desc    = L.DESC_MAP_TOGGLE;
 		};
 		{	binding = Bindings.Custom.PetRing;
 			name    = L.NAME_RING_PET;
@@ -469,6 +474,7 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		[Bindings.Custom.UICursorToggle]   = CustomIcons.Menu;
 		[Bindings.Custom.QuickMenu]        = CustomIcons.Menu;
 		[Bindings.Custom.Toolbar]          = CustomIcons.Menu;
+		[Bindings.Custom.WorldMap]         = CustomIcons.Map;
 		--[Bindings.Custom.FocusButton]    = client 'VAS_RaceChange';
 		---------------------------------------------------------------
 	};

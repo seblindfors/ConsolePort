@@ -1,0 +1,150 @@
+<Ui>
+	<Button name="CPMapQuestRowTemplate" virtual="true">
+		<Size x="288" y="22"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Selected" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" alphaMode="ADD" hidden="true" alpha="0.6">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-4" y="2"/>
+						<Anchor point="BOTTOMRIGHT" x="4" y="-2"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="LEFT" x="4" y="0"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Text" inherits="GameFontHighlightSmall" justifyH="LEFT" wordwrap="false">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="6" y="0"/>
+						<Anchor point="RIGHT" x="-24" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Tag" inherits="GameFontNormalSmall" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="RIGHT" x="-4" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<HighlightTexture alphaMode="ADD" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" alpha="0.4">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-4" y="0"/>
+				<Anchor point="BOTTOMRIGHT" x="4" y="0"/>
+			</Anchors>
+		</HighlightTexture>
+	</Button>
+
+	<Button name="CPMapRewardTemplate" virtual="true">
+		<Size x="36" y="36"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon" setAllPoints="true"/>
+				<FontString parentKey="Count" inherits="NumberFontNormal" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Border" file="Interface\Buttons\UI-Quickslot2">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-6" y="6"/>
+						<Anchor point="BOTTOMRIGHT" x="6" y="-6"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Button>
+
+	<Frame name="CPMapQuestLogTemplate" inherits="CPFrameTemplate" virtual="true">
+		<KeyValues>
+			<KeyValue key="layoutAlpha" value="0.9" type="number"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Title" inherits="GameFontNormalLarge" text="QUEST_LOG">
+					<Anchors>
+						<Anchor point="TOP" x="0" y="-14"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Count" inherits="GameFontHighlightSmall">
+					<Anchors>
+						<Anchor point="TOP" relativeKey="$parent.Title" relativePoint="BOTTOM" x="0" y="-2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="List">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="16" y="-52"/>
+					<Anchor point="TOPRIGHT" x="-16" y="-52"/>
+				</Anchors>
+				<Size y="330"/>
+			</Frame>
+			<Frame parentKey="Details">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.List" relativePoint="BOTTOMLEFT" x="0" y="-8"/>
+					<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Divider">
+							<Size y="1"/>
+							<Anchors>
+								<Anchor point="TOPLEFT" x="0" y="4"/>
+								<Anchor point="TOPRIGHT" x="0" y="4"/>
+							</Anchors>
+							<Color r="1" g="1" b="1" a="0.15"/>
+						</Texture>
+					</Layer>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Title" inherits="GameFontNormal" justifyH="LEFT">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="0" y="-8"/>
+								<Anchor point="TOPRIGHT" x="0" y="-8"/>
+							</Anchors>
+						</FontString>
+						<FontString parentKey="Objectives" inherits="GameFontHighlightSmall" justifyH="LEFT" justifyV="TOP">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.Title" relativePoint="BOTTOMLEFT" x="0" y="-6"/>
+								<Anchor point="TOPRIGHT" relativeKey="$parent.Title" relativePoint="BOTTOMRIGHT" x="0" y="-6"/>
+							</Anchors>
+						</FontString>
+						<FontString parentKey="Description" inherits="GameFontHighlightSmall" justifyH="LEFT" justifyV="TOP" maxLines="6">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.Objectives" relativePoint="BOTTOMLEFT" x="0" y="-8"/>
+								<Anchor point="TOPRIGHT" relativeKey="$parent.Objectives" relativePoint="BOTTOMRIGHT" x="0" y="-8"/>
+							</Anchors>
+						</FontString>
+						<FontString parentKey="RewardsLabel" inherits="GameFontNormalSmall" justifyH="LEFT" text="REWARDS">
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" x="0" y="46"/>
+							</Anchors>
+						</FontString>
+						<FontString parentKey="Money" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+							<Anchors>
+								<Anchor point="BOTTOMRIGHT" x="0" y="46"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Frames>
+					<Frame parentKey="Rewards">
+						<Size y="40"/>
+						<Anchors>
+							<Anchor point="BOTTOMLEFT" x="0" y="2"/>
+							<Anchor point="BOTTOMRIGHT" x="0" y="2"/>
+						</Anchors>
+					</Frame>
+				</Frames>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Script file="QuestLog.lua"/>
+</Ui>
