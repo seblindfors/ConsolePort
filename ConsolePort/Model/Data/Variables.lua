@@ -369,6 +369,13 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Enables a radial on-screen keyboard that can be used to type messages.';
 	};
 	--------------------------------------------------------------------------------------------------------
+	_('World Map', INTERFACE_LABEL);
+	--------------------------------------------------------------------------------------------------------
+	mapEnable = _{Bool(false);
+		name = 'Enable';
+		desc = 'Enables a gamepad world map, quest log and flight map with stick controls.';
+	};
+	--------------------------------------------------------------------------------------------------------
 	_('Interface Cursor', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	UIenableCursor = _{Bool(true);
