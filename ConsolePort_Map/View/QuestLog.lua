@@ -107,6 +107,13 @@ end
 -- Details
 ---------------------------------------------------------------
 function Panel:RefreshDetails()
+	self.refreshingDetails = true;
+	local ok, err = pcall(self.RefreshDetailsInternal, self)
+	self.refreshingDetails = nil;
+	if not ok then error(err) end
+end
+
+function Panel:RefreshDetailsInternal()
 	local entry = self:GetSelectedEntry()
 	local details = self.Details;
 	self.rewardPool:ReleaseAll()
@@ -160,7 +167,7 @@ end
 
 function Panel:OnQuestDataLoaded(questID)
 	local entry = self:GetSelectedEntry()
-	if entry and entry.questID == questID then
+	if entry and entry.questID == questID and not self.refreshingDetails then
 		self:RefreshDetails()
 	end
 end
