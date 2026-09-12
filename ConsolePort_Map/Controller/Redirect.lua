@@ -75,4 +75,5 @@ end
 
 if RegisterNewSlashCommand then
 	RegisterNewSlashCommand(function() env:TaintProbe() end, 'cpmaptaint', 'cpmt')
+	RegisterNewSlashCommand(function() env:ToggleProfiler() end, 'cpmapperf', 'cpmp')
 end
