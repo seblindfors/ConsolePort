@@ -65,7 +65,7 @@ env.Variables = {
 		deps = DEPENDENCY;
 		advd = true;
 	};
-	mapSnapRadius = _{Data.Range(28, 2, 0, 64);
+	mapSnapRadius = _{Data.Range(40, 2, 0, 96);
 		name = 'Snap Distance';
 		desc = 'Distance in pixels within which the cursor settles on a map pin when the stick is released.';
 		deps = DEPENDENCY;

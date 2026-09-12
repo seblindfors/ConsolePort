@@ -20,7 +20,6 @@ local function no() return false end
 function Canvas:OnUpdate(elapsed)
 	if self.UpdatePinSuppression then self:UpdatePinSuppression() end
 	self:UpdatePinNudging()
-	if self.ProcessCursorHandlers then self:ProcessCursorHandlers() end
 	if self.RunDataProviderOnUpdate and not InCombatLockdown() then
 		self:RunDataProviderOnUpdate()
 	end

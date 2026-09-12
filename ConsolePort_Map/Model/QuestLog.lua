@@ -114,9 +114,11 @@ function QuestLog:GetRewards(questID)
 	if not IsRetail then return nil end
 	local rewards = { items = {}, choices = {} };
 	if not self:HasRewardData(questID) then
-		rewards.pending = self.requests[questID] ~= 'done';
 		self:RequestRewardData(questID)
-		return rewards;
+		if not self:HasRewardData(questID) then
+			rewards.pending = self.requests[questID] ~= 'done';
+			return rewards;
+		end
 	end
 	for i = 1, GetNumQuestLogRewards(questID) do
 		local name, texture, count, quality, isUsable, itemID = GetQuestLogRewardInfo(i, questID)
