@@ -58,7 +58,22 @@ function Profile:ReportScriptUsage(canvas)
 	for i = 1, math.min(4, #ranked) do
 		top[#top + 1] = ('%s %.2f'):format(ranked[i].template:gsub('PinTemplate$', ''), ranked[i].delta / self.frames)
 	end
-	return ('canvas script %.2f ms/frame | top pins: %s'):format(delta / self.frames, table.concat(top, ', '))
+
+	local layerUsage, layerCount, layersWaiting = 0, 0, 0;
+	for layer in canvas.detailLayerPool:EnumerateActive() do
+		layerCount = layerCount + 1;
+		layerUsage = layerUsage + GetFrameCPUUsage(layer, true)
+		if layer.isWaitingForLoad then layersWaiting = layersWaiting + 1 end
+	end
+	local layerDelta = layerUsage - (self.lastLayerUsage or layerUsage)
+	self.lastLayerUsage = layerUsage;
+
+	local scrollUsage = GetFrameCPUUsage(canvas.ScrollContainer, false)
+	local scrollDelta = scrollUsage - (self.lastScrollUsage or scrollUsage)
+	self.lastScrollUsage = scrollUsage;
+
+	return ('canvas script %.2f ms/frame | detail layers %d (%d waiting) %.2f | scroll %.2f | top pins: %s'):format(
+		delta / self.frames, layerCount, layersWaiting, layerDelta / self.frames, scrollDelta / self.frames, table.concat(top, ', '))
 end
 
 function Profile:Report(canvas)
@@ -161,7 +176,7 @@ function Canvas:OnEvent(event, ...)
 		self.pendingRefresh = true;
 		return
 	end
-	MapCanvasMixin.OnEvent(self, event, ...)
+	Measure('event:'..event, MapCanvasMixin.OnEvent, self, event, ...)
 end
 
 function Canvas:RefreshAllDataProviders(fromOnShow)
