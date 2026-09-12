@@ -295,10 +295,36 @@ function Providers:GetOwnMixins()
 	end
 
 	if BonusObjectiveDataProviderMixin then
+		-- Blizzard's OnEvent refreshes on any event, and a refresh requests
+		-- data for every task still missing it. With QUEST_DATA_LOAD_RESULT
+		-- registered that is a storm on a world map: each result refreshed
+		-- and re-requested the rest. Request once per quest, coalesce the
+		-- results into one deferred refresh.
 		local Bonus = CreateFromMixins(BonusObjectiveDataProviderMixin)
 		function Bonus:OnAdded(mapCanvas)
 			BonusObjectiveDataProviderMixin.OnAdded(self, mapCanvas)
+			self.requested = {};
 			self:RegisterEvent('QUEST_DATA_LOAD_RESULT')
+		end
+		function Bonus:OnEvent(event, questID)
+			if event == 'QUEST_DATA_LOAD_RESULT' then
+				if self.requested[questID] == 'pending' then
+					self.requested[questID] = 'done';
+					self:QueueRefresh()
+				end
+				return
+			end
+			self:RefreshAllData()
+		end
+		function Bonus:QueueRefresh()
+			if self.refreshQueued then return end
+			self.refreshQueued = true;
+			C_Timer.After(0, function()
+				self.refreshQueued = nil;
+				if self:GetMap() and self:GetMap():IsShown() then
+					self:RefreshAllData()
+				end
+			end)
 		end
 		function Bonus:RefreshAllData(fromOnShow)
 			self:RemoveAllData()
@@ -313,7 +339,8 @@ function Providers:GetOwnMixins()
 							self:GetMap():AcquirePin(pinTemplate, info)
 						end
 					end
-				else
+				elseif not self.requested[info.questID] then
+					self.requested[info.questID] = 'pending';
 					C_QuestLog.RequestLoadQuestByID(info.questID)
 				end
 			end
