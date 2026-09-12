@@ -2,7 +2,7 @@ local env, db, _, L = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 -- Assist spells (target ring)
 ---------------------------------------------------------------
--- Scans the action bars for helpful spells, which can be
+-- Scans the spellbook for helpful spells, which can be
 -- individually opted in to open the target ring when cast
 -- without an assistable target.
 
@@ -68,9 +68,11 @@ ConsolePort:RegisterConfigCallback(function(_, configEnv)
 	end
 
 	local flush = CPAPI.Debounce(function()
-		db:TriggerEvent('OnActionBarSlotsChanged')
+		db:TriggerEvent('OnAssistSpellsChanged')
 	end, {});
-	EventRegistry:RegisterFrameEventAndCallback('ACTIONBAR_SLOT_CHANGED', flush.Execute, flush)
+	EventRegistry:RegisterFrameEventAndCallback('SPELLS_CHANGED', flush.Execute, flush)
+
+	local BOOKTYPE_SPELL, SKILLTYPE_SPELL = CPAPI.BOOKTYPE_SPELL, CPAPI.SKILLTYPE_SPELL;
 
 	local Settings = configEnv:GetPanelByID(SETTINGS_PANEL_ID)
 	Settings:AddProvider(function(AddSetting, GetSortIndex)
@@ -79,16 +81,18 @@ ConsolePort:RegisterConfigCallback(function(_, configEnv)
 		local main, head = BINDING_HEADER_TARGETING, 'Target Ring';
 
 		local spells = {};
-		for _, pages in ipairs(db.Actionbar.Pages) do
-			for _, page in ipairs(pages) do
-				for slot = (page - 1) * NUM_ACTIONBAR_BUTTONS + 1, page * NUM_ACTIONBAR_BUTTONS do
-					local actionType, spellID, subType = GetActionInfo(slot)
-					if ( actionType == 'spell'
-						and subType == 'spell'
-						and spellID and spellID ~= 0
-						and not spells[spellID]
-						and IsHelpful(spellID) ) then
-						spells[spellID] = CPAPI.GetSpellInfo(spellID);
+		for tab = 1, CPAPI.GetNumSpellTabs() do
+			local tabInfo = CPAPI.GetSpellTabInfo(tab)
+			local isActiveTab = (tabInfo.offSpecID == 0 or not tabInfo.offSpecID) and not tabInfo.shouldHide;
+			if isActiveTab and tabInfo.numSpellBookItems then
+				local offset, numSlots = tabInfo.itemIndexOffset, tabInfo.numSpellBookItems;
+				for slot = offset + 1, offset + numSlots do
+					local skillType = CPAPI.GetSpellBookItemType(slot, BOOKTYPE_SPELL)
+					if ( skillType == SKILLTYPE_SPELL and not CPAPI.IsSpellBookItemPassive(slot, BOOKTYPE_SPELL) ) then
+						local spellID = CPAPI.GetSpellBookItemInfo(slot, BOOKTYPE_SPELL).spellID;
+						if ( spellID and spellID ~= 0 and not spells[spellID] and IsHelpful(spellID) ) then
+							spells[spellID] = CPAPI.GetSpellInfo(spellID);
+						end
 					end
 				end
 			end
@@ -113,7 +117,7 @@ ConsolePort:RegisterConfigCallback(function(_, configEnv)
 			AddSetting(main, head, data)
 		end
 
-		return 'OnActionBarSlotsChanged';
+		return 'OnAssistSpellsChanged';
 	end)
 	Settings:OnIndexChanged()
 end, env)
