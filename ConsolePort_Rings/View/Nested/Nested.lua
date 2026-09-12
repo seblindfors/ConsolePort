@@ -62,6 +62,11 @@ function Ring:OnRingTransition(elapsed)
 end
 
 function Ring:SetOwner(owner)
+	-- GetCenter is in each frame's own effective scale and slices are
+	-- scaled by the secure layout, so convert both through screen pixels
+	-- before expressing the offset in this ring's (offScale) units.
+	local containerScale, ownerScale = Container:GetEffectiveScale(), owner:GetEffectiveScale();
+	local ringScale = containerScale * self.offScale;
 	local pX, pY = Container:GetCenter()
 	local oX, oY = owner:GetCenter()
 	owner:SetIgnoreParentAlpha(true)
@@ -69,8 +74,8 @@ function Ring:SetOwner(owner)
 
 	self:ClearAllPoints()
 	self:SetPoint('CENTER', Container, 'CENTER',
-		(oX - pX) * self.relScale,
-		(oY - pY) * self.relScale
+		(oX * ownerScale - pX * containerScale) / ringScale,
+		(oY * ownerScale - pY * containerScale) / ringScale
 	);
 	self:Show()
 	self.owner = owner;
