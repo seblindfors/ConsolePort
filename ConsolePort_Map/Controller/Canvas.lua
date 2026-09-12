@@ -30,6 +30,37 @@ local function Measure(name, fn, self, ...)
 	Profile.buckets[name] = (Profile.buckets[name] or 0) + (debugprofilestop() - start)
 end
 
+-- With the scriptProfile CVar on, the client accounts script CPU per
+-- frame (including children), which catches pin OnUpdate scripts and
+-- anything else that never passes through our hooks. The remainder
+-- between wall time and script time is rendering.
+function Profile:ReportScriptUsage(canvas)
+	if not GetCVarBool('scriptProfile') then
+		return 'scriptProfile off (/console scriptProfile 1 + reload for per-pin CPU)';
+	end
+	UpdateAddOnCPUUsage()
+	local canvasTotal = GetFrameCPUUsage(canvas, true)
+	local perTemplate = {};
+	for pin in canvas:EnumeratePins() do
+		local usage = GetFrameCPUUsage(pin, true)
+		perTemplate[pin.pinTemplate] = (perTemplate[pin.pinTemplate] or 0) + usage;
+	end
+	local delta = canvasTotal - (self.lastCanvasUsage or canvasTotal)
+	self.lastCanvasUsage = canvasTotal;
+	local ranked = {};
+	for template, usage in pairs(perTemplate) do
+		local last = self.lastTemplateUsage and self.lastTemplateUsage[template] or usage;
+		ranked[#ranked + 1] = { template = template, delta = usage - last };
+	end
+	self.lastTemplateUsage = perTemplate;
+	table.sort(ranked, function(a, b) return a.delta > b.delta end)
+	local top = {};
+	for i = 1, math.min(4, #ranked) do
+		top[#top + 1] = ('%s %.2f'):format(ranked[i].template:gsub('PinTemplate$', ''), ranked[i].delta / self.frames)
+	end
+	return ('canvas script %.2f ms/frame | top pins: %s'):format(delta / self.frames, table.concat(top, ', '))
+end
+
 function Profile:Report(canvas)
 	if self.frames == 0 then return end
 	local pins = 0;
@@ -40,7 +71,8 @@ function Profile:Report(canvas)
 		lines[#lines + 1] = ('%s %.2f'):format(name, ms / self.frames)
 	end
 	table.sort(lines)
-	CPAPI.Log('Map perf: %d pins, %d frames, %.2f ms/frame total | %s', pins, self.frames, total / self.frames, table.concat(lines, ', '))
+	CPAPI.Log('Map perf: %d fps, %d pins, %d frames, hooks %.2f ms/frame | %s', GetFramerate(), pins, self.frames, total / self.frames, table.concat(lines, ', '))
+	CPAPI.Log('          %s', self:ReportScriptUsage(canvas))
 	wipe(self.buckets)
 	self.frames = 0;
 end
