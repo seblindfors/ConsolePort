@@ -15,16 +15,74 @@ local function nop() end
 local function no() return false end
 
 ---------------------------------------------------------------
+-- Profiler
+---------------------------------------------------------------
+-- /cpmapperf toggles per-frame timing of the canvas work that runs on
+-- every scale or pan change, printed every two seconds with pin count.
+local Profile = { enabled = false, buckets = {}, frames = 0 };
+env.Profile = Profile;
+
+local debugprofilestop = debugprofilestop;
+local function Measure(name, fn, self, ...)
+	if not Profile.enabled then return fn(self, ...) end
+	local start = debugprofilestop()
+	fn(self, ...)
+	Profile.buckets[name] = (Profile.buckets[name] or 0) + (debugprofilestop() - start)
+end
+
+function Profile:Report(canvas)
+	if self.frames == 0 then return end
+	local pins = 0;
+	for _ in canvas:EnumeratePins() do pins = pins + 1 end
+	local lines, total = {}, 0;
+	for name, ms in pairs(self.buckets) do
+		total = total + ms;
+		lines[#lines + 1] = ('%s %.2f'):format(name, ms / self.frames)
+	end
+	table.sort(lines)
+	CPAPI.Log('Map perf: %d pins, %d frames, %.2f ms/frame total | %s', pins, self.frames, total / self.frames, table.concat(lines, ', '))
+	wipe(self.buckets)
+	self.frames = 0;
+end
+
+function env:ToggleProfiler()
+	Profile.enabled = not Profile.enabled;
+	wipe(Profile.buckets)
+	Profile.frames = 0;
+	if Profile.ticker then Profile.ticker = Profile.ticker:Cancel() end
+	if Profile.enabled then
+		Profile.ticker = C_Timer.NewTicker(2, function()
+			local canvas = env.Map and env.Map:GetActiveCanvas()
+			if canvas and canvas:IsShown() then Profile:Report(canvas) end
+		end)
+	end
+	CPAPI.Log('Map profiler %s.', Profile.enabled and 'enabled' or 'disabled')
+end
+
+---------------------------------------------------------------
 -- Lifecycle
 ---------------------------------------------------------------
 function Canvas:OnUpdate(elapsed)
-	if self.UpdatePinSuppression then self:UpdatePinSuppression() end
-	self:UpdatePinNudging()
+	if Profile.enabled then Profile.frames = Profile.frames + 1 end
+	if self.UpdatePinSuppression then
+		Measure('suppression', self.UpdatePinSuppression, self)
+	end
+	Measure('nudging', self.UpdatePinNudging, self)
 	if self.RunDataProviderOnUpdate and not InCombatLockdown() then
-		self:RunDataProviderOnUpdate()
+		Measure('providerUpdate', self.RunDataProviderOnUpdate, self)
 	end
 	if self.OnInputUpdate then
-		self:OnInputUpdate(elapsed)
+		Measure('input', self.OnInputUpdate, self, elapsed)
+	end
+end
+
+function Canvas:OnCanvasScaleChanged()
+	Measure('scaleChanged', MapCanvasMixin.OnCanvasScaleChanged, self)
+end
+
+if MapCanvasMixin.OnCanvasPanChanged then
+	function Canvas:OnCanvasPanChanged()
+		Measure('panChanged', MapCanvasMixin.OnCanvasPanChanged, self)
 	end
 end
 
@@ -193,6 +251,13 @@ function env:CreateCanvas(frameName, parent, providers, ...)
 	canvas:SetScript('OnHide', canvas.OnHide)
 	canvas:SetScript('OnUpdate', canvas.OnUpdate)
 	MapCanvasMixin.OnLoad(canvas)
+
+	-- 'scroll' is the controller's lerp step and includes the nested
+	-- scaleChanged/panChanged buckets it triggers.
+	local scrollUpdate = canvas.ScrollContainer:GetScript('OnUpdate')
+	canvas.ScrollContainer:SetScript('OnUpdate', function(scrollContainer, elapsed)
+		Measure('scroll', scrollUpdate, scrollContainer, elapsed)
+	end)
 
 	canvas:SetShouldZoomInOnClick(false)
 	canvas:SetShouldPanOnClick(false)
