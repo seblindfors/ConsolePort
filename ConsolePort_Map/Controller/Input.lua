@@ -78,7 +78,7 @@ function Input:SetFocusPin(pin)
 	local old = self.focusPin;
 	if old == pin then return end
 	if old then
-		env.Adapters:HideTooltip(old)
+		env.Adapters:HideTooltip()
 	end
 	self.focusPin = pin;
 	if pin then

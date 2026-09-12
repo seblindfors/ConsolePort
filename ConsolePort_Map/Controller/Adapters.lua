@@ -114,6 +114,7 @@ local TaskAdapter = {
 	Label = QuestAdapter.Label;
 };
 Define('WorldQuestPinTemplate', TaskAdapter)
+Define('WorldMap_WorldQuestPinTemplate', TaskAdapter)
 Define('BonusObjectivePinTemplate', TaskAdapter)
 Define('ThreatObjectivePinTemplate', TaskAdapter)
 
@@ -200,7 +201,8 @@ end
 
 function Adapters:ShowTooltip(pin, anchor)
 	local adapter = self:Get(pin)
-	GameTooltip:SetOwner(anchor or pin, 'ANCHOR_RIGHT')
+	self.tooltipOwner = anchor or pin;
+	GameTooltip:SetOwner(self.tooltipOwner, 'ANCHOR_RIGHT')
 	if adapter.Tooltip(pin, GameTooltip) then
 		GameTooltip:Show()
 		return true;
@@ -209,8 +211,9 @@ function Adapters:ShowTooltip(pin, anchor)
 	return false;
 end
 
-function Adapters:HideTooltip(pin)
-	if GameTooltip:IsOwned(pin) then
+function Adapters:HideTooltip()
+	if self.tooltipOwner and GameTooltip:GetOwner() == self.tooltipOwner then
 		GameTooltip:Hide()
 	end
+	self.tooltipOwner = nil;
 end
