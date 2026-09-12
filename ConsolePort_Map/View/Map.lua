@@ -28,6 +28,11 @@ function Map:GetCanvas(kind)
 	canvas:InitInput(self.Crosshair)
 	canvas.kind = kind;
 	canvas.OnClose = function() self:CloseCanvas(canvas) end;
+	if kind == 'Flight' then
+		-- FlightMapMixin methods the flight path provider calls on its map
+		canvas.UpdateTitleAndPortraitIcon = function(_, titleText) self.Title:SetText(titleText or FLIGHT_MAP) end;
+		canvas.ResetTitleAndPortraitIcon  = function(c) c:UpdateTitleAndPortraitIcon(FLIGHT_MAP) end;
+	end
 	self[key] = canvas;
 	return canvas;
 end
@@ -63,7 +68,9 @@ function Map:Open(kind, mapID, centerOnPlayer)
 		self:Hide()
 		return false;
 	end
-	self:SetTitle(mapID)
+	if kind ~= 'Flight' then
+		self:SetTitle(mapID)
+	end
 	return true;
 end
 
@@ -163,6 +170,7 @@ function Map:PLAYER_REGEN_DISABLED() self:UpdateStatus() end
 function Map:PLAYER_REGEN_ENABLED()  self:UpdateStatus() end
 
 function Map:OnMapChanged(mapID)
+	if self.activeCanvas and self.activeCanvas.kind == 'Flight' then return end
 	self:SetTitle(mapID)
 end
 
