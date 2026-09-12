@@ -134,6 +134,40 @@ function Input:SnapToPin(dx, dy)
 end
 
 ---------------------------------------------------------------
+-- Preloading
+---------------------------------------------------------------
+-- Zooming into a new detail layer or drilling into a zone uploads a
+-- fresh tile set; the Lua cost is negligible (profiled at ~1 ms/frame)
+-- so the hitches are texture residency. Blizzard's WorldMap preloads
+-- the player's zone on zone change; we preload what our controls are
+-- about to show: the current map and its parent on every map change,
+-- and the zone under the cursor whenever the stick comes to rest.
+local preloaded = {};
+local function PreloadMap(mapID)
+	if not mapID or preloaded[mapID] or not (C_Map.RequestPreloadMap and C_Map.GetMapArtLayers(mapID)) then return end
+	preloaded[mapID] = true;
+	C_Map.RequestPreloadMap(mapID)
+end
+
+function Input:PreloadAround(mapID)
+	PreloadMap(mapID)
+	local info = C_Map.GetMapInfo(mapID)
+	if info and info.parentMapID and info.parentMapID > 0 then
+		PreloadMap(info.parentMapID)
+	end
+end
+
+function Input:PreloadUnderCursor()
+	local mapID = self:GetMapID()
+	if not mapID then return end
+	local x, y = self:GetCursor()
+	local info = C_Map.GetMapInfoAtPosition(mapID, x, y)
+	if info and info.mapID ~= mapID then
+		PreloadMap(info.mapID)
+	end
+end
+
+---------------------------------------------------------------
 -- Navigation
 ---------------------------------------------------------------
 local function GetLayerWidth(mapID)
@@ -153,6 +187,7 @@ function Input:NavigateTo(mapID)
 	self:SetMapID(mapID)
 	self:SetCursor(0.5, 0.5)
 	self.ScrollContainer:SetPanTarget(0.5, 0.5)
+	self:PreloadAround(mapID)
 	env:TriggerEvent('OnMapChanged', mapID)
 	return true;
 end
@@ -175,6 +210,7 @@ function Input:DrillIn()
 		self:SetContinuousView(scale * parentWidth * (maxX - minX) / childWidth,
 			(x - minX) / (maxX - minX), (y - minY) / (maxY - minY))
 	end
+	self:PreloadAround(childID)
 	env:TriggerEvent('OnMapChanged', childID)
 	return true;
 end
@@ -197,6 +233,7 @@ function Input:DrillOut()
 		self:SetContinuousView(scale * childWidth / (parentWidth * (maxX - minX)),
 			minX + x * (maxX - minX), minY + y * (maxY - minY))
 	end
+	self:PreloadAround(parentID)
 	env:TriggerEvent('OnMapChanged', parentID)
 	return true;
 end
@@ -211,6 +248,7 @@ function Input:OpenOnMap(mapID, centerOnPlayer)
 	if pos then x, y = pos:GetXY() end
 	self:SetCursor(x, y)
 	self.ScrollContainer:SetPanTarget(x, y)
+	self:PreloadAround(mapID)
 	env:TriggerEvent('OnMapChanged', mapID)
 	return true;
 end
@@ -276,6 +314,7 @@ function Input:OnInputUpdate(elapsed)
 			self:SetCursor(pin.normalizedX, pin.normalizedY)
 			self:SetFocusPin(pin)
 		end
+		self:PreloadUnderCursor()
 	end
 	self.wasMoving = moving;
 
