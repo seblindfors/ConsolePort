@@ -234,7 +234,10 @@ function Providers:GetOwnMixins()
 	end
 
 	if WorldQuestDataProviderMixin then
-		local WorldQuest = CreateFromMixins(WorldQuestDataProviderMixin)
+		-- WorldMap's subclass adds the mapID == info.mapID filter and the
+		-- POI quantizer; without them a world map shows every task on the
+		-- planet as an unmerged pin.
+		local WorldQuest = CreateFromMixins(WorldMap_WorldQuestDataProviderMixin or WorldQuestDataProviderMixin)
 		function WorldQuest:RefreshAllData(fromOnShow)
 			local pinsToRemove = {};
 			for questID in pairs(self.activePins) do
@@ -277,6 +280,13 @@ function Providers:GetOwnMixins()
 
 			self:UpdatePing()
 			mapCanvas:TriggerEvent('WorldQuestsUpdate', mapCanvas:GetNumActivePinsByTemplate(self:GetPinTemplate()))
+
+			if self.poiQuantizer then
+				self.poiQuantizer:ClearAndQuantize(self.activePins)
+				for _, pin in pairs(self.activePins) do
+					pin:SetPosition(pin.quantizedX or pin.normalizedX, pin.quantizedY or pin.normalizedY)
+				end
+			end
 		end
 		ownMixins.WorldQuestDataProviderMixin = WorldQuest;
 	end
