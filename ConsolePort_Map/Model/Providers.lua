@@ -238,6 +238,9 @@ function Providers:GetOwnMixins()
 		-- POI quantizer; without them a world map shows every task on the
 		-- planet as an unmerged pin.
 		local WorldQuest = CreateFromMixins(WorldMap_WorldQuestDataProviderMixin or WorldQuestDataProviderMixin)
+		-- keep the quantizer, drop the WorldMap-only "same map" filter so
+		-- world quests show on continents without entering the zone
+		WorldQuest.ShouldShowQuest = WorldQuestDataProviderMixin.ShouldShowQuest;
 		function WorldQuest:RefreshAllData(fromOnShow)
 			local pinsToRemove = {};
 			for questID in pairs(self.activePins) do
