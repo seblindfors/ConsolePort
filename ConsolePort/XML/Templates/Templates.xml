@@ -150,4 +150,15 @@
 	</Frame>
 
 	<Frame name="CPToolbarSixSliceInverterFrame" virtual="true" mixin="CPToolbarSixSliceInverterMixin" inherits="CPToolbarNineSliceFrame"/>
+
+	<Frame name="CPCursorBlockerTemplate" mixin="CPCursorBlockerMixin" virtual="true">
+		<Frames>
+			<Frame parentKey="BlockingFrame"/>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnHide method="OnHide"/>
+			<OnUpdate method="OnUpdate"/>
+		</Scripts>
+	</Frame>
 </Ui>

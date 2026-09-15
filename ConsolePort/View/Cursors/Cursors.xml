@@ -1,5 +1,4 @@
 <Ui>
-	<Include file="Blocker.xml"/>
 	<Include file="Arrow.xml"/>
 	<Include file="Secure.xml"/>
 	<Include file="Crosshair.xml"/>

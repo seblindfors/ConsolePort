@@ -149,3 +149,33 @@ function CPToolbarSixSliceInverterMixin:SetBackgroundAlpha(alpha)
 		end
 	end
 end
+
+---------------------------------------------------------------
+do CPCursorBlockerMixin = {};
+---------------------------------------------------------------
+	local IsUsingMouse = IsUsingMouse;
+	local IsGamePadFreelookEnabled = IsGamePadFreelookEnabled;
+	local IsGamePadCursorControlEnabled = IsGamePadCursorControlEnabled;
+
+	function CPCursorBlockerMixin:ShouldBlockCursor()
+		return not IsUsingMouse()
+			and IsGamePadFreelookEnabled()
+			and not IsGamePadCursorControlEnabled()
+	end
+end
+
+function CPCursorBlockerMixin:OnLoad()
+	self.BlockingFrame:Hide()
+	self.BlockingFrame:SetParent(nil)
+	self.BlockingFrame:SetAllPoints()
+	self.BlockingFrame:SetFrameStrata('TOOLTIP')
+	self.BlockingFrame:EnableMouse(true)
+end
+
+function CPCursorBlockerMixin:OnHide()
+	self.BlockingFrame:Hide()
+end
+
+function CPCursorBlockerMixin:OnUpdate()
+	self.BlockingFrame:SetShown(self:ShouldBlockCursor())
+end
