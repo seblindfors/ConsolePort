@@ -111,6 +111,12 @@ local HEALTH_CURVE_SAMPLES = {0, 0.25, 0.4, 0.6, 0.8, 1};
 local BG_SLICE_COLOR = CreateColor(0.3, 0.3, 0.3, 1);
 local HOSTILE_COLOR  = CreateColor(0.7, 0.1, 0.1);
 local NEUTRAL_COLOR  = CreateColor(0.5, 0.5, 0.5);
+local UNIT_EVENTS = {
+	'UNIT_HEALTH';
+	'UNIT_MAXHEALTH';
+	'UNIT_CONNECTION';
+	'UNIT_PORTRAIT_UPDATE';
+};
 local GetHealthColor, GetDrainColor, UpdateSliceHealth;
 
 local function IsHostileUnit(unit)
@@ -257,13 +263,17 @@ function Unitbutton:OnEvent(event)
 	end
 end
 
+function Unitbutton:SetUnitEventsRegistered(enabled)
+	self:UnregisterAllEvents()
+	if not ( enabled and self.unit ) then return end;
+	for _, event in ipairs(UNIT_EVENTS) do
+		self:RegisterUnitEvent(event, self.unit)
+	end
+end
+
 function Unitbutton:SetUnit(unit)
 	self.unit = unit;
-	self:UnregisterAllEvents()
-	self:RegisterUnitEvent('UNIT_HEALTH', unit)
-	self:RegisterUnitEvent('UNIT_MAXHEALTH', unit)
-	self:RegisterUnitEvent('UNIT_CONNECTION', unit)
-	self:RegisterUnitEvent('UNIT_PORTRAIT_UPDATE', unit)
+	self:SetUnitEventsRegistered(Ring:IsShown())
 	SetPortraitTexture(self.Portrait, unit)
 	self.Border:SetVertexColor(Ring:GetUnitColor(unit):GetRGB())
 	self:UpdateRole()
@@ -337,6 +347,7 @@ function Ring:UpdateButtons()
 			AddHoleMask(slice)
 		end
 		self:LayoutSlice(slice)
+		slice:SetIndex(i, num)
 		slice:Show()
 		self.Slices[i] = slice;
 	end
@@ -372,7 +383,6 @@ function Ring:UpdateHealthSlice(index)
 	local slice, unit = self.Slices[index], self.Units[index];
 	if not ( slice and unit ) then return end;
 
-	slice:SetIndex(index, #self.Units)
 	UpdateSliceHealth(slice, unit)
 
 	local color = self:GetHealthBarColor(unit)
@@ -383,6 +393,13 @@ function Ring:UpdateHealthSlice(index)
 	local drain = self:GetSlice(index)
 	if drain then
 		drain:SetVertexColor((IsHostileUnit(unit) and BG_SLICE_COLOR or GetDrainColor(unit)):GetRGB())
+	end
+end
+
+function Ring:SetUnitEventsRegistered(enabled)
+	if not self.radialLoaded then return end;
+	for button in self:EnumerateActive() do
+		button:SetUnitEventsRegistered(enabled)
 	end
 end
 
@@ -622,6 +639,7 @@ db:RegisterSafeCallback('Settings/targetRingAcceptButton', Ring.OnAcceptButtonCh
 db:RegisterSafeCallback('Settings/targetRingPosition', Ring.OnPositionChanged, Ring)
 
 Ring:HookScript('OnShow', GenerateClosure(Ring.UpdateButtons, Ring))
+Ring:HookScript('OnHide', GenerateClosure(Ring.SetUnitEventsRegistered, Ring, false))
 Ring:HookScript('PreClick', function(self)
 	if not self.isActiveComponent then
 		db('Settings/lazyLoadingEnable', false)
