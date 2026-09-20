@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- SpellMenu.lua: Popup menu for managing spells
 ---------------------------------------------------------------
-local _, db, L = ...; L = db.Locale;
+local env, db, _, L = CPAPI.GetEnv(...);
 local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMenu, {
 	'PLAYER_REGEN_DISABLED';
 	'UPDATE_BINDINGS';

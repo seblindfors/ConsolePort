@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Shared popup menu button
 ---------------------------------------------------------------
-local _, db = ...;
+local env, db = CPAPI.GetEnv(...);
 local MenuButton = db:Register('PopupMenuButton', {})
 ---------------------------------------------------------------
 local COMMAND_OPT_ICON = CPAPI.Proxy({

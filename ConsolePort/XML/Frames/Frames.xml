@@ -22,8 +22,6 @@
 			<Frame name="$parentInteract" inherits="SecureHandlerStateTemplate"/>
 			<!-- Controllers\Bindings.lua, Model\Game\Bindings.lua -->
 			<Frame name="$parentBindings" inherits="SecureHandlerStateTemplate"/>
-			<!-- Controllers\UnitMenu.lua -->
-			<Button name="$parentUnit" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
 		</Frames>
 	</Frame>
 </Ui>

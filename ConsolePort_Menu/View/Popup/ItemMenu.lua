@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- ItemMenu.lua: Popup menu for managing container items
 ---------------------------------------------------------------
-local _, db, L = ...; L = db.Locale;
+local env, db, _, L = CPAPI.GetEnv(...);
 local ItemMenu = db:Register('ItemMenu', CPAPI.EventHandler(ConsolePortItemMenu, {
 	'BAG_UPDATE_DELAYED';
 	'MERCHANT_CLOSED';

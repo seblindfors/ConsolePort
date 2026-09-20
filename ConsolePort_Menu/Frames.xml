@@ -1,0 +1,5 @@
+<Ui>
+	<!-- Controller\UnitMenu.lua; parented to the core method frame as $parentUnit was -->
+	<Button name="ConsolePortUnit" parent="ConsolePort"
+		inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
+</Ui>

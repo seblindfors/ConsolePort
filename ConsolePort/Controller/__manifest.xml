@@ -1,6 +1,5 @@
 <Ui>
 	<Script file="Securenav.lua"/>
-	<Script file="UnitMenu.lua"/>
 	<Script file="Interact.lua"/>
 	<Script file="Input.lua"/>
 	<Script file="Pager.lua"/>

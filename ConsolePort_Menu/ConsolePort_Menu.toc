@@ -14,7 +14,11 @@
 
 Database.lua
 
+Frames.xml
+Controller\UnitMenu.lua
+
 Model\Buttons.lua
 Model\Visuals.lua
 
 View\Menu.xml
+View\Popup\Popup.xml
