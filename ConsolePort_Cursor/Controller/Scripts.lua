@@ -6,7 +6,7 @@
 -- because they modify properties of protected objects, either
 -- directly or indirectly by execution path.
 
-local env, db, _, L = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
+local env, db, _, L = CPAPI.GetEnv(...); _ = env.OnAddonLoaded;
 local xpcall, CallErrorHandler = xpcall, CallErrorHandler;
 local Scripts = CPAPI.Proxy({}, function(self, key) return rawget(rawset(self, key, {}), key) end);
 

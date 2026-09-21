@@ -392,9 +392,6 @@ do local sort, head, main = 0;
 	end
 end
 
-function CPAPI.OnAddonLoaded(addOn, script)
-	EventUtil.ContinueOnAddOnLoaded(addOn, GenerateClosure(pcall, script))
-end
 
 ---------------------------------------------------------------
 -- Debounce

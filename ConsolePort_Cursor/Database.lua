@@ -197,6 +197,12 @@ env.FramePipelines = { -- global ref, bool or method
 ---------------------------------------------------------------
 -- Node management resources
 ---------------------------------------------------------------
+-- Deferred Blizzard addon hooks; pcall-wrapped so one bad hook
+-- does not take the rest of the load callback with it.
+function env.OnAddonLoaded(addOn, script)
+	EventUtil.ContinueOnAddOnLoaded(addOn, GenerateClosure(pcall, script))
+end
+
 env.Node = LibStub('ConsolePortNode');
 
 env.IsClickableType = {
