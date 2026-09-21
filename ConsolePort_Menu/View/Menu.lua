@@ -28,6 +28,9 @@ function Menu:OnSizingChanged()
 end
 
 function Menu:OnFrameShown(visible, frame)
+	if ( frame == GameMenu ) and not db('gameMenuEnable') then
+		visible = false;
+	end
 	self.Owners[frame].visible = visible;
 	RunNextFrame(function()
 		for owner, config in pairs(self.Owners) do

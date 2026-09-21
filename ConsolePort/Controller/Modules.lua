@@ -32,7 +32,7 @@ Modules.Registry = {
 	};
 	{	id       = 'Menu';
 		addon    = 'ConsolePort_Menu';
-		variable = 'moduleGameMenu';
+		variable = 'moduleMenus';
 		image    = Asset('TargetNearest');
 	};
 	{	id       = 'Rings';
