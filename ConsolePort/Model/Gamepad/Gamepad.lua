@@ -363,8 +363,7 @@ function GamepadAPI:ReindexModifiers()
 	for _, mod in ipairs(self.Modsims) do
 		local btn = GetCVar('GamePadEmulate'..mod)
 		if (btn and btn:match('PAD')) then
-			self.Index.Modifier.Key[mod] = btn -- BUG: uproots the mod order if uppercase
-			self.Index.Modifier.Key[mod:upper()] = btn
+			self.Index.Modifier.Key[mod] = btn;
 			self.Index.Modifier.Prefix[mod..'-'] = btn
 			self.Index.Modifier.Owner[btn] = mod..'-';
 		end
