@@ -488,7 +488,7 @@ db:Register('Handler', Handler)
 **Data-only handler** (no frame, just `OnDataLoaded`):
 
 ```lua
-local Handler = CPAPI.CreateDataHandler()
+local Handler = CPAPI.DataHandler({})
 db:Register('Handler', Handler)
 ```
 
