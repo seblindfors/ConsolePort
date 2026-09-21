@@ -42,11 +42,17 @@ function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 			Hooknode.OnDressupButtonModifiedClick(node, 'LeftButton')
 			return true;
 		elseif self.itemLocation then
-			db.ItemMenu:SetItem(self.itemLocation:GetBagAndSlot())
+			local menu = db.Modules:Demand('ItemMenu')
+			if menu then
+				menu:SetItem(self.itemLocation:GetBagAndSlot())
+			end
 		elseif self.bagLocation then
 			PickupBagFromSlot(self.bagLocation)
 		elseif self.spellID then
-			db.SpellMenu:SetSpell(self.spellID)
+			local menu = db.Modules:Demand('SpellMenu')
+			if menu then
+				menu:SetSpell(self.spellID)
+			end
 		elseif ConsolePort:HasPendingRingAction() then
 			return ConsolePort:PostPendingRingAction()
 		end

@@ -227,7 +227,7 @@ if CPAPI.IsRetailVersion then -- Modern spellbook/talents
 		Scripts.OnLeave[ ClassTalentSelectionChoiceMixin.OnLeave ] = function(self)
 			TalentDisplayMixin.OnLeave(self)
 			RunNextFrame(function()
-				if ConsolePortSpellMenu:IsShown() then return end;
+				if ConsolePortSpellMenu and ConsolePortSpellMenu:IsShown() then return end;
 
 				local currentNode = env.Cursor:GetCurrentNode()
 				if currentNode and currentNode:GetParent() ~= selectionChoiceFrame then
@@ -236,17 +236,19 @@ if CPAPI.IsRetailVersion then -- Modern spellbook/talents
 			end)
 		end;
 
-		ConsolePortSpellMenu:HookScript('OnShow', function()
-			if PlayerSpellsFrame:IsShown() then
-				PlayerSpellsFrame:SetAlpha(0.25)
-				PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, true)
-			end
-		end)
-		ConsolePortSpellMenu:HookScript('OnHide', function()
-			if PlayerSpellsFrame:GetAttribute(env.Attributes.IgnoreNode) then
-				PlayerSpellsFrame:SetAlpha(1)
-				PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, nil)
-			end
+		_('ConsolePort_Menu', function()
+			ConsolePortSpellMenu:HookScript('OnShow', function()
+				if PlayerSpellsFrame:IsShown() then
+					PlayerSpellsFrame:SetAlpha(0.25)
+					PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, true)
+				end
+			end)
+			ConsolePortSpellMenu:HookScript('OnHide', function()
+				if PlayerSpellsFrame:GetAttribute(env.Attributes.IgnoreNode) then
+					PlayerSpellsFrame:SetAlpha(1)
+					PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, nil)
+				end
+			end)
 		end)
 	end)
 end -- Modern spellbook/talents

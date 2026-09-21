@@ -301,7 +301,8 @@ SLASH_FUNCTIONS = {
 			{'[unit]', 'string', 'Unit to open the menu for.'};
 		};
 		function(unit)
-			return db.UnitMenu:SetUnit(unit or 'target')
+			local menu = db.Modules:Demand('UnitMenu')
+			return menu and menu:SetUnit(unit or 'target')
 		end;
 	};
 	-----------------------------------------------------------

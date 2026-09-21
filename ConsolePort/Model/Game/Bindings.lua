@@ -81,7 +81,10 @@ do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end
 		};
 		{	binding = Bindings.Custom.UnitMenu;
 			name    = ('%s: %s'):format(PLAYER_OPTIONS_LABEL, DYNAMIC);
-			unit    = function() return db.UnitMenuSecure:GetPreferredUnit() end;
+			unit    = function()
+				local secure = db.UnitMenuSecure;
+				return secure and secure:GetPreferredUnit() or 'target';
+			end;
 			texture = [[Interface\TARGETINGFRAME\targetdead]];
 		};
 		{	binding = Bindings.Custom.UnitMenuPlayer;

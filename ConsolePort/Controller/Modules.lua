@@ -120,6 +120,38 @@ function Modules:OnVariableChanged(entry, enabled)
 	end
 end
 
+---------------------------------------------------------------
+-- Demand
+---------------------------------------------------------------
+-- Registrations that live inside a module. A call site that needs
+-- one asks for it by name; if the owning module is enabled but not
+-- yet loaded, it is loaded on the spot. Returns nil when the module
+-- is disabled, missing, or when combat forbids loading secure code.
+Modules.Providers = {
+	ItemMenu       = 'Menu';
+	SpellMenu      = 'Menu';
+	UnitMenu       = 'Menu';
+	UnitMenuSecure = 'Menu';
+};
+
+function Modules:GetEntry(id)
+	for _, entry in self:Enumerate() do
+		if ( entry.id == id ) then
+			return entry;
+		end
+	end
+end
+
+function Modules:Demand(registration)
+	local existing = db[registration];
+	if existing then return existing end;
+	local entry = self.Providers[registration];
+	entry = entry and self:GetEntry(entry);
+	if not entry or not self:IsEnabled(entry) or InCombatLockdown() then return end;
+	self:Load(entry)
+	return db[registration];
+end
+
 function Modules:OnDataLoaded()
 	for _, entry in self:Enumerate() do
 		db:RegisterCallback('Settings/'..entry.variable, self.OnVariableChanged, self, entry)
