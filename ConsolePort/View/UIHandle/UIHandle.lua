@@ -69,7 +69,6 @@ Control.KeyIDToBindingMap = setmetatable({
 	end;
 })
 
-db:Register('KEY', Control.KeyIDToBindingMap)
 
 function Control:GetUIControlBinding(key)
 	return self.KeyIDToBindingMap[key];

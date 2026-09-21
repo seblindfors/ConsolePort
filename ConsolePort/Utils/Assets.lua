@@ -10,10 +10,6 @@ function CPAPI.GetClassIcon(class)
 	return [[Interface\TargetingFrame\UI-Classes-Circles]], CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
 end
 
-function CPAPI.GetWebClassIcon(class)
-	return CPAPI.GetAsset([[Art\Class\Web_Class_Icons_Grid]]), CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
-end
-
 ---------------------------------------------------------------
 -- Asset atlas
 ---------------------------------------------------------------
