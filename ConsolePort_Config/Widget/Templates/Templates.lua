@@ -193,6 +193,10 @@ function CPNavBarWrapperMixin:AddButton(label, controlCallback, ...)
 	return self.Bar:AddButton(label, controlCallback, ...)
 end
 
+function CPNavBarWrapperMixin:SetButtonVisuals()
+	return self.Bar:SetButtonVisuals()
+end
+
 function CPNavBarWrapperMixin:GetRange()
 	return 0, self:GetHorizontalScrollRange();
 end

@@ -539,6 +539,7 @@ do  local panelIDGen, panels = CreateCounter(-1), {};
 			navButton = config.Nav:AddButton(info.name, NavButtonOnClick, panelID)
 			navButton:SetID(panelID)
 			navButton.layoutIndex = panelID;
+			config.Nav:SetButtonVisuals()
 			env:RegisterCallback('OnPanelShow', NavButtonOnPanelShow, navButton)
 		end
 		env:UnregisterCallback('OnConfigLoad', panel)
