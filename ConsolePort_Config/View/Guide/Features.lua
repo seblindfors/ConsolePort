@@ -88,7 +88,7 @@ end
 function Card:OnPresetClicked(button)
 	self:Update()
 	CPAPI.Popup('ConsolePort_Features_Preset', {
-		text      = L'Switch the action bar layout to %s? Your current layout will be replaced.';
+		text      = L('Switch the action bar layout to %s? Your current layout will be replaced.', L(button.preset.name));
 		button1   = YES;
 		button2   = CANCEL;
 		timeout   = 0;
@@ -96,7 +96,7 @@ function Card:OnPresetClicked(button)
 		OnAccept  = function(_, data)
 			data.card:ApplyPreset(data.preset)
 		end;
-	}, L(button.preset.name), nil, { card = self, preset = button.preset })
+	}, nil, nil, { card = self, preset = button.preset })
 end
 
 function Card:ApplyPreset(preset)

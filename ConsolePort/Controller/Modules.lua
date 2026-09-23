@@ -103,13 +103,13 @@ end
 
 function Modules:PromptReload(entry)
 	CPAPI.Popup('ConsolePort_Module_Reload', {
-		text      = L'%s will be disabled the next time the interface is reloaded.';
+		text      = L('%s will be disabled the next time the interface is reloaded.', (self:GetInfo(entry)));
 		button1   = RELOADUI;
 		button2   = CANCEL;
 		timeout   = 0;
 		showAlert = 1;
 		OnAccept  = ReloadUI;
-	}, (self:GetInfo(entry)))
+	})
 end
 
 function Modules:OnVariableChanged(entry, enabled)
