@@ -368,9 +368,10 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Action Bar';
 		desc = 'Replaces the default action bars with a layout designed for gamepad play.';
 	};
-	moduleMenus = _{Bool(true);
+	moduleMenus = _{Bool(not CPAPI.IsNativeGamepadUI);
 		name = 'Menus';
 		desc = 'Item, spell and unit menus for the interface cursor, plus an optional game menu replacement.';
+		hide = CPAPI.IsNativeGamepadUI;
 	};
 	moduleRings = _{Bool(true);
 		name = 'Rings';

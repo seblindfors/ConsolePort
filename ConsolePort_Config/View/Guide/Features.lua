@@ -130,12 +130,16 @@ function Features:OnLoad()
 	self:SetAllPoints(self:GetCanvas())
 	CPAPI.SpecializeOnce(self.Continue, Continue)
 
-	local grid = self.Browser.ScrollChild.Grid;
-	for i, entry in Modules:Enumerate() do
-		local card = CreateFrame('CheckButton', nil, grid, 'CPFeatureCardTemplate')
-		card.layoutIndex = i;
-		CPAPI.SpecializeOnce(card, Card)
-		card:SetModule(entry)
+	local grid, index = self.Browser.ScrollChild.Grid, 0;
+	for _, entry in Modules:Enumerate() do
+		local variable = db.Variables[entry.variable];
+		if not ( variable and variable.hide ) then
+			index = index + 1;
+			local card = CreateFrame('CheckButton', nil, grid, 'CPFeatureCardTemplate')
+			card.layoutIndex = index;
+			CPAPI.SpecializeOnce(card, Card)
+			card:SetModule(entry)
+		end
 	end
 	grid:Layout()
 	CPAPI.Start(self)
