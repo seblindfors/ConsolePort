@@ -4,7 +4,6 @@ LibStub('RelaTable')(name, env);
 ---------------------------------------------------------------
 -- Binding helpers
 ---------------------------------------------------------------
-env.BindingInfo, env.BindingInfoMixin = db.Loadout, db.LoadoutMixin;
 
 function env:SetBinding(keyChord, bindingID, skipSave)
 	if CPAPI.SetBinding(keyChord, bindingID, not skipSave) then

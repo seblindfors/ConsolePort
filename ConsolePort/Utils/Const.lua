@@ -29,6 +29,7 @@ CPAPI.ActionButtonGUID    = tostring(random((select(4, GetBuildInfo()))));
 ---------------------------------------------------------------
 -- Game constants
 ---------------------------------------------------------------
+CPAPI.BindingPrefix        = 'BINDING_NAME_%s';
 CPAPI.ExtraActionButtonID  = (ExtraActionButton1 or {}).action or CPAPI.IsRetailVersion and 217 or 169;
 CPAPI.MAX_ACCOUNT_MACROS   = MAX_ACCOUNT_MACROS or Constants.MacroConsts.MAX_ACCOUNT_MACROS;
 CPAPI.MAX_CHARACTER_MACROS = MAX_CHARACTER_MACROS or Constants.MacroConsts.MAX_CHARACTER_MACROS;

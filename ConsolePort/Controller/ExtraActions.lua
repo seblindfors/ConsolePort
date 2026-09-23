@@ -42,7 +42,7 @@ end, {})
 do -- Set up the action bar API to use the replacements
 ---------------------------------------------------------------
 	local ActionBarAPI = db.Actionbar;
-	local bindPrefix   = db.Loadout.BindingPrefix;
+	local bindPrefix   = CPAPI.BindingPrefix;
 	local bindParse    = BINDING_FORMAT:format('%d', '%d');
 
 	local function TrySetBindingName(pageID, slotID)
