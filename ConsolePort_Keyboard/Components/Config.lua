@@ -54,10 +54,10 @@ local function ShowDataContainer()
 	local dataBin = CreateDataContainer()
 
 	local modOrder, setOrder, dirOrder = {}, {
-		'keyboardEscapeButton';
-		'keyboardEnterButton';
-		'keyboardSpaceButton';
 		'keyboardEraseButton';
+		'keyboardEscapeButton';
+		'keyboardSpaceButton';
+		'keyboardEnterButton';
 	}, { 'NN', 'NE', 'EE', 'SE', 'SS', 'SW', 'WW', 'NW'};
 
 	for mod in db.table.mpairs(db.Gamepad.Index.Modifier.Active) do

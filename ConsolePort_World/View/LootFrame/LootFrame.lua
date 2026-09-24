@@ -109,8 +109,8 @@ end
 function LootFrame:SetHints()
 	UIHandle:SetHintFocus(self)
 	UIHandle:AddHint('PAD1', LOOT)
-	UIHandle:AddHint('PAD2', ALL)
-	UIHandle:AddHint('PAD4', CLOSE)
+	UIHandle:AddHint('PAD3', ALL)
+	UIHandle:AddHint('PAD2', CLOSE)
 end
 
 function LootFrame:ClearHints()
@@ -142,7 +142,7 @@ function LootFrame:OnGamePadButtonDown(button)
 		if lootSlot then
 			lootSlot:OnClick()
 		end
-	elseif (button == 'PAD2') then
+	elseif (button == 'PAD3') then
 		self:LootAllItems()
 	elseif (button == 'PADDDOWN') then
 		self:UpdateFocus(self.focusIndex + 1)
@@ -156,8 +156,7 @@ end
 CPAPI.Specialize(LootFrame, {
 	focusIndex = 1;
 	CloseOnButton = {
-		PAD3 = true;
-		PAD4 = true;
+		PAD2 = true;
 		PADBACK = true;
 		PADSYSTEM = true;
 		PADSOCIAL = true;

@@ -27,7 +27,7 @@ ConsolePort:AddVariables({
 		desc = 'Performs an action and closes the menu.';
 		deps = { gameMenuEnable = true, gameMenuCustomSet = true };
 	};
-	gameMenuPlural = _{Data.Button('PAD2');
+	gameMenuPlural = _{Data.Button('PAD3');
 		name = 'Plural Button';
 		desc = 'Performs an action without closing the menu.';
 		deps = { gameMenuEnable = true, gameMenuCustomSet = true };

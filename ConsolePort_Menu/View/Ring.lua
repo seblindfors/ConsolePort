@@ -28,7 +28,7 @@ Selector.Configuration = {
 		Secondary = 'Right';
 		Buttons = {
 			Accept = 'PAD1';
-			Plural = 'PAD2';
+			Plural = 'PAD3';
 			Return = 'PADLSHOULDER';
 			Switch = 'PADRSHOULDER';
 		};

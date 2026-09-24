@@ -49,7 +49,7 @@ ConsolePort:AddVariables({
 		name = table.concat({ACCEPT, PRIMARY, KEY_BUTTON1}, ' | ');
 		desc = 'Primary accept button, to use or confirm a quick menu action.';
 	};
-	QMenuRightButton = _{Data.Button('PAD2');
+	QMenuRightButton = _{Data.Button('PAD3');
 		name = table.concat({ACCEPT, SECONDARY, KEY_BUTTON2}, ' | ');
 		desc = 'Secondary accept button, to use or confirm a quick menu action.';
 	};
@@ -57,7 +57,7 @@ ConsolePort:AddVariables({
 		name = table.concat({SPECIAL, KEY_BUTTON3}, ' | ');
 		desc = 'Button to handle contextual actions, such as adding items to the utility ring or passing on loot.';
 	};
-	QMenuCancelButton = _{Data.Button('PAD3');
+	QMenuCancelButton = _{Data.Button('PAD2');
 		name = CANCEL;
 		desc = 'Button to cancel or exit the quick menu.';
 		note = 'The quick menu binding can be used to close the menu as well.';
