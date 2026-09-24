@@ -785,7 +785,8 @@ Loadout.Popups = {
 			data.owner:OnLoadPreset(data.preset)
 		end;
 		OnHide = function(_, data)
-			CPIndexButtonMixin.Uncheck(data.trigger)
+			data.trigger:SetChecked(false)
+			data.trigger:OnChecked(false)
 		end;
 		text = L('Are you sure you want to overwrite %s with %s?',
 			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),

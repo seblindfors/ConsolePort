@@ -69,12 +69,86 @@ function MenuButton:SetCommand(text, command, data, handlers, init)
 end
 
 ---------------------------------------------------------------
+-- Action slot widget
+---------------------------------------------------------------
+local THUMB_HEIGHT = 4;
+local Fader, SlotColors = db('Alpha/Fader'), {
+	Normal  = CreateColor(0.05, 0.05, 0.05, 0.35);
+	Checked = CreateColor(1, 0.7451, 0, 1);
+	Border  = CreateColor(0.15, 0.15, 0.15, 0.65);
+	CheckBG = CPAPI.GetWebColor(CPAPI.GetClassFile(), 'ee');
+};
+
+CPPopupActionSlotMixin = {};
+
+function CPPopupActionSlotMixin:OnLoad()
+	self.CheckedThumb:SetColorTexture(SlotColors.Checked:GetRGBA())
+	self.HiliteThumb:SetColorTexture(0, 0.68235, 1, 1)
+	PixelUtil.SetHeight(self.CheckedThumb, THUMB_HEIGHT)
+	PixelUtil.SetHeight(self.HiliteThumb, THUMB_HEIGHT)
+	self:ApplyBackground()
+end
+
+function CPPopupActionSlotMixin:OnEnter()
+	self:LockHighlight()
+end
+
+function CPPopupActionSlotMixin:OnLeave()
+	self:UnlockHighlight()
+end
+
+function CPPopupActionSlotMixin:OnHide()
+	self:UnlockHighlight()
+end
+
+function CPPopupActionSlotMixin:OnClick()
+	self:OnChecked(self:GetChecked())
+end
+
+function CPPopupActionSlotMixin:OnChecked(checked)
+	Fader.Toggle(self.CheckedThumb, 0.15, checked)
+	Fader.Toggle(self.HiliteThumb, 0.15, not checked)
+	self:ApplyBackground()
+	if self.drawOutline then
+		self:SetBackdropBorderColor(self:GetOutlineColor():GetRGBA())
+		self:SetBackdropColor(self:GetBackgroundColor():GetRGBA())
+	end
+end
+
+function CPPopupActionSlotMixin:Check()
+	self:SetChecked(true)
+	self:OnChecked(true)
+end
+
+function CPPopupActionSlotMixin:Uncheck()
+	self:SetChecked(false)
+	self:OnChecked(false)
+end
+
+function CPPopupActionSlotMixin:GetBackgroundColor()
+	return SlotColors[self:GetChecked() and 'CheckBG' or 'Normal'];
+end
+
+function CPPopupActionSlotMixin:GetOutlineColor()
+	return SlotColors[self:GetChecked() and 'Checked' or 'Border'];
+end
+
+function CPPopupActionSlotMixin:ApplyBackground()
+	self.Background:SetVertexColor(self:GetBackgroundColor():GetRGBA())
+end
+
+function CPPopupActionSlotMixin:SetDrawOutline(enabled)
+	self.drawOutline = enabled;
+	self:SetBackdrop(enabled and CPAPI.Backdrops.Simple or nil)
+	self:SetBackdropBorderColor(self:GetOutlineColor():GetRGBA())
+end
+
+---------------------------------------------------------------
 -- Shared popup action button
 ---------------------------------------------------------------
-local MapActionButton = db:Register('PopupMenuMapActionButton', CreateFromMixins(CPIndexButtonMixin))
+local MapActionButton = db:Register('PopupMenuMapActionButton', CreateFromMixins(CPPopupActionSlotMixin))
 
 function MapActionButton:OnEnter()
-	CPIndexButtonMixin.OnIndexButtonEnter(self)
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	GameTooltip:SetAction(self:GetID())
 	GameTooltip:AddLine(self:GetAttribute('name'))
@@ -86,7 +160,6 @@ function MapActionButton:OnEnter()
 end
 
 function MapActionButton:OnLeave()
-	CPIndexButtonMixin.OnIndexButtonLeave(self)
 	if ( GameTooltip:IsOwned(self) ) then
 		GameTooltip:Hide()
 	end
