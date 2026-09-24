@@ -17,9 +17,8 @@ function env:ClearBindingsForID(bindingID, saveAfter)
 	return CPAPI.ClearBindingsForID(bindingID, saveAfter)
 end
 
-function env:GetActiveDeviceAndMap()
-	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
-	return db.Gamepad.Active, db('Gamepad/Index/Button/ID')
+function env:GetActiveDevice()
+	return db.Gamepad.Active;
 end
 
 function env:GetActiveModifiers()

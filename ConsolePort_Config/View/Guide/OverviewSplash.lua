@@ -851,7 +851,7 @@ end
 function Overview:OnShow()
 	env:RegisterCallback('Settings.OnCharacterBindingsChanged', self.OnCharacterBindingsChanged, self)
 	self:ReindexModifiers()
-	self:SetDevice(env:GetActiveDeviceAndMap())
+	self:SetDevice(env:GetActiveDevice())
 	self:ToggleAndUpdateModifier('')
 	ConsolePort:SetCursorNodeIfActive(Guide.MenuFlyout)
 end
@@ -1056,7 +1056,7 @@ do -- Add overview to guide content
 	end
 
 	local function OnDefaults()
-		local activeDevice = env:GetActiveDeviceAndMap()
+		local activeDevice = env:GetActiveDevice()
 		if not activeDevice then return end;
 		for combination, binding in pairs(activeDevice:GetPresetBindings()) do
 			env:SetBinding(combination, binding)
