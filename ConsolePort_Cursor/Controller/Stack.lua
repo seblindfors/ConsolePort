@@ -282,7 +282,7 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 	end
 
 	local function CatchPoolFrame(frame)
-		if not tracked[frame] then
+		if ( frame and not tracked[frame] ) then
 			trackWidget(frame)
 			Stack:UpdateFrames()
 			return true;
