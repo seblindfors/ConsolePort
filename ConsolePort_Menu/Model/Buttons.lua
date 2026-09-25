@@ -242,7 +242,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Housing Dashboard ]] if HousingMicroButton then _{
+--[[ Housing Dashboard ]] if HousingMicroButton and HousingFramesUtil then _{
 ---------------------------------------------------------------
 	text  = BINDING_NAME_TOGGLEHOUSINGDASHBOARD;
 	atlas = 'housing-dashboard-homestone-icon';
