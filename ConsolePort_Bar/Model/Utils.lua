@@ -298,7 +298,10 @@ function env.ModComplement(A, B)
 end
 
 function env.IsModSubset(A, B)
-	return not not (B:find(A:gsub('%-', '%%-')))
+	-- The inner gsub is parenthesised to drop its replacement count,
+	-- which would otherwise arrive as find's start offset and skip a
+	-- match at the very beginning -- 'CTRL-SHIFT-' in itself.
+	return not not (B:find((A:gsub('%-', '%%-'))))
 end
 
 do local ModReplacements = {
