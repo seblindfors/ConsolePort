@@ -159,9 +159,10 @@ Type.Modifier = Data.Interface {
 			['[]']   = 'Empty condition, always true.';
 		}, {
 			['Mn']   = 'Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.';
+			['MnMn'] = 'The same modifier twice is its doubled bar, reached by double tapping it.';
 		}
 	);
-	note = 'Modifiers should be in descending order. M2M1, for example, is the Ctrl and Shift modifiers held at the same time.';
+	note = 'Descending order is canonical: M2M1 is the Ctrl and Shift modifiers held together. Other orders are distinct layers only while Modifier Order is enabled, and the same modifier twice, such as M1M1, is its doubled bar.';
 	Data.String(' ');
 };
 
