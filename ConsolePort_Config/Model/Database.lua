@@ -12,6 +12,31 @@ function env:SetBinding(keyChord, bindingID, skipSave)
 	end
 end
 
+-- A layer coordinate cannot be produced by pressing keys, because the
+-- engine composes a chord from the modifiers physically held and knows
+-- nothing about a latch. So the controller's own state supplies it: a
+-- latched or doubled layer survives into the binding catcher, and the
+-- button pressed there lands in the layer the player is standing in.
+-- @param button : button that was caught
+function env:CreateKeyChordForLayer(button)
+	local layer = db.Layers:GetActiveLayer();
+	if db.Gamepad.Index.Modifier.Layered[layer] then
+		return layer..button;
+	end
+	return CPAPI.CreateKeyChord(button);
+end
+
+-- Says which layer the press will land in, since the catcher looks
+-- identical whether one is latched or not.
+-- @param prompt : the prompt the catcher would otherwise show
+function env:GetBindingCatcherPrompt(prompt)
+	local layer = db.Layers:GetActiveLayer();
+	if db.Gamepad.Index.Modifier.Layered[layer] then
+		return ('%s\n\n%s'):format(prompt, env.L('Binding into the %s layer.', layer))
+	end
+	return prompt;
+end
+
 function env:ClearBindingsForID(bindingID, saveAfter)
 	return CPAPI.ClearBindingsForID(bindingID, saveAfter)
 end

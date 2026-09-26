@@ -331,6 +331,12 @@ function Layers:SetFeatures(tapLatch, doubleBar, ordered)
 end
 
 ---------------------------------------------------------------
+-- @return prefix : layer currently resolved, '' when none
+function Layers:GetActiveLayer()
+	return self:GetAttribute('prefix') or '';
+end
+
+---------------------------------------------------------------
 -- @param button   : gamepad button absent from the loadout
 -- @param emulated : key standing in for it, or nil to stop
 function Layers:SetEmulation(button, emulated)

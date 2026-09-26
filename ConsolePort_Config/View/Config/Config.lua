@@ -310,7 +310,7 @@ function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
 
 	local catcher = self:GetCatcher()
 	catcher:TryCatchBinding({
-		text = catcher.promptText;
+		text = env:GetBindingCatcherPrompt(catcher.promptText);
 		OnShow = function()
 			self:PauseCatcher()
 			ConsolePort:SetCursorNodeIfActive(element)

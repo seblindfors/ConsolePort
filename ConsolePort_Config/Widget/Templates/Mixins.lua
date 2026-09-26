@@ -159,7 +159,7 @@ function BindingCatcher:OnBindingCaught(button, data)
 
 	local bindingID = data.bindingID;
 	local context   = CPAPI.GetBindingContextForAction(bindingID)
-	local keyChord  = CPAPI.CreateKeyChord(button)
+	local keyChord  = env:CreateKeyChordForLayer(button)
 	local curAction = CPAPI.GetBindingAction(keyChord, nil, context)
 
 	if ( curAction ~= '' and curAction ~= bindingID ) then
