@@ -6,6 +6,8 @@ env.Manager = Manager;
 Manager.Env = {
 	_onhide = [[
 		self:ClearBindings()
+		layers::ClearRegistered()
+		layers::ApplyRegistered()
 	]];
 	_onshow = [[
 		self::ApplyBindings()
@@ -21,14 +23,19 @@ Manager.Env = {
 			if cursor then cursor::OwnerChanged(owner) end
 		end
 	]];
+	-- Registered with the input layer controller rather than bound
+	-- here: a bar owns what its buttons do, the controller owns which
+	-- layer is live and what key the engine resolves it under.
 	ApplyBindings = [[
+		layers::ClearRegistered()
 		for owner, set in pairs(bindings) do
 			if self:GetAttribute(owner) then
-				for key, button in pairs(set) do
-					self:SetBindingClick(false, key, button, 'ControllerInput')
+				for _, entry in pairs(set) do
+					layers::SetRegistered(entry[1], entry[2], entry[3], 'ControllerInput')
 				end
 			end
 		end
+		layers::ApplyRegistered()
 	]];
 };
 
@@ -44,7 +51,7 @@ end
 
 function Manager:OnPropsChanged(refreshBindings)
 	local layout = env.Layout;
-	RegisterStateDriver(self, env.Attributes.Visible, layout.visibility or 'show')
+	db.Layers:RegisterStateDriver(self, env.Attributes.Visible, env.ConvertDriver(layout.visibility or 'show'))
 	for id, props in pairs(layout.children or {}) do
 		local widget = env:Acquire(props.type, id)
 		if widget then
@@ -84,6 +91,8 @@ function Manager:ClearOverrides()
 	self:Run([[
 		bindings = wipe(bindings);
 		self:ClearBindings()
+		layers::ClearRegistered()
+		layers::ApplyRegistered()
 	]])
 end
 
@@ -93,15 +102,22 @@ function Manager:UpdateOverrides() self:Run([[
 	mouse::OnBindingsChanged()
 ]]) end
 
+-- The layer and the button are split here, insecurely, because the
+-- controller stores by layer and the engine keys by chord -- and the
+-- two are only the same string while nothing is latched.
 function Manager:RegisterOverride(owner, ref, ...)
 	for i = 1, select('#', ...) do
+		local key = select(i, ...);
+		local layer, button = key:match('^(.*%-)(.+)$');
 		self:Parse([[
 			bindings[{owner}] = bindings[{owner}] or newtable();
-			bindings[{owner}][{key}] = {ref};
+			bindings[{owner}][{key}] = newtable({layer}, {button}, {ref});
 		]], {
-			owner = env:GetSignature(owner);
-			key  = select(i, ...);
-			ref  = ref;
+			owner  = env:GetSignature(owner);
+			key    = key;
+			layer  = layer or '';
+			button = button or key;
+			ref    = ref;
 		})
 	end
 end
@@ -121,12 +137,14 @@ function Manager:UnregisterOverrides(owner) self:Parse([[
 ---------------------------------------------------------------
 Manager:SetFrameRef('Mouse', db.Interact)
 Manager:SetFrameRef('Pager', db.Pager)
+Manager:SetFrameRef('Layers', db.Layers)
 Manager:Run([[
 	bindings = {};
 	owners   = {};
 	manager  = self;
 	mouse    = self:GetFrameRef('Mouse');
 	pager    = self:GetFrameRef('Pager');
+	layers   = self:GetFrameRef('Layers');
 ]])
 
 ---------------------------------------------------------------

@@ -50,42 +50,24 @@ function Bindings:SetEmulation(button, key)
 end
 
 function Bindings:OnEmulationChanged()
-	ClearOverrideBindings(self)
 	for _, button in ipairs(self.Emulated) do
-		self[button] = nil;
 		self:UpdateEmulation(button)
 	end
 end
 
+-- The emulated key is registered with the input layer controller
+-- rather than bound here, so that it follows whatever the button it
+-- stands in for resolves to in the current layer.
 function Bindings:UpdateEmulation(button)
 	local mapping, isBound = self:GetEmulation(button)
-
-	-- Clear old bindings
-	if self[button] then
-		for activeMapping in pairs(self[button]) do
-			SetOverrideBinding(self, false, activeMapping, nil)
-		end
-		self[button] = nil;
-	end
-
-	if (isBound) then
-		-- Clear overlap
+	if isBound then
 		for _, other in ipairs(self.Emulated) do
 			if ( other ~= button and (self:GetEmulation(other)) == mapping ) then
 				self:SetEmulation(other, NOT_BOUND)
 			end
 		end
-
-		-- Set new bindings, resolving overrides so that emulated
-		-- buttons route to the same target as their real combos.
-		self[button] = {};
-		for modifier in pairs(db.Gamepad.Index.Modifier.Active) do
-			local action = CPAPI.GetBindingAction(modifier..button, true)
-			local activeMapping = modifier..mapping;
-			self[button][activeMapping] = action;
-			SetOverrideBinding(self, false, activeMapping, action)
-		end
 	end
+	db.Layers:SetEmulation(button, isBound and mapping or nil)
 end
 
 ---------------------------------------------------------------

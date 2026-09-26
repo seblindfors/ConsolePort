@@ -44,20 +44,39 @@ function CPActionBar:OnLoad()
 	self:EnableMouse(false)
 end
 
+-- A driver containing any modifier condition is the layer
+-- controller's to evaluate, since the engine resolves those against
+-- the modifiers physically held and a latch is not one. The
+-- controller evaluates the native segments too, through the engine's
+-- own parser, so a mixed driver keeps its meaning.
 function CPActionBar:RegisterDriver(type, driver, body, current)
 	driver = env.ConvertDriver(driver)
 	body   = CPAPI.ConvertSecureBody(body)
 
-	RegisterStateDriver(self, type, driver)
+	local _, layer      = CPAPI.ClassifyDriver(driver)
+	local ownedByLayers = layer;
+
+	self:SetAttribute(env.Attributes.Layered(type), ownedByLayers)
+	if ownedByLayers then
+		db.Layers:RegisterState(self, type, driver, body)
+	else
+		RegisterStateDriver(self, type, driver)
+	end
 	self:SetAttribute(type, current or SecureCmdOptionParse(driver))
 	self:SetAttribute(env.Attributes.Driver(type), driver)
 	self:SetAttribute(env.Attributes.State(type), body)
 	self:Run([[local newstate = self:GetAttribute(%q) %s]], type, body)
 end
 
-function CPActionBar:RunDriver(type) self:Run([[
-	local newstate = SecureCmdOptionParse(%q); %s
-]], self:GetAttribute(env.Attributes.Driver(type)), self:GetAttribute(env.Attributes.State(type))) end
+function CPActionBar:RunDriver(type)
+	if self:GetAttribute(env.Attributes.Layered(type)) then
+		return self:Run([[local newstate = self:GetAttribute(%q); %s]],
+			type, self:GetAttribute(env.Attributes.State(type)));
+	end
+	return self:Run([[
+		local newstate = SecureCmdOptionParse(%q); %s
+	]], self:GetAttribute(env.Attributes.Driver(type)), self:GetAttribute(env.Attributes.State(type)))
+end
 
 function CPActionBar:RunAttribute(attribute, ...) self:Run([[
 	self::%s(%q)
@@ -69,12 +88,12 @@ end
 
 function CPActionBar:RegisterVisibilityDriver(driver, current)
 	driver = env.ConvertDriver(driver)
-	RegisterStateDriver(self, env.Attributes.Visible, driver)
+	db.Layers:RegisterStateDriver(self, env.Attributes.Visible, driver)
 	self:SetAttribute(env.Attributes.Visible, current or SecureCmdOptionParse(driver))
 end
 
 function CPActionBar:UnregisterVisibilityDriver()
-	UnregisterStateDriver(self, env.Attributes.Visible)
+	db.Layers:UnregisterStateDriver(self, env.Attributes.Visible)
 end
 
 function CPActionBar:RegisterPageResponse(body)

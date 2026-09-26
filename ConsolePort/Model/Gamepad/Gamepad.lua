@@ -23,6 +23,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 			Active  = {}; -- all possible modifier combinations
 			Owner   = {}; -- button -> modifier string
 			Blocked = {}; -- combos that are blocked by their own buttons
+			Layered = {}; -- combos only the input layer controller resolves
 			Cvars   = {}; -- modsim -> cvar name
 			Driver  = NM; -- state driver for all active modifiers
 		};
@@ -246,13 +247,19 @@ for _, modifier in ipairs(GamepadAPI.Modsims) do
 	GamepadAPI.Index.Modifier.Cvars[modifier] = cvar;
 	db:RegisterSafeCallback(cvar, function(self, value)
 		self:ReindexModifiers()
-		-- Wipe the incompatible bindings for a modifier when it's set.
-		-- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
-		for combination in pairs(self.Index.Modifier.Blocked) do
-			CPAPI.SetBinding(combination, nil)
-		end
-		SaveBindings(GetCurrentBindingSet())
+		self:ClearBlockedBindings()
 		db:TriggerEvent('OnModifierChanged', modifier, value)
+	end, GamepadAPI)
+end
+
+-- Enabling a latch gesture claims tap chords that were free before,
+-- so the same wipe runs, and says what it took -- a settings toggle
+-- is a less expected place to lose a binding than the modifier map.
+for _, setting in ipairs({'layersTapLatch', 'layersDoubleBar', 'layersOrdered'}) do
+	db:RegisterSafeCallback('Settings/'..setting, function(self)
+		self:ReindexModifiers()
+		self:ClearBlockedBindings(true)
+		db.Layers:RefreshStates()
 	end, GamepadAPI)
 end
 
@@ -358,7 +365,7 @@ end
 
 function GamepadAPI:ReindexModifiers()
 	local map = self.Index.Modifier;
-	wipe(map.Key); wipe(map.Prefix); wipe(map.Owner); wipe(map.Blocked);
+	wipe(map.Key); wipe(map.Prefix); wipe(map.Owner); wipe(map.Blocked); wipe(map.Layered);
 
 	for _, mod in ipairs(self.Modsims) do
 		local btn = GetCVar('GamePadEmulate'..mod)
@@ -369,6 +376,7 @@ function GamepadAPI:ReindexModifiers()
 		end
 	end
 	map.Active, map.Driver = self:GetActiveModifiers()
+	self:ReindexLayers(map)
 
 	for mod, btn in pairs(map.Key) do
 		for active, inputs in pairs(map.Active) do
@@ -379,6 +387,96 @@ function GamepadAPI:ReindexModifiers()
 				map.Blocked[active..btn] = mod;
 			end
 		end
+	end
+
+	-- A latch gesture spends the modifier's own tap chord, so those
+	-- combinations cannot fire either, for a different reason but to
+	-- the same effect.
+	if ( db('layersTapLatch') or db('layersDoubleBar') ) then
+		for mod, btn in pairs(map.Key) do
+			for active in pairs(map.Active) do
+				map.Blocked[active..btn] = map.Blocked[active..btn] or mod;
+			end
+		end
+	end
+end
+
+-- Wipe the incompatible bindings for a modifier when it's set.
+-- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
+-- @param notify  : whether to report what was removed
+-- @return cleared : list of combinations that held a binding
+function GamepadAPI:ClearBlockedBindings(notify)
+	local cleared;
+	for combination in pairs(self.Index.Modifier.Blocked) do
+		if ( CPAPI.GetBindingAction(combination) ~= NM ) then
+			cleared = cleared or {};
+			cleared[#cleared + 1] = combination;
+			CPAPI.SetBinding(combination, nil)
+		end
+	end
+	if cleared then
+		SaveBindings(GetCurrentBindingSet())
+		if notify then
+			CPAPI.Log('Removed bindings that cannot be used: %s', table.concat(cleared, ', '))
+		end
+	end
+	return cleared;
+end
+
+-- Ordered and doubled prefixes are layers the input layer controller
+-- can resolve but the engine never composes, so they join the set of
+-- combinations only after the driver has been built from it -- the
+-- driver has to stay something the engine can still evaluate.
+-- @param map : the modifier index, mid rebuild
+function GamepadAPI:ReindexLayers(map)
+	local ordered, doubled = db('layersOrdered'), db('layersDoubleBar');
+	if not ( ordered or doubled ) then return end;
+
+	local prefixes = {};
+	for prefix in db.table.spairs(map.Prefix) do
+		prefixes[#prefixes + 1] = prefix;
+	end
+
+	-- The buttons a layer needs held, in the index's own format, so
+	-- the blocked check reads it exactly as it reads a native combo.
+	local function Inputs(layer)
+		local inputs;
+		for token in layer:gmatch('%u+%-') do
+			local button = map.Prefix[token];
+			if button then
+				inputs = inputs and (inputs..'-'..button) or button;
+			end
+		end
+		return inputs;
+	end
+
+	local function Add(layer)
+		if ( layer ~= NM and not map.Active[layer] ) then
+			map.Active[layer]  = Inputs(layer);
+			map.Layered[layer] = true;
+		end
+	end
+
+	if doubled then
+		for _, prefix in ipairs(prefixes) do
+			Add(prefix..prefix)
+		end
+	end
+
+	if ordered then
+		local used = {};
+		local function Permute(current)
+			for i = 1, #prefixes do
+				if not used[i] then
+					used[i] = true;
+					local layer = current..prefixes[i];
+					Add(layer)
+					Permute(layer)
+					used[i] = nil;
+				end
+			end
+		end
+		Permute(NM)
 	end
 end
 
@@ -507,6 +605,7 @@ function GamepadAPI:FlattenBindings(bindings)
 end
 
 function GamepadAPI:OnNewBindings()
+	self:ClearBlockedBindings(true)
 	local newBindings = self:GetBindings(true)
 	db:TriggerEvent('OnNewBindings', newBindings)
 	db:TriggerEvent('OnUpdateOverrides', false, newBindings)

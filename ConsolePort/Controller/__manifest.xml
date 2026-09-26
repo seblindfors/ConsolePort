@@ -3,6 +3,7 @@
 	<Script file="Interact.lua"/>
 	<Script file="Input.lua"/>
 	<Script file="Pager.lua"/>
+	<Script file="Layers.lua"/>
 	<Script file="Radial.lua"/>
 	<Script file="Mouse.lua"/>
 	<Script file="Movement.lua"/>
