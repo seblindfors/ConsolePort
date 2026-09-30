@@ -8,6 +8,7 @@ env.Toplevel = {
 	Art     = false;
 	Cluster = false;
 	Divider = false;
+	Glyph   = false;
 	Group   = false;
 	Page    = false;
 	Petring = true;
@@ -159,9 +160,10 @@ Type.Modifier = Data.Interface {
 			['[]']   = 'Empty condition, always true.';
 		}, {
 			['Mn']   = 'Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.';
+			['MnMn'] = 'The same modifier twice is its doubled bar, reached by double tapping it.';
 		}
 	);
-	note = 'Modifiers should be in descending order. M2M1, for example, is the Ctrl and Shift modifiers held at the same time.';
+	note = 'Descending order is canonical: M2M1 is the Ctrl and Shift modifiers held together. Other orders are distinct layers only while Modifier Order is enabled, and the same modifier twice, such as M1M1, is its doubled bar.';
 	Data.String(' ');
 };
 
@@ -476,6 +478,46 @@ Interface.Toolbar = Data.Interface {
 			desc = 'Width of the toolbar.';
 			Data.Range(900, 25, 300, 1200);
 		};
+	};
+};
+
+Interface.Glyph = Data.Interface {
+	name = 'Glyph';
+	desc = 'Shows the buttons that make up a modifier combination.';
+	Data.Table {
+		type = {hide = true; Data.String('Glyph')};
+		pos = _(Type.ComplexPoint : Implement {
+			desc = 'Position of the glyph.';
+			{
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 200;
+			};
+		});
+		dynamic = _{
+			name = 'Follow Layer';
+			desc = 'Show whichever layer is currently active, instead of a fixed combination.';
+			Data.Bool(false);
+		};
+		modifier = _{
+			name = 'Modifiers';
+			desc = 'Combination to show, written with the same shorthand as a modifier driver.';
+			note = 'M1 is Shift, M2 is Ctrl, M3 is Alt. M2M1 is both held, M1M1 is the doubled bar.';
+			deps = { dynamic = false };
+			Data.String('M1');
+		};
+		size = _{
+			name = 'Size';
+			desc = 'Size of each button icon.';
+			Data.Number(32, 4);
+		};
+		spacing = _{
+			name = 'Spacing';
+			desc = 'Space between icons.';
+			Data.Number(4, 1);
+		};
+		opacity = _(Type.Opacity : Implement {});
+		rescale = _(Type.Scale : Implement {});
 	};
 };
 

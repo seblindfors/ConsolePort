@@ -1,0 +1,12 @@
+<Ui>
+	<Script file="Glyph.lua"/>
+
+	<Frame name="CPGlyph" virtual="true" mixin="CPGlyph" useParentLevel="true">
+		<Size x="32" y="32"/>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnAttributeChanged method="OnAttributeChanged"/>
+		</Scripts>
+	</Frame>
+
+</Ui>

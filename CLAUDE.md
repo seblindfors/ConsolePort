@@ -21,6 +21,7 @@
 12. [Localization](#12-localization)
 13. [XML Templates](#13-xml-templates)
 14. [Multi-Version Support](#14-multi-version-support)
+15. [Driver Registration](#15-driver-registration)
 
 ---
 
@@ -892,3 +893,23 @@ end
 hide = CPAPI.IsRetailVersion;  -- hide on retail, show on classic
 note = CPAPI.IsRetailVersion and 'Only available in Classic.';
 ```
+
+---
+
+## 15. Driver Registration
+
+**Never call the global `RegisterStateDriver` or `RegisterAttributeDriver` for a driver that
+could contain `[mod:]`.** The input layer controller owns every modifier condition, because
+the engine resolves those against the modifiers physically held and cannot see a latched or
+doubled layer. Route them through the controller instead, which classifies the driver and
+hands anything with a native condition in it back to the engine:
+
+```lua
+db.Layers:RegisterAttributeDriver(frame, 'alpha', driver)
+db.Layers:UnregisterAttributeDriver(frame, 'alpha')
+```
+
+Drivers built entirely from native conditions (`[vehicleui]`, `[combat]`, `[group]`) may use
+the global functions directly. The macro condition vocabulary itself lives in
+`ConsolePort/Utils/Macro.lua`: `CPAPI.ConvertDriver`, `ParseDriver`, `MapDriver`,
+`ClassifyDriver`, `IsModSubset`.

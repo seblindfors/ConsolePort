@@ -16,6 +16,8 @@
 					<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
 				</Attributes>
 			</Button>
+			<!-- Controllers\Layers.lua -->
+			<Frame name="$parentLayers" inherits="SecureHandlerStateTemplate"/>
 			<!-- Controllers\Radial.lua -->
 			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
 			<!-- Controllers\Interact.lua -->

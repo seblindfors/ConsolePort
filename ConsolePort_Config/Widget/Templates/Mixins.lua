@@ -154,12 +154,102 @@ local BindingCatcher = CreateFromMixins(CPPopupBindingCatchButtonMixin)
 ---------------------------------------------------------------
 env.Mixin.BindingCatcher = BindingCatcher;
 
+-- A claimed tap chord composes the layer and keeps the catcher open.
+-- Unclaimed, the button binds like any other.
+-- @return sequence : whether the press was taken as composition
+function BindingCatcher:TryComposeLayer(button)
+	local modifier = env.db.Gamepad.Index.Modifier.Owner[button];
+	if ( not modifier or not env.db.Layers:UsesTapGestures() ) then
+		return false;
+	end
+	self.sequence = self.sequence or {};
+	self.sequence[#self.sequence + 1] = modifier;
+	self:ResetCancelTimer()
+	return true;
+end
+
+BindingCatcher.PendingText = 'Waiting for input...';
+
+-- Icon at the glyph's rendered size, so the line keeps its height.
+function BindingCatcher:GetPendingLine()
+	return ('%s %s'):format(
+		env.db.Hotkeys.Format[64]:format(CPAPI.GetAsset([[Textures\Button\EmptyIcon]])),
+		env.L(self.PendingText)
+	);
+end
+
+BindingCatcher.Reasons = {
+	doubled   = 'Tapping the same modifier twice needs the Doubled Bar option enabled.';
+	exclusive = 'A doubled modifier is a bar of its own and cannot be combined with others.';
+	unknown   = 'Those modifiers do not form a layer that can be bound.';
+};
+
+function BindingCatcher:GetKeyChord(button)
+	if not self.sequence then
+		return CPAPI.CreateKeyChord(button);
+	end
+	local layer, reason = env.db.Layers:ComposeLayer(self.sequence);
+	if not layer then
+		return nil, reason;
+	end
+	return layer..button;
+end
+
+function BindingCatcher:ResetComposition()
+	self.sequence, self.baseText, self.shownFeedback, self.feedbackKey = nil, nil, nil, nil;
+end
+
+function BindingCatcher:OnShow()
+	self:ResetComposition()
+	CPPopupBindingCatchButtonMixin.OnShow(self)
+end
+
+function BindingCatcher:OnHide()
+	self:ResetComposition()
+	CPPopupBindingCatchButtonMixin.OnHide(self)
+end
+
+-- Rebuilt only when the state moves; this runs every frame.
+function BindingCatcher:GetModifierFeedback()
+	local chord = env.db.Layers:GetActiveChord();
+	local key   = ('%s#%d'):format(chord, self.sequence and #self.sequence or 0);
+	if ( key ~= self.feedbackKey ) then
+		self.feedbackKey  = key;
+		self.feedbackText = env:GetModifierGlyphs(chord, self.sequence);
+	end
+	return self.feedbackText;
+end
+
+-- Reserves the last line, so the dialog is laid out once.
+function BindingCatcher:GetPromptText()
+	return ('%s\n%s'):format(self.promptText, self:GetPendingLine())
+end
+
+-- The modifiers that will be part of the binding, held and tapped.
+function BindingCatcher:OnUpdate(elapsed)
+	CPPopupBindingCatchButtonMixin.OnUpdate(self, elapsed)
+	local text = self:GetDialogText();
+	if not text then return end;
+
+	self.baseText = self.baseText or text:GetText();
+	local feedback = self:GetModifierFeedback() or self:GetPendingLine();
+	if ( feedback ~= self.shownFeedback ) then
+		self.shownFeedback = feedback;
+		text:SetText((self.baseText:gsub('[^\n]*$', feedback, 1)))
+	end
+end
+
 function BindingCatcher:OnBindingCaught(button, data)
 	if not CPAPI.IsButtonValidForBinding(button) then return end;
+	if self:TryComposeLayer(button) then return end;
 
 	local bindingID = data.bindingID;
 	local context   = CPAPI.GetBindingContextForAction(bindingID)
-	local keyChord  = CPAPI.CreateKeyChord(button)
+	local keyChord, reason = self:GetKeyChord(button)
+	if not keyChord then
+		CPAPI.Log(BindingCatcher.Reasons[reason] or BindingCatcher.Reasons.unknown)
+		return true;
+	end
 	local curAction = CPAPI.GetBindingAction(keyChord, nil, context)
 
 	if ( curAction ~= '' and curAction ~= bindingID ) then
