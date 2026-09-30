@@ -256,7 +256,7 @@ end
 for _, setting in ipairs({'layersTapLatch', 'layersDoubleBar', 'layersOrdered'}) do
 	db:RegisterSafeCallback('Settings/'..setting, function(self)
 		self:ReindexModifiers()
-		self:ClearBlockedBindings(true)
+		self:ClearBlockedBindings()
 		db.Layers:RefreshStates()
 	end, GamepadAPI)
 end
@@ -399,24 +399,17 @@ end
 
 -- Wipe the incompatible bindings for a modifier when it's set.
 -- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
--- @param notify  : whether to report what was removed
--- @return cleared : list of combinations that held a binding
-function GamepadAPI:ClearBlockedBindings(notify)
+function GamepadAPI:ClearBlockedBindings()
 	local cleared;
 	for combination in pairs(self.Index.Modifier.Blocked) do
 		if ( CPAPI.GetBindingAction(combination) ~= NM ) then
-			cleared = cleared or {};
-			cleared[#cleared + 1] = combination;
+			cleared = true;
 			CPAPI.SetBinding(combination, nil)
 		end
 	end
 	if cleared then
 		SaveBindings(GetCurrentBindingSet())
-		if notify then
-			CPAPI.Log('Removed bindings that cannot be used: %s', table.concat(cleared, ', '))
-		end
 	end
-	return cleared;
 end
 
 -- Layers the controller resolves but the engine never composes, so
@@ -598,7 +591,7 @@ function GamepadAPI:FlattenBindings(bindings)
 end
 
 function GamepadAPI:OnNewBindings()
-	self:ClearBlockedBindings(true)
+	self:ClearBlockedBindings()
 	local newBindings = self:GetBindings(true)
 	db:TriggerEvent('OnNewBindings', newBindings)
 	db:TriggerEvent('OnUpdateOverrides', false, newBindings)
