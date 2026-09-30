@@ -8,6 +8,7 @@
 ---------------------------------------------------------------
 
 local Layers, _, db = CPAPI.DataHandler(ConsolePortLayers), ...;
+local L = db.Locale;
 local RegisterAttributeDriver, UnregisterAttributeDriver = RegisterAttributeDriver, UnregisterAttributeDriver;
 local RegisterStateDriver, UnregisterStateDriver = RegisterStateDriver, UnregisterStateDriver;
 local STORED_BATCH_SIZE = 25;
@@ -315,6 +316,23 @@ end
 
 function Layers:UsesTapGestures()
 	return not not ( db('layersTapLatch') or db('layersDoubleBar') );
+end
+
+-- What a gesture has taken a chord for, so a claim can be reported
+-- rather than the stored binding it shadows.
+-- @param combination : full key combination, e.g. 'CTRL-PADLSHOULDER'
+-- @return claim : name of the gesture holding it, or nil
+function Layers:GetChordClaim(combination)
+	if not self:UsesTapGestures() then return end;
+	local prefix, button = combination:match('^(.-)([^%-]+)$');
+	local modifier = button and db.Gamepad.Index.Modifier.Owner[button];
+	if ( not modifier or prefix:find(modifier, 1, true) ) then return end;
+
+	local latch, doubled = db('layersTapLatch'), db('layersDoubleBar');
+	if ( latch and doubled ) then
+		return L'Tap to Latch and Doubled Bar';
+	end
+	return latch and L'Tap to Latch' or L'Doubled Bar';
 end
 
 -- @param sequence : modifier prefixes in press order

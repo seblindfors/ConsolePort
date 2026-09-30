@@ -386,15 +386,6 @@ function GamepadAPI:ReindexModifiers()
 			end
 		end
 	end
-
-	-- A latch gesture spends the modifier's own tap chord.
-	if ( db('layersTapLatch') or db('layersDoubleBar') ) then
-		for mod, btn in pairs(map.Key) do
-			for active in pairs(map.Active) do
-				map.Blocked[active..btn] = map.Blocked[active..btn] or mod;
-			end
-		end
-	end
 end
 
 -- Wipe the incompatible bindings for a modifier when it's set.

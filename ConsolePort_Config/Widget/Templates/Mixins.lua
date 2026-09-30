@@ -250,6 +250,15 @@ function BindingCatcher:OnBindingCaught(button, data)
 		CPAPI.Log(BindingCatcher.Reasons[reason] or BindingCatcher.Reasons.unknown)
 		return true;
 	end
+
+	-- A claimed chord answers with the gesture holding it, not with the
+	-- binding it shadows, which would read as an ordinary conflict.
+	local claim = env.db.Layers:GetChordClaim(keyChord);
+	if claim then
+		CPAPI.Log('That button is reserved for %s.', claim)
+		return true;
+	end
+
 	local curAction = CPAPI.GetBindingAction(keyChord, nil, context)
 
 	if ( curAction ~= '' and curAction ~= bindingID ) then
