@@ -15,8 +15,6 @@
 ## SavedVariables: ConsolePortRingsShared
 ## SavedVariablesPerCharacter: ConsolePortRings
 
-## OptionalDeps: ConsolePort_Bar
-
 Database.lua
 Upgrade.lua
 
