@@ -52,7 +52,10 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local sort, toggle = GetSortIndex(main, head), env.Elements.ModuleToggle;
 	for i, entry in db.Modules:Enumerate() do
 		if ( not entry.hide and db.Modules:IsInstalled(entry) ) then
-			local data = toggle:Data(entry)
+			local data = toggle:Data({
+				entry = entry;
+				varID = ('Module/%s'):format(entry.id);
+			})
 			data.type = toggle;
 			data.sort = sort + i;
 			AddSetting(main, head, data)

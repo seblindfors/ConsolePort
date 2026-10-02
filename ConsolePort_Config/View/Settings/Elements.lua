@@ -534,11 +534,13 @@ function ModuleToggle:OnAcquire(new)
 	end
 end
 
-function ModuleToggle:Data(entry)
+function ModuleToggle:Data(datapoint)
+	local entry = datapoint.entry;
 	local name, desc = db.Modules:GetInfo(entry)
 	return {
 		entry = entry;
-		varID = ('Module/%s'):format(entry.id);
+		varID = datapoint.varID;
+		type  = 'ModuleToggle';
 		field = {
 			name = name;
 			desc = desc;
