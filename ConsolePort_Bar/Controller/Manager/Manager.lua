@@ -43,6 +43,7 @@ Manager.Env = {
 
 function Manager:OnDataLoaded()
 	self:CreateEnvironment()
+	self.hasEnvironment = true;
 	self:OnPropsChanged()
 	self:OnNewBindings(db.Gamepad:GetBindings(true))
 end
@@ -86,6 +87,7 @@ end
 ---------------------------------------------------------------
 
 function Manager:ClearOverrides()
+	if not self.hasEnvironment then return end;
 	self:Run([[
 		bindings = wipe(bindings);
 		self:ClearBindings()
@@ -94,11 +96,14 @@ function Manager:ClearOverrides()
 	]])
 end
 
-function Manager:UpdateOverrides() self:Run([[
-	self:ClearBindings()
-	self::ApplyBindings()
-	mouse::OnBindingsChanged()
-]]) end
+function Manager:UpdateOverrides()
+	if not self.hasEnvironment then return end;
+	self:Run([[
+		self:ClearBindings()
+		self::ApplyBindings()
+		mouse::OnBindingsChanged()
+	]])
+end
 
 -- Split here: the controller stores by layer, the engine keys by chord.
 function Manager:RegisterOverride(owner, ref, ...)
