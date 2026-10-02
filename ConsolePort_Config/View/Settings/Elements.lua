@@ -503,6 +503,51 @@ function CharacterBindings:Data()
 end
 
 ---------------------------------------------------------------
+local ModuleToggle = CreateFromMixins(env.Elements.Setting);
+---------------------------------------------------------------
+-- Mirrors the addon list, which owns whether a module is enabled.
+env.Elements.ModuleToggle = ModuleToggle;
+
+function ModuleToggle:Init(elementData)
+	local data, modules = elementData:GetData(), db.Modules;
+	local entry = data.entry;
+
+	self.Get = function() return modules:IsEnabled(entry) end;
+	xpcall(self.Mount, geterrorhandler(), self, {
+		name       = data.field.name;
+		varID      = data.varID;
+		field      = data.field;
+		owner      = ConsolePortConfig;
+		registry   = db;
+		newObj     = true;
+		callbackFn = function(enabled)
+			modules:SetEnabled(entry, enabled)
+			self:OnValueChanged(modules:IsEnabled(entry))
+		end;
+	})
+end
+
+function ModuleToggle:OnAcquire(new)
+	if new then
+		InitializeSetting(self, env.Setting, ModuleToggle)
+		self.disableTooltipHints = true;
+	end
+end
+
+function ModuleToggle:Data(entry)
+	local name, desc = db.Modules:GetInfo(entry)
+	return {
+		entry = entry;
+		varID = ('Module/%s'):format(entry.id);
+		field = {
+			name = name;
+			desc = desc;
+			[DP] = db.Data.Bool(db.Modules:IsEnabled(entry));
+		};
+	};
+end
+
+---------------------------------------------------------------
 local BindingPreset = CPAPI.CreateElement('CPBindingPreset', 0, 40)
 ---------------------------------------------------------------
 env.Elements.BindingPreset = BindingPreset;
