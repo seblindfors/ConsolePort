@@ -698,7 +698,7 @@ function BindingPreset:Apply()
 						env:SetBinding(modifier..button, binding, true)
 					end
 				end
-				SaveBindings(GetCurrentBindingSet())
+				CPAPI.SaveBindings()
 			end
 			CPAPI.Log('Preset %s has been applied.', data.meta.Name)
 		end;

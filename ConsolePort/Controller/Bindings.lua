@@ -123,7 +123,7 @@ function Bindings:LoadPreset(name)
 				CPAPI.SetBinding(modifier..button, binding, false)
 			end
 		end
-		SaveBindings(setID)
+		CPAPI.SaveBindings(setID)
 		return CPAPI.Log('Loaded binding preset %s.', name)
 	end
 	local device = self:GetDeviceByName(name)
