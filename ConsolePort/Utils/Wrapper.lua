@@ -75,6 +75,22 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 		CAMERAORSELECTORMOVE = true;
 	};
 
+	---------------------------------------------------------------
+	-- @brief Save bindings to the active set, if there is one
+	-- @param setID : binding set to save to, or the active set
+	-- @return saved : whether the bindings were written
+	---------------------------------------------------------------
+	-- GetCurrentBindingSet answers Default before bindings load, and
+	-- saving against it writes to a set the player did not choose.
+	function CPAPI.SaveBindings(setID)
+		setID = setID or GetCurrentBindingSet();
+		if ( setID ~= Enum.BindingSet.Account and setID ~= Enum.BindingSet.Character ) then
+			return false;
+		end
+		SaveBindings(setID)
+		return true;
+	end
+
 	local function ReportBindingError(keyChord, bindingID)
 		if not keyChord or not keyChord:match('PAD.+') then return end;
 		---@see https://github.com/Stanzilla/WoWUIBugs/issues/752
@@ -110,7 +126,7 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 			CPAPI.ClearBindingsForID(bindingID, false)
 		end
 		if TrySetBinding(keyChord, bindingID, saveAfter) then
-			SaveBindings(GetCurrentBindingSet())
+			CPAPI.SaveBindings()
 			return true;
 		end
 		return false;
@@ -125,7 +141,7 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 			TrySetBinding(binding, nil, false, context)
 		end
 		if saveAfter then
-			SaveBindings(GetCurrentBindingSet())
+			CPAPI.SaveBindings()
 		end
 		return true;
 	end

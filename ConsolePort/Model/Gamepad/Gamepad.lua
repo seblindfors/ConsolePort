@@ -270,7 +270,7 @@ db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
 			end
 		end
 	end
-	SaveBindings(GetCurrentBindingSet())
+	CPAPI.SaveBindings()
 end, GamepadAPI)
 
 db:RegisterSafeCallback('OnNewBindings', function(self)
@@ -399,7 +399,7 @@ function GamepadAPI:ClearBlockedBindings()
 		end
 	end
 	if cleared then
-		SaveBindings(GetCurrentBindingSet())
+		CPAPI.SaveBindings()
 	end
 end
 
@@ -781,7 +781,7 @@ function GamepadMixin:ApplyPresetBindings(setID)
 		end
 	end
 	if setID then
-		SaveBindings(setID)
+		CPAPI.SaveBindings(setID)
 	end
 	return result;
 end

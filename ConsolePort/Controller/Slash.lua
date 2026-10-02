@@ -95,7 +95,7 @@ function ClearPadBindings()
 	for i=1, GetNumBindings() do
 		ClearPadBinding(GetBinding(i))
 	end
-	SaveBindings(GetCurrentBindingSet())
+	CPAPI.SaveBindings()
 end
 
 ---------------------------------------------------------------

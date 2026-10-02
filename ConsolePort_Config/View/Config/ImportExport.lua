@@ -260,7 +260,7 @@ local Evaluators = {
 				env:SetBinding(mod..btn, binding)
 			end
 		end
-		SaveBindings(bindingSetID)
+		CPAPI.SaveBindings(bindingSetID)
 	end};
 	{'ConsolePortUtility1', function(data)
 		for setID, set in pairs(data) do

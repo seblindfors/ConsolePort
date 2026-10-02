@@ -237,7 +237,7 @@ function Config:OnBindSet(owner, setID, clearBinding)
 
 	if clearBinding then
 		self.Catcher:ClearBindingsForID(bindingID)
-		return SaveBindings(GetCurrentBindingSet())
+		return CPAPI.SaveBindings()
 	end
 
 	self.Catcher:TryCatchBinding({
