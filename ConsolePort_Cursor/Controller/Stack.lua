@@ -8,7 +8,7 @@ local env, db, DEFAULT = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local After = C_Timer.After;
 local pairs, next, unravel = pairs, next, db.table.unravel;
-local isLocked, isEnabled, isObstructed;
+local isLocked, isObstructed;
 ---------------------------------------------------------------
 local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUIStackHandler', ConsolePort}, {
 	'PLAYER_REGEN_ENABLED',
@@ -72,7 +72,7 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 	-- Use C_Timer.After to circumvent omitting frames that set their points on show.
 	-- Check for point because frames can be visible but not drawn.
 	local function showHook(self)
-		if isEnabled and tracked[self] then
+		if tracked[self] then
 			scheduleVisibilityUpdate(self)
 		end
 	end
@@ -82,7 +82,7 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 	-- which leads to the cursor ending up in an unexpected place on re-show.
 	-- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
 	local function hideHook(self, force)
-		if isEnabled and tracked[self] and (force or visible[self]) then
+		if tracked[self] and (force or visible[self]) then
 			scheduleVisibilityUpdate(self)
 		end
 	end
@@ -203,12 +203,6 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 	---------------------------------------------------------------
 	-- Core toggle
 	---------------------------------------------------------------
-	function Stack:ToggleCore()
-		isEnabled = db('UIenableCursor');
-		if not isEnabled then
-			db.Cursor:OnStackChanged(false)
-		end
-	end
 
 	---------------------------------------------------------------
 	-- ToggleGroup: enable/disable a group of frames
@@ -368,9 +362,6 @@ function Stack:OnDataLoaded()
 	self:ToggleGroup(env.StaticPopupStack, db('UIenablePopups'), true)
 	self:ToggleGroup(env.GroupLootStack, db('UIenableGroupLoot'), true)
 
-	-- Toggle the stack core
-	self:ToggleCore()
-
 	-- Activate all existing frames in the registry
 	for addon in pairs(self.Registry) do
 		if CPAPI.IsAddOnLoaded(addon) then
@@ -386,8 +377,6 @@ function Stack:OnDataLoaded()
 		end)
 	end;
 
-	db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
-	db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
 	db:RegisterSafeCallback('Settings/UIenablePopups', self.ToggleGroup, self, env.StaticPopupStack)
 	db:RegisterSafeCallback('Settings/UIenableGroupLoot', self.ToggleGroup, self, env.GroupLootStack)
 

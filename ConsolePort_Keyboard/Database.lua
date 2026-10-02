@@ -13,75 +13,61 @@ env.Attributes = {
 ---------------------------------------------------------------
 -- Variables
 ---------------------------------------------------------------
-local DEPENDENCY = { keyboardEnable = true };
 ConsolePort:AddVariables({
 	_(env.Attributes.ModuleName, env.Attributes.HeaderName, 2);
 	keyboardAlwaysShow = _{Data.Bool(false);
 		name = 'Always Show';
 		desc = 'Whether the keyboard should always be shown or only when a gamepad is active.';
-		deps = DEPENDENCY;
 	};
 	keyboardScale = _{Data.Range(1, 0.05, 0.5, 2);
 		name = 'Scale';
 		desc = 'Scale of the keyboard.';
-		deps = DEPENDENCY;
 	};
 	keyboardSpaceButton = _{Data.Button('PAD1');
 		name = 'Space';
 		desc = 'Button to use to trigger the space command.';
-		deps = DEPENDENCY;
 	};
 	keyboardEnterButton = _{Data.Button('PAD3');
 		name = 'Enter';
 		desc = 'Button to use to trigger the enter command.';
-		deps = DEPENDENCY;
 	};
 	keyboardEraseButton = _{Data.Button('PAD4');
 		name = 'Erase';
 		desc = 'Button to use to erase characters.';
-		deps = DEPENDENCY;
 	};
 	keyboardEscapeButton = _{Data.Button('PAD2');
 		name = 'Escape';
 		desc = 'Button to use to trigger the escape command.';
-		deps = DEPENDENCY;
 	};
 	keyboardMoveLeftButton = _{Data.Button('PADDLEFT');
 		name = 'Move Left';
 		desc = 'Button to use to move the cursor leftwards.';
-		deps = DEPENDENCY;
 	};
 	keyboardMoveRightButton = _{Data.Button('PADDRIGHT');
 		name = 'Move Right';
 		desc = 'Button to use to move the cursor rightwards.';
-		deps = DEPENDENCY;
 	};
 	keyboardNextWordButton = _{Data.Button('PADDDOWN');
 		name = 'Next Word';
 		desc = 'Button to select next suggested word.';
-		deps = DEPENDENCY;
 	};
 	keyboardPrevWordButton = _{Data.Button('PADDUP');
 		name = 'Previous Word';
 		desc = 'Button to select previous suggested word.';
-		deps = DEPENDENCY;
 	};
 	keyboardAutoCorrButton = _{Data.Button('PADRSHOULDER');
 		name = 'Insert Suggestion';
 		desc = 'Button to insert suggested word.';
-		deps = DEPENDENCY;
 	};
 	keyboardDictPattern = _{Data.String("[%a][%w']*[%w]+");
 		name = 'Dictionary Match Pattern';
 		desc = 'Lua pattern to match words for dictionary lookups.';
 		advd = true;
-		deps = DEPENDENCY;
 	};
 	keyboardDictAlphabet = _{Data.String('abcdefghijklmnopqrstuvwxyz');
 		name = 'Dictionary Match Alphabet';
 		desc = 'Alphabet to use for dictionary suggestions and word processing.';
 		advd = true;
-		deps = DEPENDENCY;
 	};
 })
 

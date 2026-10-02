@@ -4,6 +4,7 @@
 ## Notes: Virtual keyboard module
 ## RequiredDeps: ConsolePort
 ## LoadOnDemand: 1
+## DefaultState: disabled
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

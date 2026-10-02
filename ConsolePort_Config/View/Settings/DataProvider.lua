@@ -45,6 +45,25 @@ Settings:AddProvider(function(AddSetting)
 end)
 
 -----------------------------------------------------------
+-- Modules
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting, GetSortIndex)
+	local main, head = SETTING_GROUP_SYSTEM, 'Modules';
+	local sort, toggle = GetSortIndex(main, head), env.Elements.ModuleToggle;
+	for i, entry in db.Modules:Enumerate() do
+		if ( not entry.hide and db.Modules:IsInstalled(entry) ) then
+			local data = toggle:Data({
+				entry = entry;
+				varID = ('Module/%s'):format(entry.id);
+			})
+			data.type = toggle;
+			data.sort = sort + i;
+			AddSetting(main, head, data)
+		end
+	end
+end)
+
+-----------------------------------------------------------
 -- Device profiles
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)

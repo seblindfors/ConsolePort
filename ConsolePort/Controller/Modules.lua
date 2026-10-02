@@ -1,10 +1,11 @@
 ---------------------------------------------------------------
 -- Modules
 ---------------------------------------------------------------
--- Registry of the load-on-demand modules, each gated by an
--- enable setting. Enabled modules are loaded when the core has
--- finished loading and whenever their setting is turned on; a
--- loaded module can only be turned off by reloading the interface.
+-- Registry of the load-on-demand modules. The addon list is the
+-- only record of whether a module is enabled; enabled modules are
+-- loaded when the core has finished loading and whenever they are
+-- switched on; a loaded module can only be turned off by reloading
+-- the interface.
 --
 -- This file is loaded last in the core so that the handler frame
 -- is created after every other core frame; loading a module fires
@@ -18,7 +19,8 @@ db:Register('Modules', Modules)
 Modules.Registry = {
 	{	id       = 'Bar';
 		addon    = 'ConsolePort_Bar';
-		variable = 'moduleActionBar';
+		name     = 'Action Bar';
+		desc     = 'Replaces the default action bars with a layout designed for gamepad play.';
 		presets  = {
 			{ id = 'Default';         name = DEFAULT };
 			{ id = 'CrossbarMinimal'; name = 'Crossbar: Minimal' };
@@ -27,29 +29,31 @@ Modules.Registry = {
 	};
 	{	id       = 'Menu';
 		addon    = 'ConsolePort_Menu';
-		variable = 'moduleMenus';
+		name     = 'Menus';
+		desc     = 'Item, spell and unit menus for the interface cursor, plus an optional game menu replacement.';
 	};
 	{	id       = 'Rings';
 		addon    = 'ConsolePort_Rings';
-		variable = 'moduleRings';
+		name     = 'Rings';
+		desc     = 'Utility rings for spells, items and macros, selected with the radial stick.';
 	};
 	{	id       = 'Target';
 		addon    = CPAPI.TargetAddOn;
-		variable = 'moduleTarget';
+		name     = 'Target';
+		desc     = 'Targeting tools: raid cursor, unit hotkeys and the target ring.';
 	};
 	{	id       = 'Cursor';
 		addon    = CPAPI.CursorAddOn;
-		variable = 'UIenableCursor';
 		name     = 'Interface Cursor';
 		desc     = 'Navigate the interface with the gamepad using a virtual cursor.';
 	};
 	{	id       = 'World';
 		addon    = 'ConsolePort_World';
-		variable = 'moduleWorld';
+		name     = 'World';
+		desc     = 'World interaction helpers: quick menu, loot frame and temporary ability prompts.';
 	};
 	{	id       = 'Keyboard';
 		addon    = 'ConsolePort_Keyboard';
-		variable = 'keyboardEnable';
 		name     = 'Keyboard';
 		desc     = 'Radial on-screen keyboard for typing with the gamepad.';
 	};
@@ -63,12 +67,16 @@ function Modules:Enumerate()
 end
 
 function Modules:GetInfo(entry)
-	local variable = db.Variables[entry.variable];
-	return L(entry.name or variable.name), L(entry.desc or variable.desc);
+	return L(entry.name), L(entry.desc);
 end
 
 function Modules:IsEnabled(entry)
-	return not not db(entry.variable)
+	local state = CPAPI.GetAddOnEnableState(entry.addon)
+	return state ~= nil and state > 0;
+end
+
+function Modules:IsInstalled(entry)
+	return (select(4, CPAPI.GetAddOnInfo(entry.addon))) ~= nil;
 end
 
 function Modules:IsLoaded(entry)
@@ -76,12 +84,16 @@ function Modules:IsLoaded(entry)
 end
 
 function Modules:SetEnabled(entry, enabled)
-	db('Settings/'..entry.variable, not not enabled)
+	if enabled then
+		CPAPI.EnableAddOn(entry.addon)
+	else
+		CPAPI.DisableAddOn(entry.addon)
+	end
+	self:OnEnableChanged(entry, not not enabled)
 end
 
 function Modules:Load(entry)
 	if self:IsLoaded(entry) then return true end;
-	CPAPI.EnableAddOn(entry.addon)
 	local loaded, reason = CPAPI.LoadAddOn(entry.addon)
 	if not loaded then
 		CPAPI.Log('Failed to load %s. Reason: %s\nPlease check your installation.',
@@ -101,7 +113,7 @@ function Modules:PromptReload(entry)
 	})
 end
 
-function Modules:OnVariableChanged(entry, enabled)
+function Modules:OnEnableChanged(entry, enabled)
 	if enabled then
 		db:RunSafe(self.Load, self, entry)
 	elseif self:IsLoaded(entry) then
@@ -141,9 +153,41 @@ function Modules:Demand(registration)
 	return db[registration];
 end
 
+---------------------------------------------------------------
+-- Migration
+---------------------------------------------------------------
+-- Module enablement used to live in settings while Modules:Load
+-- re-enabled the addon on every login, so a user who switched a
+-- module off has it saved as false against an enabled addon.
+-- Carry that choice onto the addon list once, then drop the keys.
+Modules.Deprecated = {
+	Bar      = 'moduleActionBar';
+	Menu     = 'moduleMenus';
+	Rings    = 'moduleRings';
+	Target   = 'moduleTarget';
+	World    = 'moduleWorld';
+	Cursor   = 'UIenableCursor';
+	Keyboard = 'keyboardEnable';
+};
+
+function Modules:MigrateFromSettings()
+	for id, varID in pairs(self.Deprecated) do
+		for _, source in ipairs({ConsolePortSettings, ConsolePortCharacterSettings}) do
+			local saved = source and source[varID];
+			if ( saved ~= nil ) then
+				local entry = self:GetEntry(id);
+				if ( entry and not saved ) then
+					CPAPI.DisableAddOn(entry.addon)
+				end
+				source[varID] = nil;
+			end
+		end
+	end
+end
+
 function Modules:OnDataLoaded()
+	self:MigrateFromSettings()
 	for _, entry in self:Enumerate() do
-		db:RegisterCallback('Settings/'..entry.variable, self.OnVariableChanged, self, entry)
 		if self:IsEnabled(entry) then
 			self:Load(entry)
 		end
