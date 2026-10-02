@@ -112,10 +112,6 @@ function CPAPI.GetReverseMixColorGradient(dir, r, g, b, a, base, multi)
 		0 + (r + add) * mul, 0 + (g + add) * mul, 0 + (b + add) * mul, alp;
 end
 
-function CPAPI.InvertColor(r, g, b)
-	return 1-r, 1-g, 1-b;
-end
-
 function CPAPI.NormalizeColor(...)
 	local high, c = 0
 	for i=1, 3 do

@@ -27,19 +27,6 @@ function CPAPI.GetSpecialization()
 	return GetClassID()
 end
 
-function CPAPI.GetSpecTextureByID(ID)
-	-- returns specTexture on retail
-	if GetSpecializationInfoByID then
-		return select(4, GetSpecializationInfoByID(ID))
-	-- returns classTexture on classic
-	elseif C_CreatureInfo and C_CreatureInfo.GetClassInfo then
-		local classInfo = C_CreatureInfo.GetClassInfo(ID)
-		if classInfo then
-			return ([[Interface\ICONS\ClassIcon_%s.blp]]):format(classInfo.classFile)
-		end
-	end
-end
-
 function CPAPI.GetCharacterMetadata()
 	-- returns specID, specName on retail
 	if GetSpecializationInfo and GetSpecialization then
@@ -143,7 +130,7 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 		return true;
 	end
 
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		function CPAPI.GetBindingAction(keyChord, checkOverride, context)
 			return GetBindingAction(keyChord, checkOverride, context)
 		end
@@ -159,12 +146,6 @@ end
 ---------------------------------------------------------------
 function CPAPI.IsButtonValidForBinding(button)
 	return db('bindingAllowSticks') or (not button:match('PAD.STICK.+'))
-end
-
-function CPAPI.GetKeyChordParts(keyChord)
-	return
-	--[[buttonID]] (keyChord:match('PAD.+')),
-	--[[modifier]] (keyChord:gsub('PAD.+', ''));
 end
 
 function CPAPI.IsTutorialComplete(tutorialID)
@@ -250,7 +231,7 @@ CPAPI.MinEditDistance = CalculateStringEditDistance or function(str1, str2)
 	return matrix[len1][len2];
 end
 
-CPAPI.IteratePlayerInventory = CPAPI.IsRetailVersion and ItemUtil.IteratePlayerInventory or function(callback)
+CPAPI.IteratePlayerInventory = CPAPI.IsModernVersion and ItemUtil.IteratePlayerInventory or function(callback)
 	local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS or 36;
 	local NUM_BAG_FRAMES = NUM_BAG_FRAMES or 4;
 
@@ -309,7 +290,6 @@ CPAPI.GetBindingContextForAction     = C_KeyBindings   and C_KeyBindings.GetBind
 CPAPI.GetBonusBarIndexForSlot        = C_ActionBar     and C_ActionBar.GetBonusBarIndexForSlot           or nop;
 CPAPI.GetCollectedDragonridingMounts = C_MountJournal  and C_MountJournal.GetCollectedDragonridingMounts or nopt;
 CPAPI.GetContainerItemID             = C_Container     and C_Container.GetContainerItemID                or GetContainerItemID;
-CPAPI.GetContainerItemQuestInfo      = C_Container     and C_Container.GetContainerItemQuestInfo         or GetContainerItemQuestInfo;
 CPAPI.GetContainerNumFreeSlots       = C_Container     and C_Container.GetContainerNumFreeSlots          or GetContainerNumFreeSlots;
 CPAPI.GetContainerNumSlots           = C_Container     and C_Container.GetContainerNumSlots              or GetContainerNumSlots;
 CPAPI.GetFactionParagonInfo          = C_Reputation    and C_Reputation.GetFactionParagonInfo            or nop;
@@ -357,9 +337,6 @@ CPAPI.PickupContainerItem            = C_Container     and C_Container.PickupCon
 CPAPI.PickupItem                     = C_Item          and C_Item.PickupItem                             or PickupItem;
 CPAPI.PickupSpell                    = C_Spell         and C_Spell.PickupSpell                           or PickupSpell;
 CPAPI.PickupSpellBookItem            = C_SpellBook     and C_SpellBook.PickupSpellBookItem               or PickupSpellBookItem;
-CPAPI.PutActionInSlot                = C_ActionBar     and C_ActionBar.PutActionInSlot                   or PlaceAction;
-CPAPI.RequestLoadQuestByID           = C_QuestLog      and C_QuestLog.RequestLoadQuestByID               or nop;
-CPAPI.RunMacroText                   = C_Macro         and C_Macro.RunMacroText                          or RunMacroText;
 CPAPI.SocketContainerItem            = C_Container     and C_Container.SocketContainerItem               or SocketContainerItem;
 CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
 CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
@@ -367,9 +344,6 @@ CPAPI.UseContainerItem               = C_Container     and C_Container.UseContai
 CPAPI.ClearCursor                    = ClearCursor        or nop;
 CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
 CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
-CPAPI.IsInLFDBattlefield             = IsInLFDBattlefield or nop;
-CPAPI.IsInLFGDungeon                 = IsInLFGDungeon     or nop;
-CPAPI.IsPartyLFG                     = IsPartyLFG         or nop;
 CPAPI.IsSecret                       = issecretvalue      or nop;
 CPAPI.IsSpellOverlayed               = IsSpellOverlayed   or nop;
 CPAPI.IsXPUserDisabled               = IsXPUserDisabled   or nop;
@@ -524,57 +498,6 @@ CPAPI.GetSpellBookItemInfo = function(...)
 	return C_SpellBook.GetSpellBookItemInfo(...) or {};
 end
 
-CPAPI.GetLootSlotInfo = function(...)
-	local lootIcon, lootName, lootQuantity, currencyID, lootQuality,
-	locked, isQuestItem, questID, isActive = GetLootSlotInfo(...)
-
-	return {
-		--[[ LootSlotInfo ]]
-		--[[ string           ]] lootIcon = lootIcon;
-		--[[ string           ]] lootName = lootName;
-		--[[ number           ]] lootQuantity = lootQuantity;
-		--[[ number           ]] currencyID = currencyID;
-		--[[ Enum.ItemQuality ]] lootQuality = lootQuality;
-		--[[ boolean          ]] locked = locked;
-		--[[ boolean          ]] isQuestItem = isQuestItem;
-		--[[ number           ]] questID = questID;
-		--[[ boolean          ]] isActive = isActive;
-		--[[ itemLink         ]] lootLink = GetLootSlotLink(...);
-	}
-end
-
-CPAPI.GetQuestInfo = function(...)
-	if C_QuestLog and C_QuestLog.GetInfo then
-		return C_QuestLog.GetInfo(...) or {};
-	end
-	if GetQuestLogTitle then
-		local title, level, suggestedGroup, isHeader, isCollapsed, isComplete,
-		frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI,
-		isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(...)
-		return {
-			--[[ QuestInfo ]]
-			--[[ string           ]] title = title;
-			--[[ number           ]] level = level;
-			--[[ number           ]] suggestedGroup = suggestedGroup;
-			--[[ boolean          ]] isHeader = isHeader;
-			--[[ boolean          ]] isCollapsed = isCollapsed;
-			--[[ boolean          ]] isComplete = isComplete;
-			--[[ Enum.QuestFrequency ]] frequency = frequency;
-			--[[ number           ]] questID = questID;
-			--[[ number           ]] startEvent = startEvent;
-			--[[ number           ]] displayQuestID = displayQuestID;
-			--[[ boolean          ]] isOnMap = isOnMap;
-			--[[ boolean          ]] hasLocalPOI = hasLocalPOI;
-			--[[ boolean          ]] isTask = isTask;
-			--[[ boolean          ]] isBounty = isBounty;
-			--[[ boolean          ]] isStory = isStory;
-			--[[ boolean          ]] isHidden = isHidden;
-			--[[ boolean          ]] isScaling = isScaling;
-		};
-	end
-	return {};
-end
-
 CPAPI.GetWatchedFactionData = function(...)
 	if C_Reputation and C_Reputation.GetWatchedFactionData then
 		return C_Reputation.GetWatchedFactionData(...)
@@ -633,11 +556,11 @@ end -- API wrappers
 ---------------------------------------------------------------
 -- Enum wrappers
 ---------------------------------------------------------------
-CPAPI.BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
-CPAPI.BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
-CPAPI.SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
-CPAPI.SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
-CPAPI.SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
+CPAPI.BOOKTYPE_PET     = not CPAPI.IsModernVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
+CPAPI.BOOKTYPE_SPELL   = not CPAPI.IsModernVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
+CPAPI.SKILLTYPE_PET    = not CPAPI.IsModernVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
+CPAPI.SKILLTYPE_SPELL  = not CPAPI.IsModernVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
+CPAPI.SKILLTYPE_FLYOUT = not CPAPI.IsModernVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
 
 ---------------------------------------------------------------
 -- Widget wrappers
@@ -645,25 +568,6 @@ CPAPI.SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.Sp
 
 function CPAPI.SetGradient(...)
 	return LibStub('Carpenter'):SetGradient(...)
-end
-
-function CPAPI.SetModelLight(self, enabled, lightValues)
-	if (pcall(self.SetLight, self, enabled, lightValues)) then
-		return
-	end
-
-	local dirX, dirY, dirZ = lightValues.point:GetXYZ()
-	local ambR, ambG, ambB = lightValues.ambientColor:GetRGB()
-	local difR, difG, difB = lightValues.diffuseColor:GetRGB()
-
-	return (pcall(self.SetLight, self, enabled,
-		lightValues.omnidirectional,
-		dirX, dirY, dirZ,
-		lightValues.diffuseIntensity,
-		difR, difG, difB,
-		lightValues.ambientIntensity,
-		ambR, ambG, ambB
-	))
 end
 
 do	local Lib = LibStub('ConsolePortActionButton');

@@ -81,7 +81,10 @@ do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end
 		};
 		{	binding = Bindings.Custom.UnitMenu;
 			name    = ('%s: %s'):format(PLAYER_OPTIONS_LABEL, DYNAMIC);
-			unit    = function() return db.UnitMenuSecure:GetPreferredUnit() end;
+			unit    = function()
+				local secure = db.UnitMenuSecure;
+				return secure and secure:GetPreferredUnit() or 'target';
+			end;
 			texture = [[Interface\TARGETINGFRAME\targetdead]];
 		};
 		{	binding = Bindings.Custom.UnitMenuPlayer;
@@ -223,7 +226,7 @@ Bindings.Primary = {
 		desc    = L.DESC_OPENALLBAGS;
 	};
 	{	binding = Bindings.Proxied.ToggleWorldMap;
-		desc = CPAPI.IsRetailVersion and L.DESC_TOGGLEWORLDMAP_RETAIL or L.DESC_TOGGLEWORLDMAP_CLASSIC;
+		desc = CPAPI.IsModernVersion and L.DESC_TOGGLEWORLDMAP_RETAIL or L.DESC_TOGGLEWORLDMAP_CLASSIC;
 	};
 	---------------------------------------------------------------
 	-- Camera
@@ -404,11 +407,11 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		TARGETNEARESTFRIENDPLAYER          = CustomIcons.TNFriend;
 		TARGETPREVIOUSFRIENDPLAYER         = CustomIcons.TNFriend;
 		---------------------------------------------------------------
-		TARGETPARTYMEMBER1                 = CPAPI.IsRetailVersion and client 'Achievement_PVP_A_01';
-		TARGETPARTYMEMBER2                 = CPAPI.IsRetailVersion and client 'Achievement_PVP_A_02';
-		TARGETPARTYMEMBER3                 = CPAPI.IsRetailVersion and client 'Achievement_PVP_A_03';
-		TARGETPARTYMEMBER4                 = CPAPI.IsRetailVersion and client 'Achievement_PVP_A_04';
-		TARGETSELF                         = CPAPI.IsRetailVersion and client 'Achievement_PVP_A_05';
+		TARGETPARTYMEMBER1                 = CPAPI.IsModernVersion and client 'Achievement_PVP_A_01';
+		TARGETPARTYMEMBER2                 = CPAPI.IsModernVersion and client 'Achievement_PVP_A_02';
+		TARGETPARTYMEMBER3                 = CPAPI.IsModernVersion and client 'Achievement_PVP_A_03';
+		TARGETPARTYMEMBER4                 = CPAPI.IsModernVersion and client 'Achievement_PVP_A_04';
+		TARGETSELF                         = CPAPI.IsModernVersion and client 'Achievement_PVP_A_05';
 		TARGETPET                          = client 'Spell_Hunter_AspectOfTheHawk';
 		---------------------------------------------------------------
 		ATTACKTARGET                       = client 'Ability_SteelMelee';

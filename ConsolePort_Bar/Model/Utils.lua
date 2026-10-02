@@ -293,50 +293,12 @@ function env.UnpackSig(sig)
 	return sig:match('^(%a+):(.+)$');
 end
 
-function env.ModComplement(A, B)
-	return A:gsub((B:gsub('%-', '%%-')), '')
-end
-
-function env.IsModSubset(A, B)
-	-- The inner gsub is parenthesised to drop its replacement count,
-	-- which would otherwise arrive as find's start offset and skip a
-	-- match at the very beginning -- 'CTRL-SHIFT-' in itself.
-	return not not (B:find((A:gsub('%-', '%%-'))))
-end
-
-do local ModReplacements = {
-		M0 = '';
-		M1 = 'SHIFT-';
-		M2 = 'CTRL-';
-		M3 = 'ALT-';
-	};
-	function env.ConvertDriver(driver) driver = driver or '';
-		for key, rep in pairs(ModReplacements) do
-			driver = driver:gsub(key, rep)
-		end
-		driver = driver:gsub('%b[]', function(capture)
-			return capture:gsub('%s', '')
-		end)
-		return (driver:gsub('%[mod:%]', '[nomod]'))
-	end
-end
-
-function env.MapDriver(driver)
-	local result, i = {}, 0;
-	for condition, response in driver:gmatch('(%b[])([^;]+)') do
-		tinsert(result, { ( response:trim() ), ( condition:sub(2, -2) ) });
-	end
-	for response in driver:gmatch('([^;%[%]]+)$') do
-		tinsert(result, { response:trim(), nil })
-	end
-	return function()
-		i = i + 1;
-		if result[i] then
-			return unpack(result[i]);
-		end
-		return nil;
-	end
-end
+-- Macro condition vocabulary lives in core, because the input layer
+-- controller owns every modifier condition across the whole suite.
+env.ModComplement = CPAPI.ModComplement;
+env.IsModSubset   = CPAPI.IsModSubset;
+env.ConvertDriver = CPAPI.ConvertDriver;
+env.MapDriver     = CPAPI.MapDriver;
 
 function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, arguments, states, baseColor)
 	text = L(text);
@@ -460,19 +422,38 @@ ConsolePort:AddSlashCommand('layout', {
 		if not layout then
 			return CPAPI.Log('Layout "%s" does not exist.', layoutName);
 		end
-		env:RunSafe(function(e, newLayout)
-			e:ReleaseAll()
-			e('Layout', newLayout)
-			e:TriggerEvent('OnLayoutChanged', true)
-		end, env, layout);
+		env:RunSafe(env.ApplyPreset, env, layout);
 	end
 })
+
+---------------------------------------------------------------
+-- Presets
+---------------------------------------------------------------
+function env:ApplyPreset(preset)
+	preset = CopyTable(preset)
+	self:ReleaseAll()
+	if preset.settings then
+		for path, data in pairs(preset.settings) do
+			self(path, data)
+		end
+		preset.settings = nil;
+	end
+	if preset.pager then
+		for path, data in pairs(preset.pager) do
+			self.db(path, data)
+		end
+		preset.pager = nil;
+	end
+	self('Layout', self.BuildLayout(preset))
+	self:TriggerEvent('OnLayoutChanged', true)
+end
 
 ---------------------------------------------------------------
 -- State handler helpers
 ---------------------------------------------------------------
 env.Attributes.State   = GenerateClosure(format, '_onstate-%s');     -- macro conditional response
 env.Attributes.Driver  = GenerateClosure(format, 'driver-%s');       -- macro conditional driver
+env.Attributes.Layered = GenerateClosure(format, 'layered-%s');      -- driver owned by the layer controller
 env.Attributes.Update  = GenerateClosure(format, '_childupdate-%s'); -- child update closure
 env.Attributes.OnState = 'OnStateChanged';                           -- see LibActionButton-1.0.lua
 env.Attributes.OnPage  = 'ActionPageChanged';                        -- see Pager.lua

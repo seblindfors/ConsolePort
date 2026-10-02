@@ -133,7 +133,7 @@ local function GetZoomForFraction(fraction)
 	return 0.5 * RIM_FRACTION / outer;
 end
 
-if CPAPI.IsRetailVersion then
+if CPAPI.IsModernVersion then
 	local healthCurve = C_CurveUtil.CreateColorCurve();
 	healthCurve:SetType(Enum.LuaCurveType.Step);
 	healthCurve:AddPoint(0.0, CreateColor(0.9, 0.2, 0.2));
@@ -247,7 +247,7 @@ function Unitbutton:UpdateRole()
 	local hasRole = role == 'TANK' or role == 'HEALER' or role == 'DAMAGER';
 	self.Role:SetShown(hasRole)
 	if not hasRole then return end;
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		self.Role:SetAtlas(('roleicon-tiny-%s'):format(role == 'DAMAGER' and 'dps' or role:lower()), false)
 	else
 		self.Role:SetTexture([[Interface\LFGFrame\UI-LFG-ICON-PORTRAITROLES]])

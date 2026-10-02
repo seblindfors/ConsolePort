@@ -4,7 +4,6 @@
 	<Script file="Pools.lua"/>
 	<Include file="Fonts.xml"/>
 	<!-- Intrinsics -->
-	<Include file="IndexButton\IndexButton.xml"/>
 	<Include file="PieMenu\PieMenu.xml"/>
 	<!-- Widget templates -->
 	<Include file="HintBar\HintBar.xml"/>

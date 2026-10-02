@@ -133,7 +133,7 @@ CPMicroButton = {
 };
 
 local LoadMicroButtonTextures, MovePortraitTextures, MovePerformanceBar = nop, nop, nop;
-if not CPAPI.IsRetailVersion then
+if not CPAPI.IsModernVersion then
 	local TextureKit = {
 		AchievementMicroButton = 'Achievements';
 		CharacterMicroButton   = 'ButtonBG';
@@ -379,7 +379,7 @@ function PopoutFrame:MoveMicroButtons()
 		if ( button.layoutIndex ~= index ) then
 			button.layoutIndex = index;
 		end
-		if not CPAPI.IsRetailVersion and not button.ValidateTextures then
+		if not CPAPI.IsModernVersion and not button.ValidateTextures then
 			LoadMicroButtonTextures(button)
 			button:SetHitRectInsets(0, 0, 0, 0)
 			Mixin(button, CPMicroButton):OnLoad()
@@ -457,9 +457,9 @@ function CPToolbar:OnLoad()
 	db:RegisterCallback('OnHintsClear', self.OnHints, self, 1)
 
 	self.snapToPixels = 16;
-	self.TotemBar  = not CPAPI.IsRetailVersion and MultiCastActionBarFrame;
-	self.CastBar   = not CPAPI.IsRetailVersion and CastingBarFrame;
-	self.StanceBar = not CPAPI.IsRetailVersion and StanceBarFrame;
+	self.TotemBar  = not CPAPI.IsModernVersion and MultiCastActionBarFrame;
+	self.CastBar   = not CPAPI.IsModernVersion and CastingBarFrame;
+	self.StanceBar = not CPAPI.IsModernVersion and StanceBarFrame;
 	self:RegisterEvent('CURSOR_CHANGED')
 	self.PopoutContainer:SetParent(self:GetParent())
 	self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)

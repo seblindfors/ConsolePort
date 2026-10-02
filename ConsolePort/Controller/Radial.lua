@@ -610,12 +610,12 @@ function Radial:OnActiveDeviceChanged()
 	local modifiers = db('Gamepad/Index/Modifier/Active')
 	local modkeys = tInvert(modifiers)
 	self:Execute('wipe(BTNS)')
-	for id, set in db:For('Gamepad/Index/Button/Binding') do
-		if not id:match('^PAD.STICK%w+') then -- TODO: are cardinal stick buttons OK now?
+	for binding, index in db:For('Gamepad/Index/Button/Binding') do
+		if not binding:match('^PAD.STICK%w+') then -- TODO: are cardinal stick buttons OK now?
 			self:Execute(([[
 				BTNS[%d] = "%s";
 				BTNS["%s"] = %d;
-			]]):format(set.ID+1, id, id, set.ID+1))
+			]]):format(index+1, binding, binding, index+1))
 		end
 	end
 	self:Execute('wipe(MODS)')

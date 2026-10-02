@@ -362,6 +362,44 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
+	_('Modules', SETTING_GROUP_SYSTEM);
+	--------------------------------------------------------------------------------------------------------
+	moduleActionBar = _{Bool(true);
+		name = 'Action Bar';
+		desc = 'Replaces the default action bars with a layout designed for gamepad play.';
+	};
+	layersTapLatch = _{Bool(false);
+		name = 'Tap to Latch';
+		desc = 'Tapping a modifier latches it until tapped again. Holding always overrides.';
+		advd = true;
+	};
+	layersDoubleBar = _{Bool(false);
+		name = 'Doubled Bar';
+		desc = 'Double tapping a modifier swaps to its own bar, which combines with nothing.';
+		advd = true;
+	};
+	layersOrdered = _{Bool(false);
+		name = 'Modifier Order';
+		desc = 'Pressing Ctrl then Shift is a different layer from Shift then Ctrl.';
+		advd = true;
+	};
+	moduleMenus = _{Bool(not CPAPI.IsNativeGamepadUI);
+		name = 'Menus';
+		desc = 'Item, spell and unit menus for the interface cursor, plus an optional game menu replacement.';
+	};
+	moduleRings = _{Bool(true);
+		name = 'Rings';
+		desc = 'Utility rings for spells, items and macros, selected with the radial stick.';
+	};
+	moduleWorld = _{Bool(true);
+		name = 'World';
+		desc = 'World interaction helpers: quick menu, loot frame and temporary ability prompts.';
+	};
+	moduleTarget = _{Bool(true);
+		name = 'Target';
+		desc = 'Targeting tools: raid cursor, unit hotkeys and the target ring.';
+	};
+	--------------------------------------------------------------------------------------------------------
 	_('Keyboard', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	keyboardEnable = _{Bool(false);

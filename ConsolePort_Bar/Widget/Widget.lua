@@ -133,12 +133,12 @@ end
 function AnimatedWidgetMixin:OnDriverChanged()
 	local driver = self.props.opacity;
 	if driver then
-		RegisterAttributeDriver(self, 'alpha', env.ConvertDriver(driver))
+		env.db.Layers:RegisterAttributeDriver(self, 'alpha', env.ConvertDriver(driver))
 	end
 
 	driver = self.props.rescale;
 	if driver then
-		RegisterAttributeDriver(self, 'scale', env.ConvertDriver(driver))
+		env.db.Layers:RegisterAttributeDriver(self, 'scale', env.ConvertDriver(driver))
 	end
 end
 

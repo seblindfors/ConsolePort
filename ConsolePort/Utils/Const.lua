@@ -7,6 +7,9 @@ CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC or nil;
 CPAPI.IsWrathVersion      = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 CPAPI.IsAnniVersion       = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or nil;
+CPAPI.IsCamelotVersion    = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT or nil;
+CPAPI.IsModernVersion     = CPAPI.IsRetailVersion or CPAPI.IsCamelotVersion or nil;
+CPAPI.IsNativeGamepadUI   = C_GamepadUI ~= nil or nil;
 
 ---------------------------------------------------------------
 -- Button
@@ -28,6 +31,7 @@ CPAPI.ActionButtonGUID    = tostring(random((select(4, GetBuildInfo()))));
 ---------------------------------------------------------------
 -- Game constants
 ---------------------------------------------------------------
+CPAPI.BindingPrefix        = 'BINDING_NAME_%s';
 CPAPI.ExtraActionButtonID  = (ExtraActionButton1 or {}).action or CPAPI.IsRetailVersion and 217 or 169;
 CPAPI.MAX_ACCOUNT_MACROS   = MAX_ACCOUNT_MACROS or Constants.MacroConsts.MAX_ACCOUNT_MACROS;
 CPAPI.MAX_CHARACTER_MACROS = MAX_CHARACTER_MACROS or Constants.MacroConsts.MAX_CHARACTER_MACROS;

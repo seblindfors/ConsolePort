@@ -1,8 +1,9 @@
-## Interface: 120100, 50504, 38010, 20506, 11509
+## Interface: 120100, 50504, 38010, 20506, 16001, 11509
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Menu|r
 ## Notes: Game menu module
 ## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
@@ -13,7 +14,11 @@
 
 Database.lua
 
+Frames.xml
+Controller\UnitMenu.lua
+
 Model\Buttons.lua
 Model\Visuals.lua
 
 View\Menu.xml
+View\Popup\Popup.xml

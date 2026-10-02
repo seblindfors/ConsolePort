@@ -6,5 +6,5 @@ function env.TutorialPredicate(tutorialID)
 end
 
 function env.HasActiveDevice()
-    return function() return not not env:GetActiveDeviceAndMap() end;
+    return function() return not not env:GetActiveDevice() end;
 end

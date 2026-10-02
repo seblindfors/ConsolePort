@@ -288,7 +288,8 @@ function CPPetRing:SetProps(props)
 	self.Center.OuterBorder:SetShown(showStatus)
 	self:SetScript('OnUpdate', showStatus and self.OnUpdate or nil)
 
-	RegisterStateDriver(self, 'visibility', (not props.vehicle and '[vehicleui] hide; ' or '') .. props.visibility);
+	db.Layers:RegisterStateDriver(self, 'visibility', env.ConvertDriver(
+		(not props.vehicle and '[vehicleui] hide; ' or '') .. props.visibility));
 
 	self:Update()
 	self:UpdateCooldowns()
@@ -350,7 +351,7 @@ do local UnitExists = UnitExists;
 	end
 end
 
-if CPAPI.IsRetailVersion then
+if CPAPI.IsModernVersion then
 	local UnitHealthPercent, UnitPowerPercent = UnitHealthPercent, UnitPowerPercent;
 
 	local healthCurve = C_CurveUtil.CreateCurve();

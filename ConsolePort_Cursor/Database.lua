@@ -107,7 +107,7 @@ ConsolePort:AddVariables({
 		note = 'While held down, can simulate dragging by clicking on the directional pad.';
 		deps = DEPENDENCY;
 	};
-	UICursorRightClick = _{Data.Button('PAD2');
+	UICursorRightClick = _{Data.Button('PAD3');
 		name = KEY_BUTTON2;
 		desc = 'Button to replicate right click. This is the secondary interface action.';
 		note = 'This button is necessary to use or sell an item directly from your bags.';
@@ -118,7 +118,7 @@ ConsolePort:AddVariables({
 		desc = 'Button to handle contextual actions, such as adding items to the utility ring.';
 		deps = DEPENDENCY;
 	};
-	UICursorCancel = _{Data.Button('PAD3');
+	UICursorCancel = _{Data.Button('PAD2');
 		name = 'Cancel Button';
 		desc = 'Button to handle cancel actions, such as exiting menus.';
 		deps = DEPENDENCY;
@@ -197,6 +197,12 @@ env.FramePipelines = { -- global ref, bool or method
 ---------------------------------------------------------------
 -- Node management resources
 ---------------------------------------------------------------
+-- Deferred Blizzard addon hooks; pcall-wrapped so one bad hook
+-- does not take the rest of the load callback with it.
+function env.OnAddonLoaded(addOn, script)
+	EventUtil.ContinueOnAddOnLoaded(addOn, GenerateClosure(pcall, script))
+end
+
 env.Node = LibStub('ConsolePortNode');
 
 env.IsClickableType = {

@@ -1,4 +1,4 @@
-if not CPAPI.IsRetailVersion then return end;
+if not CPAPI.IsModernVersion then return end;
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local PING_ROW_INDEX = env.QMenuID();

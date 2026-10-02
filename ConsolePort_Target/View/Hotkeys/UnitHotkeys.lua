@@ -245,8 +245,7 @@ function UH:OnDisplaySettingsChanged()
 end
 
 function UH:OnModifiersChanged()
-	UnregisterAttributeDriver(self, 'modifier')
-	RegisterAttributeDriver(self, 'modifier', db('Gamepad/Index/Modifier/Driver'))
+	db.Layers:RegisterAttributeDriver(self, 'modifier', db('Gamepad/Index/Modifier/Driver'))
 end
 
 function UH:OnTargetSettingsChanged()

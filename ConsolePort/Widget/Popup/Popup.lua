@@ -105,7 +105,7 @@ CPPopupBindingCatchButtonMixin = CreateFromMixins(CPButtonCatcherMixin)
 ---------------------------------------------------------------
 local TIME_UNTIL_CANCEL = 5;
 
-CPPopupBindingCatchButtonMixin.Template = (CPAPI.IsRetailVersion
+CPPopupBindingCatchButtonMixin.Template = (CPAPI.IsModernVersion
 	and 'SharedButtonLargeTemplate'
 	or  'UIPanelButtonTemplate')
 	..  ',CPPopupBindingCatchButtonTemplate';
@@ -153,7 +153,17 @@ end
 
 function CPPopupBindingCatchButtonMixin:TryCatchBinding(popupInfo, t1, t2, d)
 	self:Show()
-	CPAPI.Popup('ConsolePort_Popup_Change_Binding', popupInfo, t1, t2, d, self)
+	self.dialog = CPAPI.Popup('ConsolePort_Popup_Change_Binding', popupInfo, t1, t2, d, self)
+	return self.dialog;
+end
+
+-- @return text : the dialog's own text object, for handlers that
+--   report progress back into the prompt the player is reading
+function CPPopupBindingCatchButtonMixin:GetDialogText()
+	local dialog = self.dialog;
+	if ( dialog and dialog:IsShown() ) then
+		return dialog.text or _G[dialog:GetName()..'Text'];
+	end
 end
 
 function CPPopupBindingCatchButtonMixin:OnBindingCaught(button, data)

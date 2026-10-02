@@ -100,7 +100,7 @@ function env:GetCollections(currentSetID, isSharedSet)
 				return CPAPI.GetAsset([[Textures\Button\NotBound]])
 			end;
 			title   = function(id)
-				local name = db.Loadout:GetActionInfo(id) or EMPTY;
+				local name = db.Loadout and db.Loadout:GetActionInfo(id) or EMPTY;
 				return ('%s |cFF757575(%d)|r'):format(name, id);
 			end;
 			tooltip = function(tooltip, id)

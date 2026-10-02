@@ -408,7 +408,7 @@ function CPSelectionPopoutMixin:OnLoad()
 end
 
 function CPSelectionPopoutMixin:OnShow()
-	if not CPAPI.IsRetailVersion then
+	if not CPAPI.IsModernVersion then
 		self.Border.layoutType = 'ChatBubble';
 		self.Border:OnLoad()
 

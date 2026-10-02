@@ -133,11 +133,6 @@ function CPAPI.LockPoints(frame)
 	= nop, nop, nop, nop;
 end
 
-function CPAPI.CreateDataHandler(...)
-	local handler = CreateFromMixins(...)
-	return CPAPI.DataHandler(handler)
-end
-
 function CPAPI.DataHandler(handler)
 	db:RegisterCallback('OnDataLoaded', CPAPI.EventMixin.ADDON_LOADED, handler)
 	return handler;
@@ -150,12 +145,6 @@ function CPAPI.CreateConfigFrame(arg1, ...)
 		return Mixin(CreateFrame(...), arg1), env;
 	end
 	return CreateFrame(arg1, ...), env;
-end
-
-function CPAPI.InitConfigFrame(mixin, ...)
-	local frame, env = CPAPI.CreateConfigFrame(...)
-	CPAPI.Specialize(frame, mixin)
-	return frame, env;
 end
 
 do -- Compatible with CPScrollBoxTree
@@ -392,9 +381,6 @@ do local sort, head, main = 0;
 	end
 end
 
-function CPAPI.OnAddonLoaded(addOn, script)
-	EventUtil.ContinueOnAddOnLoaded(addOn, GenerateClosure(pcall, script))
-end
 
 ---------------------------------------------------------------
 -- Debounce

@@ -446,7 +446,7 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 		end
 	end
 
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		local healthCurve = C_CurveUtil.CreateColorCurve();
 		healthCurve:SetType(Enum.LuaCurveType.Step);
 		healthCurve:AddPoint(0.0, CreateColor(1, 0.25, 0.25, 1));

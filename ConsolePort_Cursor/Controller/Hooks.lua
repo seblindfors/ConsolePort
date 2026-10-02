@@ -42,11 +42,17 @@ function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 			Hooknode.OnDressupButtonModifiedClick(node, 'LeftButton')
 			return true;
 		elseif self.itemLocation then
-			db.ItemMenu:SetItem(self.itemLocation:GetBagAndSlot())
+			local menu = db.Modules:Demand('ItemMenu')
+			if menu then
+				menu:SetItem(self.itemLocation:GetBagAndSlot())
+			end
 		elseif self.bagLocation then
 			PickupBagFromSlot(self.bagLocation)
 		elseif self.spellID then
-			db.SpellMenu:SetSpell(self.spellID)
+			local menu = db.Modules:Demand('SpellMenu')
+			if menu then
+				menu:SetSpell(self.spellID)
+			end
 		elseif ConsolePort:HasPendingRingAction() then
 			return ConsolePort:PostPendingRingAction()
 		end
@@ -95,7 +101,7 @@ end
 do  local IsWidget, GetID, GetParent, GetScript =
 		C_Widget.IsFrameWidget, UIParent.GetID, UIParent.GetParent, UIParent.GetScript;
 
-	local TryIdentifyContainerSlot = CPAPI.IsRetailVersion and function(node)
+	local TryIdentifyContainerSlot = CPAPI.IsModernVersion and function(node)
 		return node.GetSlotAndBagID == ContainerFrameItemButtonMixin.GetSlotAndBagID;
 	end or function(node)
 		-- Since the classic container slot buttons are hard to identify by script or inheritance,
@@ -109,7 +115,7 @@ do  local IsWidget, GetID, GetParent, GetScript =
 
 	function Hooks:GetItemLocationFromNode(node)
 		return IsWidget(node) and TryIdentifyContainerSlot(node) and
-			(CPAPI.IsRetailVersion and ItemLocation:CreateFromBagAndSlot(node:GetBagID(), node:GetID()) or
+			(CPAPI.IsModernVersion and ItemLocation:CreateFromBagAndSlot(node:GetBagID(), node:GetID()) or
 			ItemLocation:CreateFromBagAndSlot(GetID(GetParent(node)), GetID(node))) or nil;
 	end
 
@@ -357,7 +363,7 @@ do -- Tooltip hooking
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
 		TooltipDataProcessor.AddLinePreCall(Enum.TooltipDataType.Item, OnTooltipSetItemLine)
 	end
-	if not CPAPI.IsRetailVersion then -- TooltipDataProcessor exists on Cata but is not used
+	if not CPAPI.IsModernVersion then -- TooltipDataProcessor exists on Cata but is not used
 		GameTooltip:HookScript('OnTooltipSetItem', OnTooltipSetItem)
 		GameTooltip:HookScript('OnTooltipSetSpell', OnTooltipSetSpell)
 	end

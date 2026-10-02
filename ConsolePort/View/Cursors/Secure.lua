@@ -111,7 +111,7 @@ Cursor:Wrap('PreClick', [[
 Cursor:Run([[
 	CLICKS = {};
 	CLICKS.LeftButton   = 'PAD1';
-	CLICKS.RightButton  = 'PAD2';
+	CLICKS.RightButton  = 'PAD3';
 	CLICKS.MiddleButton = 'PAD4';
 ]])
 

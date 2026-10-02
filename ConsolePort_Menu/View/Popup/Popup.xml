@@ -1,12 +1,12 @@
 <Ui>
 	<GameTooltip frameStrata="MEDIUM" name="ConsolePortPopupMenuTooltip" parentKey="Tooltip" inherits="GameTooltipTemplate"/>
 
-	<IndexButton name="CPPopupActionSlotTemplate" virtual="true">
+	<CheckButton name="CPPopupActionSlotTemplate" virtual="true" inherits="BackdropTemplate" mixin="CPPopupActionSlotMixin">
 		<Size x="38" y="38"/>
-		<KeyValues>
-			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
-		</KeyValues>
 		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-1">
+				<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Backdrop_Vertex_Noise" setAllPoints="true"/>
+			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="-1">
 				<Texture parentKey="Icon" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon">
 					<Anchors>
@@ -14,6 +14,15 @@
 						<Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
 					</Anchors>
 					<TexCoords left="0.1" right="0.9" top="0.1" bottom="0.9"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="CheckedThumb" hidden="true">
+					<Size y="4"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT"/>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="2">
@@ -24,8 +33,29 @@
 					</Anchors>
 				</FontString>
 			</Layer>
+			<Layer level="HIGHLIGHT" textureSubLevel="1">
+				<Texture parentKey="Hilite" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Backdrop_Vertex_Noise" setAllPoints="true" alphaMode="ADD">
+					<Color r="1" g="1" b="1" a="0.1"/>
+				</Texture>
+			</Layer>
+			<Layer level="HIGHLIGHT" textureSubLevel="2">
+				<Texture parentKey="HiliteThumb">
+					<Size y="4"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT"/>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
+				</Texture>
+			</Layer>
 		</Layers>
-	</IndexButton>
+		<Scripts>
+			<OnLoad method="OnLoad" inherit="append"/>
+			<OnHide method="OnHide"/>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</CheckButton>
 
 	<!-- Container item menu -->
 	<Frame name="ConsolePortItemMenu"

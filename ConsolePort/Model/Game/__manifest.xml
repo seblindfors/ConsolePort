@@ -2,5 +2,5 @@
 	<!-- Single file models -->
 	<Script file="Actionbar.lua"/>
 	<Script file="Bindings.lua"/>
-	<Script file="Loadout.lua"/>
+	<Script file="ActionMap.lua"/>
 </Ui>

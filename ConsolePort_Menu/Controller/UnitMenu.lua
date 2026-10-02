@@ -4,7 +4,7 @@
 -- Provides combat-safe controls for the unit menu.
 -- See View\Popup\UnitMenu.lua for the actual menu.
 
-local _, db = ...;
+local env, db = CPAPI.GetEnv(...);
 local UnitMenuSecure = db:Register('UnitMenuSecure', Mixin(CPAPI.DataHandler(ConsolePortUnit), CPAPI.SecureEnvironmentMixin, {
 	Buttons = { -- Cautiously hardcoded until someone complains
 		ACCEPT = 'PAD1';

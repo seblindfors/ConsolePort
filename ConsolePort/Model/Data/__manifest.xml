@@ -4,6 +4,5 @@
 	<!-- Assets -->
 	<Script file="Variables.lua"/>
 	<Script file="Console.lua"/>
-	<Script file="Profile.lua"/>
 	<Script file="Shared.lua"/>
 </Ui>

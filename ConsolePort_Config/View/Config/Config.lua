@@ -231,6 +231,10 @@ function Config:GetCatcher()
 		self.Catcher = CreateFrame('Button', nil, self, env.Mixin.BindingCatcher.Template)
 		self.Catcher.promptText = L.SLOT_SET_BINDING;
 		CPAPI.Specialize(self.Catcher, env.Mixin.BindingCatcher)
+		-- Specializing reflects the standard script handlers onto the
+		-- frame, but deliberately not OnUpdate, so the template's own
+		-- remains bound and the override has to be installed by hand.
+		self.Catcher:SetScript('OnUpdate', self.Catcher.OnUpdate)
 	end
 	return self.Catcher;
 end
@@ -310,7 +314,7 @@ function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
 
 	local catcher = self:GetCatcher()
 	catcher:TryCatchBinding({
-		text = catcher.promptText;
+		text = catcher:GetPromptText();
 		OnShow = function()
 			self:PauseCatcher()
 			ConsolePort:SetCursorNodeIfActive(element)
@@ -539,6 +543,7 @@ do  local panelIDGen, panels = CreateCounter(-1), {};
 			navButton = config.Nav:AddButton(info.name, NavButtonOnClick, panelID)
 			navButton:SetID(panelID)
 			navButton.layoutIndex = panelID;
+			config.Nav:SetButtonVisuals()
 			env:RegisterCallback('OnPanelShow', NavButtonOnPanelShow, navButton)
 		end
 		env:UnregisterCallback('OnConfigLoad', panel)

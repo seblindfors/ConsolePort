@@ -119,13 +119,13 @@ function Keyboard:Insert(key)
 end
 
 function Keyboard:Escape()
-	if self:Stroke(1) then return end;
+	if self:Stroke(2) then return end;
 	ExecuteFrameScript(self.focusFrame, 'OnEscapePressed')
 	self:OnFocusChanged(nil)
 end
 
 function Keyboard:Enter()
-	if self:Stroke(2) then return end;
+	if self:Stroke(4) then return end;
 	ExecuteFrameScript(self.focusFrame, 'OnEnterPressed')
 	if self.cachedFocusText then
 		env.DictHandler:Update(env.Dictionary, self.cachedFocusText)
@@ -140,7 +140,7 @@ function Keyboard:Space()
 end
 
 function Keyboard:Erase()
-	if self:Stroke(4) then return end;
+	if self:Stroke(1) then return end;
 	if IsControlKeyDown() then
 		return self.focusFrame:SetText('')
 	end
@@ -327,10 +327,10 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardAutoCorrButton')]  = self.AutoCorrect;
 	};
 	self.Controls:SetData({
-		{ env.Cmd.Escape, };
-		{ env.Cmd.Enter,  };
-		{ env.Cmd.Space,  };
 		{ env.Cmd.Erase,  };
+		{ env.Cmd.Escape, };
+		{ env.Cmd.Space,  };
+		{ env.Cmd.Enter,  };
 	})
 	self.Controls:SetState(1)
 	-- update dictionary settings

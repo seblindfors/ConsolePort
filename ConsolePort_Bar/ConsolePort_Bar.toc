@@ -1,8 +1,9 @@
-## Interface: 120100, 50504, 38010, 20506, 11509
+## Interface: 120100, 50504, 38010, 20506, 16001, 11509
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar module
 ## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
@@ -21,11 +22,13 @@ Model\Assets.lua
 Model\Database.lua
 Model\Interface.lua
 Model\Presets.lua
+Model\Presets2.lua
 Model\Upgrade.lua
 
 Widget\Widget.lua
 Widget\Watch\Watch.xml
 Widget\Divider\Divider.xml
+Widget\Glyph\Glyph.xml
 Widget\Art\Art.xml
 Widget\Button\Button.xml
 Widget\Bar\Bar.xml

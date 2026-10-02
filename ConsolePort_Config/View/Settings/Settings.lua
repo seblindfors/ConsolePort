@@ -16,7 +16,7 @@ local Settings = env:CreatePanel({
 })
 
 function Settings:OnInit()
-	if not env:GetActiveDeviceAndMap() then
+	if not env:GetActiveDevice() then
 		self:SetEnabled(false)
 		db:RegisterCallback('Gamepad/Active', function(self)
 			self:SetEnabled(true)

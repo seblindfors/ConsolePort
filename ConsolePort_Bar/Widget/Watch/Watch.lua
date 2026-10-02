@@ -252,6 +252,9 @@ end
 
 function CPExhaustionTickMixin:OnLoad()
 	CPAPI.RegisterFrameForEvents(self, self.Events)
+	if IsLoggedIn() then
+		self:PLAYER_ENTERING_WORLD()
+	end
 end
 
 function CPExhaustionTickMixin:UpdateTickPosition()
@@ -819,7 +822,7 @@ do -- Bar setup
 end
 
 do -- Initialize bars
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		-- See FrameXML\StatusTrackingManager.lua
 		local BarsEnum = {
 			None       = -1;

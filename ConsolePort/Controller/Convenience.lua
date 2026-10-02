@@ -31,19 +31,19 @@ end
 -- Cancel cinematics
 do local MovieControls = {
 		[MovieFrame] = {
-			PAD1 = MovieFrame.CloseDialog.Buttons and MovieFrame.CloseDialog.Buttons.ResumeButton or MovieFrame.CloseDialog.ResumeButton;
-			PAD2 = MovieFrame.CloseDialog.Buttons and MovieFrame.CloseDialog.Buttons.ConfirmButton or MovieFrame.CloseDialog.ConfirmButton;
+			PAD1 = MovieFrame.CloseDialog.Buttons and MovieFrame.CloseDialog.Buttons.ConfirmButton or MovieFrame.CloseDialog.ConfirmButton;
+			PAD2 = MovieFrame.CloseDialog.Buttons and MovieFrame.CloseDialog.Buttons.ResumeButton or MovieFrame.CloseDialog.ResumeButton;
 		};
 		[CinematicFrame] = {
-			PAD1 = CinematicFrameCloseDialogResumeButton;
-			PAD2 = CinematicFrameCloseDialogConfirmButton;
+			PAD1 = CinematicFrameCloseDialogConfirmButton;
+			PAD2 = CinematicFrameCloseDialogResumeButton;
 		};
 	};
 
 	local function MovieOnGamePadButtonDown(controls, self, button)
 		if controls.PAD1 and controls.PAD2 then
-			controls.PAD1:SetText(('%s %s'):format(GetBindingText('PAD1', '_ABBR'), NO))
-			controls.PAD2:SetText(('%s %s'):format(GetBindingText('PAD2', '_ABBR'), YES))
+			controls.PAD1:SetText(('%s %s'):format(GetBindingText('PAD1', '_ABBR'), YES))
+			controls.PAD2:SetText(('%s %s'):format(GetBindingText('PAD2', '_ABBR'), NO))
 		end
 
 		local binding = GetBindingFromClick(button)
@@ -169,23 +169,6 @@ if ColorPickerFrame then
 	end)
 end
 
--- Loads extra modules
-local OnDemandModules, TryLoadModule = {
-	ConsolePort_Keyboard = 'keyboardEnable';
-	ConsolePort_Cursor   = 'UIenableCursor';
-}; do local RawEnableAddOn = CPAPI.EnableAddOn;
-	function TryLoadModule(predicate, module)
-		if not db(predicate) or CPAPI.IsAddOnLoaded(module) then
-			return
-		end
-		RawEnableAddOn(module)
-		local loaded, reason = CPAPI.LoadAddOn(module)
-		if not loaded then
-			CPAPI.Log('Failed to load %s. Reason: %s\nPlease check your installation.', (module:gsub('_', ' ')), _G['ADDON_'..reason])
-		end
-	end
-end
-
 ---------------------------------------------------------------
 -- Convenience handler
 ---------------------------------------------------------------
@@ -239,13 +222,3 @@ function Handler:QUEST_AUTOCOMPLETE(...)
 	-- automatically show autocomplete quests
 	ShowQuestComplete(...)
 end
-
-function Handler:OnDataLoaded()
-	for module, predicate in pairs(OnDemandModules) do
-		TryLoadModule(predicate, module)
-	end
-	return CPAPI.BurnAfterReading;
-end
-
-db:RegisterCallback('Settings/keyboardEnable', GenerateClosure(TryLoadModule, 'keyboardEnable', 'ConsolePort_Keyboard'))
-db:RegisterCallback('Settings/UIenableCursor', GenerateClosure(TryLoadModule, 'UIenableCursor', 'ConsolePort_Cursor'))

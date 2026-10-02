@@ -374,7 +374,7 @@ local function ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
 	self:UpdatePieSlices(true, #active)
 end
 
-if CPAPI.IsRetailVersion then -- signature: (self, flyoutButton, flyoutID, isActionBar, specID, showFullTooltip, reason)
+if CPAPI.IsModernVersion then -- signature: (self, flyoutButton, flyoutID, isActionBar, specID, showFullTooltip, reason)
 	hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, _, flyoutID, isActionBar, specID, _, reason)
 		ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
 	end)

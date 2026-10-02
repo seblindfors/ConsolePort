@@ -3,7 +3,7 @@
 ---------------------------------------------------------------
 -- Modifications to the UI to support better cursor behavior.
 
-local env, db, _ = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
+local env, db, _ = CPAPI.GetEnv(...); _ = env.OnAddonLoaded;
 
 -- Popups:
 -- Since popups normally appear in response to an event or

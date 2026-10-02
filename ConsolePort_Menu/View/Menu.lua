@@ -14,6 +14,9 @@ Menu:SetFrameLevel(GameMenu:GetFrameLevel() - 1)
 ---------------------------------------------------------------
 function Menu:OnDataLoaded()
 	self:OnSizingChanged()
+	if IsLoggedIn() then
+		self:PLAYER_LOGIN()
+	end
 	RunNextFrame(function()
 		self:SetPoint('CENTER', UIParent, 'BOTTOMLEFT', self:GetTargetOffsets(MenuRing))
 	end)
@@ -25,6 +28,9 @@ function Menu:OnSizingChanged()
 end
 
 function Menu:OnFrameShown(visible, frame)
+	if ( frame == GameMenu ) and not db('gameMenuEnable') then
+		visible = false;
+	end
 	self.Owners[frame].visible = visible;
 	RunNextFrame(function()
 		for owner, config in pairs(self.Owners) do
@@ -123,7 +129,7 @@ do -- Skinning
 	local SkinGameMenu = GameMenu and GameMenu.Border and GameMenu.Header and function()
 			GameMenu.Border:SetShown(false)
 			GameMenu.Header:SetShown(false)
-			GameMenuFrameConsolePort:SetPoint('TOP', 0, CPAPI.IsRetailVersion and 20 or 50)
+			GameMenuFrameConsolePort:SetPoint('TOP', 0, CPAPI.IsModernVersion and 20 or 50)
 		end or GameMenuFrame and GameMenuFrame.Header and GameMenuFrame.Border and function()
 			GameMenuFrame.Header:SetShown(false)
 			NineSliceUtil.SetLayoutShown(GameMenuFrame.Border, false)
@@ -132,10 +138,10 @@ do -- Skinning
 			NineSliceUtil.SetLayoutShown(GameMenu, false)
 		end or nop;
 
-	local X_O = CPAPI.IsRetailVersion and 100 or 80;
-	local Y_O = CPAPI.IsRetailVersion and 250 or 160;
-	local T_O = CPAPI.IsRetailVersion and 116 or 60;
-	local B_O = CPAPI.IsRetailVersion and 112 or 54;
+	local X_O = CPAPI.IsModernVersion and 100 or 80;
+	local Y_O = CPAPI.IsModernVersion and 250 or 160;
+	local T_O = CPAPI.IsModernVersion and 116 or 60;
+	local B_O = CPAPI.IsModernVersion and 112 or 54;
 	
 	Menu.Owners = {
 		[GameMenu] = {

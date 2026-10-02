@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- SpellMenu.lua: Popup menu for managing spells
 ---------------------------------------------------------------
-local _, db, L = ...; L = db.Locale;
+local env, db, _, L = CPAPI.GetEnv(...);
 local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMenu, {
 	'PLAYER_REGEN_DISABLED';
 	'UPDATE_BINDINGS';
@@ -398,7 +398,7 @@ end
 SpellMenu:HookScript('OnHide', SpellMenu.OnHide)
 SpellMenu:SetAttribute('nodepass', true)
 SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
-SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPPopupActionSlotTemplate')
+SpellMenu.ActionButtons = CreateFramePool('CheckButton', SpellMenu, 'CPPopupActionSlotTemplate')
 SpellMenu.ActionBarText = CreateFontStringPool(SpellMenu, 'ARTWORK', nil, 'CPSmallFont')
 ---------------------------------------------------------------
 GameMenuFrame:HookScript('OnShow', GenerateClosure(SpellMenu.Hide, SpellMenu))

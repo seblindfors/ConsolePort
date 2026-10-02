@@ -18,9 +18,9 @@ local Settings = {}; env.Settings = Settings;
 ---------------------------------------------------------------
 -- Consts
 ---------------------------------------------------------------
-local COLOR_CHECKED = CPIndexButtonMixin.IndexColors.Checked;
-local COLOR_HILITE  = CPIndexButtonMixin.IndexColors.Hilite;
-local COLOR_NORMAL  = CPIndexButtonMixin.IndexColors.Normal;
+local COLOR_CHECKED = CreateColor(1, 0.7451, 0, 1);
+local COLOR_HILITE  = CreateColor(0, 0.68235, 1, 1);
+local COLOR_NORMAL  = CreateColor(0.05, 0.05, 0.05, 0.35);
 local NONE          = 'none';
 
 ---------------------------------------------------------------
@@ -160,7 +160,10 @@ function Widget:OnValueChanged(...)
 end
 
 -- default to just ignoring checked state
-Widget.OnClick = CPIndexButtonMixin.Uncheck;
+function Widget:OnClick()
+	self:SetChecked(false)
+	self:OnChecked(false)
+end
 
 ---------------------------------------------------------------
 -- Widget:UpdateTooltip

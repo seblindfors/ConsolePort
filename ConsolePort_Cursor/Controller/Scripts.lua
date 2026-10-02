@@ -6,7 +6,7 @@
 -- because they modify properties of protected objects, either
 -- directly or indirectly by execution path.
 
-local env, db, _, L = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
+local env, db, _, L = CPAPI.GetEnv(...); _ = env.OnAddonLoaded;
 local xpcall, CallErrorHandler = xpcall, CallErrorHandler;
 local Scripts = CPAPI.Proxy({}, function(self, key) return rawget(rawset(self, key, {}), key) end);
 
@@ -95,7 +95,7 @@ do -- Misc addon fixes
 end
 
 -----------------------------------------------------------
-if CPAPI.IsRetailVersion then -- Misc retail addon fixes
+if CPAPI.IsModernVersion then -- Misc retail addon fixes
 -----------------------------------------------------------
 	_('Blizzard_Collections', function()
 		Scripts.OnEnter[ ToySpellButton_OnEnter ] = function(self)
@@ -159,7 +159,7 @@ if CPAPI.IsRetailVersion then -- Misc retail addon fixes
 end
 
 -----------------------------------------------------------
-if CPAPI.IsRetailVersion then -- Modern spellbook/talents
+if CPAPI.IsModernVersion then -- Modern spellbook/talents
 -----------------------------------------------------------
 	_('Blizzard_PlayerSpells', function()
 		-- Talent frame customization:
@@ -227,7 +227,7 @@ if CPAPI.IsRetailVersion then -- Modern spellbook/talents
 		Scripts.OnLeave[ ClassTalentSelectionChoiceMixin.OnLeave ] = function(self)
 			TalentDisplayMixin.OnLeave(self)
 			RunNextFrame(function()
-				if ConsolePortSpellMenu:IsShown() then return end;
+				if ConsolePortSpellMenu and ConsolePortSpellMenu:IsShown() then return end;
 
 				local currentNode = env.Cursor:GetCurrentNode()
 				if currentNode and currentNode:GetParent() ~= selectionChoiceFrame then
@@ -236,23 +236,25 @@ if CPAPI.IsRetailVersion then -- Modern spellbook/talents
 			end)
 		end;
 
-		ConsolePortSpellMenu:HookScript('OnShow', function()
-			if PlayerSpellsFrame:IsShown() then
-				PlayerSpellsFrame:SetAlpha(0.25)
-				PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, true)
-			end
-		end)
-		ConsolePortSpellMenu:HookScript('OnHide', function()
-			if PlayerSpellsFrame:GetAttribute(env.Attributes.IgnoreNode) then
-				PlayerSpellsFrame:SetAlpha(1)
-				PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, nil)
-			end
+		_('ConsolePort_Menu', function()
+			ConsolePortSpellMenu:HookScript('OnShow', function()
+				if PlayerSpellsFrame:IsShown() then
+					PlayerSpellsFrame:SetAlpha(0.25)
+					PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, true)
+				end
+			end)
+			ConsolePortSpellMenu:HookScript('OnHide', function()
+				if PlayerSpellsFrame:GetAttribute(env.Attributes.IgnoreNode) then
+					PlayerSpellsFrame:SetAlpha(1)
+					PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, nil)
+				end
+			end)
 		end)
 	end)
 end -- Modern spellbook/talents
 
 ---------------------------------------------------------------
-if CPAPI.IsRetailVersion then -- MapCanvasPinMixin
+if CPAPI.IsModernVersion then -- MapCanvasPinMixin
 ---------------------------------------------------------------
 	_('Blizzard_MapCanvas', function()
 		_('Blizzard_SharedMapDataProviders', function()

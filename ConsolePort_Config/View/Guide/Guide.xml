@@ -41,5 +41,6 @@
 	<!-- The order matters -->
 	<Include file="Graphics.xml"/>
 	<Include file="Controls.xml"/>
+	<Include file="Features.xml"/>
 	<Include file="Overview.xml"/>
 </Ui>

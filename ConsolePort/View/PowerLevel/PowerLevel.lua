@@ -69,7 +69,7 @@ function PowerLevel:OnDataLoaded()
 		db.Gamepad.SetIconToTexture(self.Icon, 'PADSYSTEM')
 	end
 
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		self.Background:SetAtlas('jailerstower-wayfinder-rewardbackground-disable')
 	end
 	return CPAPI.KeepMeForLater;
@@ -123,7 +123,7 @@ CPAPI.DataHandler(PowerLevel)
 ---------------------------------------------------------------
 -- Textures
 ---------------------------------------------------------------
-if CPAPI.IsRetailVersion then
+if CPAPI.IsModernVersion then
 	PowerLevel.BorderLeft:SetAtlas('ui-frame-bar-borderleft')
 	PowerLevel.BorderRight:SetAtlas('ui-frame-bar-borderright')
 	PowerLevel.BorderCenter:SetAtlas('ui-frame-bar-bordercenter')

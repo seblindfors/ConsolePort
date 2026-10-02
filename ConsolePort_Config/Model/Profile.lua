@@ -1,4 +1,4 @@
-local __, db = ...; __ = 1; local Profile = {};
+local _, db = CPAPI.GetEnv(...); local Profile = {};
 local kSelectAxisOptions = {
 	LStickX = 'Left Stick X',
 	LStickY = 'Left Stick Y',
@@ -11,7 +11,7 @@ local kSelectAxisOptions = {
 	PStickX = 'TouchPad X',
 	PStickY = 'TouchPad Y',
 };
-setfenv(__, setmetatable(db('Data'), {__index = _G}));
+setfenv(1, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
 -- Gamepad API profile values
 ------------------------------------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Tooltip hacks
 ---------------------------------------------------------------
-local Tooltip, _, db = ConsolePortPopupMenuTooltip, ...;
+local Tooltip, env, db = ConsolePortPopupMenuTooltip, CPAPI.GetEnv(...);
 local STATUSBAR_Y_OFFSET = 21;
 local STATUSBAR_X_OFFSET = 16;
 

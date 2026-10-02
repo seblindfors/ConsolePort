@@ -4,7 +4,6 @@ LibStub('RelaTable')(name, env);
 ---------------------------------------------------------------
 -- Binding helpers
 ---------------------------------------------------------------
-env.BindingInfo, env.BindingInfoMixin = db.Loadout, db.LoadoutMixin;
 
 function env:SetBinding(keyChord, bindingID, skipSave)
 	if CPAPI.SetBinding(keyChord, bindingID, not skipSave) then
@@ -13,13 +12,38 @@ function env:SetBinding(keyChord, bindingID, skipSave)
 	end
 end
 
+-- Glyphs rather than prefixes: 'CTRL-SHIFT-' names nothing visible.
+-- @param buttons : button IDs to draw
+function env:GetButtonGlyphs(buttons, separator)
+	local device = db('Gamepad/Active');
+	local glyphs = {};
+	for i, button in ipairs(buttons) do
+		glyphs[#glyphs + 1] = device
+			and db.Hotkeys:GetButtonSlug(device, button, '', false, true, '')
+			or  button;
+	end
+	return ( #glyphs > 0 ) and table.concat(glyphs, separator or ' ') or nil;
+end
+
+-- @param chord    : canonical chord of the modifiers held
+-- @param sequence : modifier prefixes tapped so far
+function env:GetModifierGlyphs(chord, sequence)
+	local index, buttons = db.Gamepad.Index.Modifier.Prefix, {};
+	for token in (chord or ''):gmatch('[^%-]+') do
+		buttons[#buttons + 1] = index[token..'-'];
+	end
+	for i, prefix in ipairs(sequence or {}) do
+		buttons[#buttons + 1] = index[prefix];
+	end
+	return self:GetButtonGlyphs(buttons)
+end
+
 function env:ClearBindingsForID(bindingID, saveAfter)
 	return CPAPI.ClearBindingsForID(bindingID, saveAfter)
 end
 
-function env:GetActiveDeviceAndMap()
-	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
-	return db.Gamepad.Active, db('Gamepad/Index/Button/ID')
+function env:GetActiveDevice()
+	return db.Gamepad.Active;
 end
 
 function env:GetActiveModifiers()

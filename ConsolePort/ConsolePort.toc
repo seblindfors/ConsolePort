@@ -1,9 +1,9 @@
-## Interface: 120100, 50504, 38010, 20506, 11509
+## Interface: 120100, 50504, 38010, 20506, 16001, 11509
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port
 ## Notes: Gamepad addon suite
 ## AddonCompartmentFunc: ConsolePort
-## Version: 3.2.7
+## Version: 3.3.0
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
@@ -30,3 +30,4 @@ Model\__manifest.xml
 Controller\__manifest.xml
 Widget\__manifest.xml
 View\__manifest.xml
+Controller\Modules.lua

@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- UnitMenu.lua: Unit menu popup
 ---------------------------------------------------------------
-local _, db = ...;
+local env, db = CPAPI.GetEnv(...);
 local UnitIsOtherPlayersBattlePet = UnitIsOtherPlayersBattlePet or nop;
 local UnitMenu = db:Register('UnitMenu', CPAPI.EventHandler(Mixin(ConsolePortUnitMenu, UnitPopupManager, {
 	LayoutFrames = {};

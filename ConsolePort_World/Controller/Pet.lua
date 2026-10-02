@@ -90,14 +90,14 @@ function PetAction:Init()
 		self.cooldown:SetSwipeColor(NORMAL_FONT_COLOR:GetRGBA())
 		self.cooldown:SetSwipeTexture([[Interface\AddOns\ConsolePort_World\Assets\CooldownSwipe]])
 		self.cooldown:SetUsingParentLevel(false)
-		if CPAPI.IsRetailVersion then
+		if CPAPI.IsModernVersion then
 			self.cooldown:SetDrawEdge(false)
 		end
 	end
 
 	-- Scale up AutoCastOverlay to match 48x48 button
 	if self.AutoCastOverlay then
-		if CPAPI.IsRetailVersion then
+		if CPAPI.IsModernVersion then
 			self.AutoCastOverlay:SetPoint('TOPLEFT', self, 'TOPLEFT', -1, 1)
 			self.AutoCastOverlay:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', 1, -1)
 		else

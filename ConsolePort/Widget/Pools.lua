@@ -53,11 +53,12 @@ function CPIndexPoolMixin:GetObjectByIndex(index)
 end
 
 function CPIndexPoolMixin:EnumerateActive()
+	if not self.ObjectPool then return nop end;
 	return self.ObjectPool:EnumerateActive()
 end
 
 function CPIndexPoolMixin:GetNumActive()
-	return self.ObjectPool:GetNumActive()
+	return self.ObjectPool and self.ObjectPool:GetNumActive() or 0;
 end
 
 function CPIndexPoolMixin:GetNumVisible()

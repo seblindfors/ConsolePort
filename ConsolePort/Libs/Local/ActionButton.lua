@@ -354,7 +354,7 @@ end -- Lib.Skin.UtilityRingButton
 do -- Lib.Skin.SlotButton
 	local UpdateLocal;
 	local function MakeSkin()
-		if not CPAPI.IsRetailVersion then
+		if not CPAPI.IsModernVersion then
 			local TextureInfo = {
 				NormalTexture = {
 					atlas = 'UI-HUD-ActionBar-IconFrame-AddRow';
@@ -414,7 +414,7 @@ do -- Lib.Skin.SlotButton
 
 	Lib.Skin.SlotButton = function(self)
 		self.UpdateLocal = UpdateLocal or MakeSkin()
-		if not CPAPI.IsRetailVersion then
+		if not CPAPI.IsModernVersion then
 			-- Assert assets on all client flavors
 			local skinner = Lib.SkinUtility;
 			skinner.GetIconMask(self)
@@ -555,7 +555,7 @@ local function OverlayGlow_OnUpdate(self, elapsed)
 	local cooldown = self:GetParent().cooldown
 	-- we need some threshold to avoid dimming the glow during the gdc
 	-- (using 1500 exactly seems risky, what if casting speed is slowed or something?)
-	if not CPAPI.IsRetailVersion then
+	if not CPAPI.IsModernVersion then
 		if(cooldown and cooldown:IsShown() and cooldown:GetCooldownDuration() > 3000) then
 			self:SetAlpha(0.5)
 		else

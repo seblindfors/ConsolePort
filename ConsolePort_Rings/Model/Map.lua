@@ -2,7 +2,7 @@ local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 ---@see GetCursorInfo Secure handler map for ring actions/LAB
 ---------------------------------------------------------------
-env.SecureHandlerMap = CreateFromMixins(db.Loadout.SecureHandlerMap, {
+env.SecureHandlerMap = CreateFromMixins(db.ActionMap, {
 	-- Custom types -----------------------------------------------
 	ring = function(setID) return {
 		type = 'custom';
