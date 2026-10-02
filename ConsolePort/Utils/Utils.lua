@@ -138,13 +138,6 @@ function CPAPI.DataHandler(handler)
 	return handler;
 end
 
-function CPAPI.LoadDataHandler(handler)
-	if CPAPI.DataLoaded then
-		CPAPI.EventMixin.ADDON_LOADED(handler)
-	end
-	return handler;
-end
-
 function CPAPI.CreateConfigFrame(arg1, ...)
 	assert(CPAPI.LoadAddOn(CPAPI.ConfigAddOn), 'Config addon could not be loaded.')
 	local env = ConsolePortConfig:GetEnvironment();

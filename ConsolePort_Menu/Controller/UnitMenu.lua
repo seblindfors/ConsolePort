@@ -5,7 +5,7 @@
 -- See View\Popup\UnitMenu.lua for the actual menu.
 
 local env, db = CPAPI.GetEnv(...);
-local UnitMenuSecure = db:Register('UnitMenuSecure', Mixin(CPAPI.DataHandler(ConsolePortUnit), CPAPI.SecureEnvironmentMixin, {
+local UnitMenuSecure = db:Register('UnitMenuSecure', Mixin(CPAPI.EventHandler(ConsolePortUnit), CPAPI.SecureEnvironmentMixin, {
 	Buttons = { -- Cautiously hardcoded until someone complains
 		ACCEPT = 'PAD1';
 		CANCEL = 'PAD2';
@@ -255,5 +255,3 @@ if C_PlayerInteractionManager and C_PlayerInteractionManager.InteractUnit then
 		end
 	end)
 end
-
-CPAPI.LoadDataHandler(UnitMenuSecure)
