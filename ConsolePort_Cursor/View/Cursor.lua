@@ -146,7 +146,7 @@ function Cursor:Release()
 end
 
 function Cursor:IsObstructed()
-	return self:InCombat(), not db('UIenableCursor'), self.isCombatPaused;
+	return self:InCombat(), false, self.isCombatPaused;
 end
 
 function Cursor:IsAnimating()
@@ -186,7 +186,6 @@ function Cursor:SetCurrentNode(node, assertNotMouse, forceEnable)
 	local isGamepadActive = IsGamePadFreelookEnabled()
 
 	-- Prerequisites
-	if not db('UIenableCursor') then return end;
 	if db('UIshowOnDemand') and not self:IsShown() then return end;
 	if not isGamepadActive and not forceEnable then return end;
 

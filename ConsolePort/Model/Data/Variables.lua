@@ -364,10 +364,6 @@ db:Register('Variables', CPAPI.Callable({
 	--------------------------------------------------------------------------------------------------------
 	_('Modules', SETTING_GROUP_SYSTEM);
 	--------------------------------------------------------------------------------------------------------
-	moduleActionBar = _{Bool(true);
-		name = 'Action Bar';
-		desc = 'Replaces the default action bars with a layout designed for gamepad play.';
-	};
 	layersTapLatch = _{Bool(false);
 		name = 'Tap to Latch';
 		desc = 'Tapping a modifier latches it until tapped again. Holding always overrides.';
@@ -383,36 +379,9 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Pressing Ctrl then Shift is a different layer from Shift then Ctrl.';
 		advd = true;
 	};
-	moduleMenus = _{Bool(not CPAPI.IsNativeGamepadUI);
-		name = 'Menus';
-		desc = 'Item, spell and unit menus for the interface cursor, plus an optional game menu replacement.';
-	};
-	moduleRings = _{Bool(true);
-		name = 'Rings';
-		desc = 'Utility rings for spells, items and macros, selected with the radial stick.';
-	};
-	moduleWorld = _{Bool(true);
-		name = 'World';
-		desc = 'World interaction helpers: quick menu, loot frame and temporary ability prompts.';
-	};
-	moduleTarget = _{Bool(true);
-		name = 'Target';
-		desc = 'Targeting tools: raid cursor, unit hotkeys and the target ring.';
-	};
-	--------------------------------------------------------------------------------------------------------
-	_('Keyboard', INTERFACE_LABEL);
-	--------------------------------------------------------------------------------------------------------
-	keyboardEnable = _{Bool(false);
-		name = 'Enable';
-		desc = 'Enables a radial on-screen keyboard that can be used to type messages.';
-	};
 	--------------------------------------------------------------------------------------------------------
 	_('Interface Cursor', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
-	UIenableCursor = _{Bool(true);
-		name = ENABLE;
-		desc = 'Enable interface cursor. Disable to use mouse-based interface interaction.';
-	};
 	UIWrapDisable = _{Bool(false);
 		name = 'Disable Wrapping';
 		desc = 'Prevent the cursor from wrapping when navigating.';

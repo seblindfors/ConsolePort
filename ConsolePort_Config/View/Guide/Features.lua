@@ -26,16 +26,14 @@ function Card:SetModule(entry)
 end
 
 function Card:OnShow()
-	db:RegisterCallback('Settings/'..self.entry.variable, self.Update, self)
 	self:Update()
 end
 
-function Card:OnHide()
-	db:UnregisterCallback('Settings/'..self.entry.variable, self)
-end
-
 function Card:Update()
-	local enabled = Modules:IsEnabled(self.entry)
+	local installed = Modules:IsInstalled(self.entry);
+	local enabled   = installed and Modules:IsEnabled(self.entry);
+	self:SetEnabled(installed)
+	self.Toggle:SetEnabled(installed)
 	self:SetChecked(enabled)
 	self.Toggle:SetChecked(enabled)
 	self:OnButtonStateChanged()
@@ -131,8 +129,7 @@ function Features:OnLoad()
 
 	local grid, index = self.Browser.ScrollChild.Grid, 0;
 	for _, entry in Modules:Enumerate() do
-		local variable = db.Variables[entry.variable];
-		if not ( variable and variable.hide ) then
+		if not entry.hide then
 			index = index + 1;
 			local card = CreateFrame('CheckButton', nil, grid, 'CPFeatureCardTemplate')
 			card.layoutIndex = index;

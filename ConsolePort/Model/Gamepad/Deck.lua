@@ -14,7 +14,6 @@ local _, db = ...; db.Gamepad:AddGamepad({
 			emulatePADPADDLE4   = 'F4';
 			gameMenuFontSize    = 16;
 			gameMenuScale       = 0.75;
-			keyboardEnable      = true;
 			keyboardAlwaysShow  = true;
 		};
 	};

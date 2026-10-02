@@ -285,6 +285,7 @@ CPAPI.ContainerIDToInventoryID       = C_Container     and C_Container.Container
 CPAPI.DisableAddOn                   = C_AddOns        and C_AddOns.DisableAddOn                         or DisableAddOn;
 CPAPI.EnableAddOn                    = C_AddOns        and C_AddOns.EnableAddOn                          or EnableAddOn;
 CPAPI.GetActiveZoneAbilities         = C_ZoneAbility   and C_ZoneAbility.GetActiveAbilities              or nopt;
+CPAPI.GetAddOnEnableState            = C_AddOns        and C_AddOns.GetAddOnEnableState                  or GetAddOnEnableState;
 CPAPI.GetAddOnInfo                   = C_AddOns        and C_AddOns.GetAddOnInfo                         or GetAddOnInfo;
 CPAPI.GetBindingContextForAction     = C_KeyBindings   and C_KeyBindings.GetBindingContextForAction      or nop;
 CPAPI.GetBonusBarIndexForSlot        = C_ActionBar     and C_ActionBar.GetBonusBarIndexForSlot           or nop;

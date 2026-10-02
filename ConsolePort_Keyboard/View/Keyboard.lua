@@ -313,7 +313,7 @@ function Keyboard:OnLayoutChanged()
 end
 
 function Keyboard:OnVariableChanged()
-	env:ToggleObserver(db('keyboardEnable'))
+	env:ToggleObserver(true)
 	self:SetScale(db('keyboardScale'))
 	self.commands = {
 		[db('keyboardEnterButton')]     = self.Enter;
@@ -339,7 +339,6 @@ function Keyboard:OnVariableChanged()
 end
 
 db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
-	'Settings/keyboardEnable',
 	'Settings/keyboardScale',
 	'Settings/keyboardEraseButton',
 	'Settings/keyboardEnterButton',
