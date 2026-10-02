@@ -822,7 +822,7 @@ do -- Bar setup
 end
 
 do -- Initialize bars
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		-- See FrameXML\StatusTrackingManager.lua
 		local BarsEnum = {
 			None       = -1;

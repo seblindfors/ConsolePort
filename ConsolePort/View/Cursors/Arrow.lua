@@ -105,7 +105,7 @@ function CPCursorArrowMixin:OnShow()
 end
 
 function CPCursorArrowMixin:OnLoad()
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		self.ArrowNormal:SetAtlas('Navigation-Tracked-Arrow', true)
 		self.ArrowHilite:SetAtlas('Navigation-Tracked-Arrow', true)
 	else

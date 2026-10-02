@@ -95,7 +95,7 @@ do -- Misc addon fixes
 end
 
 -----------------------------------------------------------
-if CPAPI.IsRetailVersion then -- Misc retail addon fixes
+if CPAPI.IsModernVersion then -- Misc retail addon fixes
 -----------------------------------------------------------
 	_('Blizzard_Collections', function()
 		Scripts.OnEnter[ ToySpellButton_OnEnter ] = function(self)
@@ -159,7 +159,7 @@ if CPAPI.IsRetailVersion then -- Misc retail addon fixes
 end
 
 -----------------------------------------------------------
-if CPAPI.IsRetailVersion then -- Modern spellbook/talents
+if CPAPI.IsModernVersion then -- Modern spellbook/talents
 -----------------------------------------------------------
 	_('Blizzard_PlayerSpells', function()
 		-- Talent frame customization:
@@ -254,7 +254,7 @@ if CPAPI.IsRetailVersion then -- Modern spellbook/talents
 end -- Modern spellbook/talents
 
 ---------------------------------------------------------------
-if CPAPI.IsRetailVersion then -- MapCanvasPinMixin
+if CPAPI.IsModernVersion then -- MapCanvasPinMixin
 ---------------------------------------------------------------
 	_('Blizzard_MapCanvas', function()
 		_('Blizzard_SharedMapDataProviders', function()

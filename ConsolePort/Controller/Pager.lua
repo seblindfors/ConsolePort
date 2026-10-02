@@ -165,7 +165,7 @@ Pager.Env = {
 		if ( type == 'spell' and subType == 'spell' and id and id ~= 0 ) then
 			if FindSpellBookSlotBySpellID(id) then
 				return ]]..(function()
-					if CPAPI.IsRetailVersion then
+					if CPAPI.IsModernVersion then
 						return ('IsSpellHarmful(id, %d)'):format(Enum.SpellBookSpellBank.Player)
 					end
 					return 'IsSpellHarmful(id)'
@@ -180,7 +180,7 @@ Pager.Env = {
 		if ( type == 'spell' and subType == 'spell' and id and id ~= 0 ) then
 			if FindSpellBookSlotBySpellID(id) then
 				return ]]..(function()
-					if CPAPI.IsRetailVersion then
+					if CPAPI.IsModernVersion then
 						return ('IsSpellHelpful(id, %d)'):format(Enum.SpellBookSpellBank.Player)
 					end
 					return 'IsSpellHelpful(id)'

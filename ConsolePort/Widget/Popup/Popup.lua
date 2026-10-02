@@ -105,7 +105,7 @@ CPPopupBindingCatchButtonMixin = CreateFromMixins(CPButtonCatcherMixin)
 ---------------------------------------------------------------
 local TIME_UNTIL_CANCEL = 5;
 
-CPPopupBindingCatchButtonMixin.Template = (CPAPI.IsRetailVersion
+CPPopupBindingCatchButtonMixin.Template = (CPAPI.IsModernVersion
 	and 'SharedButtonLargeTemplate'
 	or  'UIPanelButtonTemplate')
 	..  ',CPPopupBindingCatchButtonTemplate';

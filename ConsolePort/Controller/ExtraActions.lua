@@ -1,4 +1,4 @@
-if CPAPI.IsRetailVersion then return end;
+if CPAPI.IsModernVersion then return end;
 ---------------------------------------------------------------
 -- Extra action provider for bars 13, 14, and 15 on Classic
 ---------------------------------------------------------------

@@ -351,7 +351,7 @@ do local UnitExists = UnitExists;
 	end
 end
 
-if CPAPI.IsRetailVersion then
+if CPAPI.IsModernVersion then
 	local UnitHealthPercent, UnitPowerPercent = UnitHealthPercent, UnitPowerPercent;
 
 	local healthCurve = C_CurveUtil.CreateCurve();

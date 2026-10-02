@@ -115,7 +115,7 @@ function Auto:RefreshQuestWatchItems()
 end
 
 function Auto:ToggleExtraActionButton(enabled)
-	if not CPAPI.IsRetailVersion then return end
+	if not CPAPI.IsModernVersion then return end
 
 	if enabled then
 		self:AssignAction(SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
@@ -149,7 +149,7 @@ function Auto:ToggleZoneAbilities()
 end
 
 function Auto:ToggleInventoryQuestItems(hideAnnouncement)
-	if CPAPI.IsRetailVersion then return end
+	if CPAPI.IsModernVersion then return end
 	local function getItemID(input) return input:match('item:(%d+)') end;
 
 	local set, exists = self.Data[DEFAULT_SET], {};

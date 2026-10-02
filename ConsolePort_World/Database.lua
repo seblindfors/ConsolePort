@@ -87,6 +87,6 @@ ConsolePort:AddVariables({
 		name = PING_SYSTEM_LABEL or 'Ping';
 		desc = 'Show ping commands in the quick menu.';
 		list = SETTING_GROUP_GAMEPLAY;
-		hide = not CPAPI.IsRetailVersion;
+		hide = not CPAPI.IsModernVersion;
 	};
 })

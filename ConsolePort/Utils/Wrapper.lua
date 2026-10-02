@@ -130,7 +130,7 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 		return true;
 	end
 
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		function CPAPI.GetBindingAction(keyChord, checkOverride, context)
 			return GetBindingAction(keyChord, checkOverride, context)
 		end
@@ -231,7 +231,7 @@ CPAPI.MinEditDistance = CalculateStringEditDistance or function(str1, str2)
 	return matrix[len1][len2];
 end
 
-CPAPI.IteratePlayerInventory = CPAPI.IsRetailVersion and ItemUtil.IteratePlayerInventory or function(callback)
+CPAPI.IteratePlayerInventory = CPAPI.IsModernVersion and ItemUtil.IteratePlayerInventory or function(callback)
 	local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS or 36;
 	local NUM_BAG_FRAMES = NUM_BAG_FRAMES or 4;
 
@@ -556,11 +556,11 @@ end -- API wrappers
 ---------------------------------------------------------------
 -- Enum wrappers
 ---------------------------------------------------------------
-CPAPI.BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
-CPAPI.BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
-CPAPI.SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
-CPAPI.SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
-CPAPI.SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
+CPAPI.BOOKTYPE_PET     = not CPAPI.IsModernVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
+CPAPI.BOOKTYPE_SPELL   = not CPAPI.IsModernVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
+CPAPI.SKILLTYPE_PET    = not CPAPI.IsModernVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
+CPAPI.SKILLTYPE_SPELL  = not CPAPI.IsModernVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
+CPAPI.SKILLTYPE_FLYOUT = not CPAPI.IsModernVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
 
 ---------------------------------------------------------------
 -- Widget wrappers

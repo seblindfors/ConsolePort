@@ -22,7 +22,7 @@ local INV_EQ_LOCATIONS = {
 	INVTYPE_2HWEAPON       = {'MAINHANDSLOT'};
 	INVTYPE_WEAPONOFFHAND  = {'SECONDARYHANDSLOT'};
 	INVTYPE_SHIELD         = {'SECONDARYHANDSLOT'};
-	INVTYPE_BAG            = {'BAG0SLOT', 'BAG1SLOT', 'BAG2SLOT', 'BAG3SLOT', CPAPI.IsRetailVersion and Enum.BagIndex.ReagentBag};
+	INVTYPE_BAG            = {'BAG0SLOT', 'BAG1SLOT', 'BAG2SLOT', 'BAG3SLOT', CPAPI.IsModernVersion and Enum.BagIndex.ReagentBag};
 }; for _, slots in pairs(INV_EQ_LOCATIONS) do
 	for i, slot in ipairs(slots) do if slot then
 		slots[i] = tonumber(slot) and C_Container.ContainerIDToInventoryID(slot) or GetInventorySlotInfo(slot);
@@ -300,7 +300,7 @@ end
 
 function ItemMenu:Inspect()
 	local link = self:GetLink()
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		if DressUpItemLocation(self) or DressUpLink(link) then
 			return self:Hide()
 		end

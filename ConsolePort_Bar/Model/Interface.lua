@@ -436,7 +436,7 @@ Interface.Toolbar = Data.Interface {
 			name = 'Casting Bar';
 			desc = 'Configure the casting bar.';
 			note = 'This feature is only available in Classic.';
-			hide = CPAPI.IsRetailVersion;
+			hide = CPAPI.IsModernVersion;
 			Data.Table {
 				enabled = _{
 					name = 'Enable';
@@ -449,8 +449,8 @@ Interface.Toolbar = Data.Interface {
 		totem = _{
 			name = 'Class Bar';
 			desc = 'Configure the class related bar.';
-			note = CPAPI.IsRetailVersion and 'This feature is only available in Classic.';
-			hide = CPAPI.IsRetailVersion;
+			note = CPAPI.IsModernVersion and 'This feature is only available in Classic.';
+			hide = CPAPI.IsModernVersion;
 			Data.Table {
 				enabled = _{
 					name = 'Enable';

@@ -7,6 +7,8 @@ CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC or nil;
 CPAPI.IsWrathVersion      = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 CPAPI.IsAnniVersion       = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or nil;
+CPAPI.IsCamelotVersion    = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT or nil;
+CPAPI.IsModernVersion     = CPAPI.IsRetailVersion or CPAPI.IsCamelotVersion or nil;
 CPAPI.IsNativeGamepadUI   = C_GamepadUI ~= nil or nil;
 
 ---------------------------------------------------------------

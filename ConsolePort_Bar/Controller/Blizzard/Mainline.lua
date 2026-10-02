@@ -82,9 +82,9 @@ function env.UIHandler:HideBlizzard()
 	---------------------------------------------------------------
 	-- HUD frames
 	for frame, clearEvents in pairs({
-	--	BagsBar                  = true;
+		BagsBar                  = CPAPI.IsCamelotVersion;
 	--	MicroButtonAndBagsBar    = false;
-	--	MicroMenu                = true;
+		MicroMenu                = CPAPI.IsCamelotVersion;
 	--	MultiCastActionBarFrame  = false;
 		PetActionBar             = true;
 		PossessActionBar         = true;

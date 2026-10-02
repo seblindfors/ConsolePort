@@ -518,14 +518,14 @@ function LoadoutInfo:RefreshCollections(flatten)
 	do  local mounts, isNewAPI = collect(self.Collectors.Mounts, COMPANION_MOUNT)
 		if IsDataValid(mounts) then
 			if isNewAPI then
-				local ConvertHalfAssedCompanionAPI = not CPAPI.IsRetailVersion and function(...)
+				local ConvertHalfAssedCompanionAPI = not CPAPI.IsModernVersion and function(...)
 					return self.SecureHandlerMap.spell(nil, nil, C_MountJournal.GetDisplayedMountInfo(...))
 				end;
 
 				AddCollection(mounts, {
 					name    = MOUNTS;
 					match   = C_ActionBar.FindSpellActionButtons;
-					pickup  = CPAPI.IsRetailVersion and C_MountJournal.Pickup;
+					pickup  = CPAPI.IsModernVersion and C_MountJournal.Pickup;
 					append  = ConvertHalfAssedCompanionAPI;
 					tooltip = function(self, id) GameTooltip.SetSpellByID(self, (select(2, C_MountJournal.GetDisplayedMountInfo(id)))) end;
 					texture = function(id) return (select(3, C_MountJournal.GetDisplayedMountInfo(id))) end;

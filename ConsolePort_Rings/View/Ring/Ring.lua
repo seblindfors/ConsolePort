@@ -31,7 +31,7 @@ env:AddLoader(function(self)
 	self.StickySlice:Hide()
 	self:RegisterColorCallbacks()
 	self:UpdateColorSettings()
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		self.BgRunes:SetAtlas('heartofazeroth-orb-activated')
 	else
 		self.BgRunes:SetAtlas('ChallengeMode-RuneBG')

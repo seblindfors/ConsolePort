@@ -247,7 +247,7 @@ function Config:OnLoad()
 		ConsolePort()
 	end)
 	self.EditMode:SetTooltipInfo(HUD_EDIT_MODE_MENU or L'Edit Mode', L'Open the main edit mode window.')
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsModernVersion then
 		self.EditMode:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
 		self.EditMode:SetAttribute(CPAPI.ActionPressAndHold, true)
 		self.EditMode:SetAttribute('macrotext', '/editmode')

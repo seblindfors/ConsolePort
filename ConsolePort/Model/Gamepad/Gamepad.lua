@@ -3,7 +3,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 	'UPDATE_BINDINGS';
 	'GAME_PAD_CONFIGS_CHANGED';
 	'PLAYER_ENTERING_WORLD';
-	(CPAPI.IsRetailVersion or CPAPI.IsClassicVersion) and 'GAME_PAD_POWER_CHANGED';
+	(CPAPI.IsModernVersion or CPAPI.IsClassicVersion) and 'GAME_PAD_POWER_CHANGED';
 }, {
 	Template = {          -- Gamepad templates:
 		Gamepads    = {}; -- Usable template with functions and metadata.
