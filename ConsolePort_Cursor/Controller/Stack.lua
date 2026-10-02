@@ -362,9 +362,6 @@ function Stack:OnDataLoaded()
 	self:ToggleGroup(env.StaticPopupStack, db('UIenablePopups'), true)
 	self:ToggleGroup(env.GroupLootStack, db('UIenableGroupLoot'), true)
 
-	-- Toggle the stack core
-	self:ToggleCore()
-
 	-- Activate all existing frames in the registry
 	for addon in pairs(self.Registry) do
 		if CPAPI.IsAddOnLoaded(addon) then
@@ -380,7 +377,6 @@ function Stack:OnDataLoaded()
 		end)
 	end;
 
-	db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
 	db:RegisterSafeCallback('Settings/UIenablePopups', self.ToggleGroup, self, env.StaticPopupStack)
 	db:RegisterSafeCallback('Settings/UIenableGroupLoot', self.ToggleGroup, self, env.GroupLootStack)
 
