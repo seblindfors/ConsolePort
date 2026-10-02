@@ -90,9 +90,11 @@ db.Secure:RegisterUser(QMenu) -- Secure
 ---------------------------------------------------------------
 QMenu:SetAttribute(CPAPI.ActionUseOnKeyDown, true)
 QMenu:SetAttribute(CPAPI.SkipHotkeyRender, true)
+QMenu:SetFrameRef('SecureCursor', db.Secure)
 QMenu:Run([[
 	FRAMES, FCOUNT = {}, 0;
 	AURAS, AHEIGHT = {}, 0;
+	cursor = self:GetFrameRef('SecureCursor');
 ]])
 
 QMenu:CreateEnvironment({
@@ -118,6 +120,9 @@ QMenu:CreateEnvironment({
 			end
 		end
 		self:SetHeight(height + AHEIGHT + padding * 0.5)
+		if ( cursor:GetParent() == self ) then
+			cursor::UpdateNodes()
+		end
 	]];
 	OnAurasChanged = [[
 		local filter, delta = ...;
