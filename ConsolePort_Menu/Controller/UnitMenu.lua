@@ -255,3 +255,5 @@ if C_PlayerInteractionManager and C_PlayerInteractionManager.InteractUnit then
 		end
 	end)
 end
+
+CPAPI.LoadDataHandler(UnitMenuSecure)
