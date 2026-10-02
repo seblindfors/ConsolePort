@@ -90,9 +90,11 @@ db.Secure:RegisterUser(QMenu) -- Secure
 ---------------------------------------------------------------
 QMenu:SetAttribute(CPAPI.ActionUseOnKeyDown, true)
 QMenu:SetAttribute(CPAPI.SkipHotkeyRender, true)
+QMenu:SetFrameRef('SecureCursor', db.Secure)
 QMenu:Run([[
 	FRAMES, FCOUNT = {}, 0;
 	AURAS, AHEIGHT = {}, 0;
+	cursor = self:GetFrameRef('SecureCursor');
 ]])
 
 QMenu:CreateEnvironment({
@@ -119,6 +121,11 @@ QMenu:CreateEnvironment({
 		end
 		self:SetHeight(height + AHEIGHT + padding * 0.5)
 	]];
+	RefreshNodes = [[
+		if ( cursor and not opening and self:IsShown() ) then
+			cursor::UpdateNodes()
+		end
+	]];
 	OnAurasChanged = [[
 		local filter, delta = ...;
 		AURAS[filter] = math.max(0, AURAS[filter] + delta);
@@ -133,8 +140,10 @@ QMenu:CreateEnvironment({
 			end
 		end
 		self::UpdateLayout();
+		self::RefreshNodes();
 	]];
 	Enable = ([[
+		opening = true;
 		self:Show()
 
 		-- Cancel bindings
@@ -144,8 +153,9 @@ QMenu:CreateEnvironment({
 			self:SetBindingClick(true, key, self, 'LeftButton')
 		end
 
-		-- Force layout update
+		opening = nil;
 		self::UpdateLayout()
+		self::RefreshNodes()
 	]]):format(db.Bindings.Proxied.ToggleGameMenu);
 	Disable = [[
 		self:Hide()

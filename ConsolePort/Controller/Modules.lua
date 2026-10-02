@@ -15,15 +15,10 @@ local Modules, _, db = CPAPI.CreateEventHandler({'Frame', '$parentModules', Cons
 local L = db.Locale;
 db:Register('Modules', Modules)
 
-local function Asset(name)
-	return CPAPI.GetAsset(([[Tutorial\%s]]):format(name))
-end
-
 Modules.Registry = {
 	{	id       = 'Bar';
 		addon    = 'ConsolePort_Bar';
 		variable = 'moduleActionBar';
-		image    = Asset('UnitHotkey');
 		presets  = {
 			{ id = 'Default';         name = DEFAULT };
 			{ id = 'CrossbarMinimal'; name = 'Crossbar: Minimal' };
@@ -33,36 +28,30 @@ Modules.Registry = {
 	{	id       = 'Menu';
 		addon    = 'ConsolePort_Menu';
 		variable = 'moduleMenus';
-		image    = Asset('TargetNearest');
 	};
 	{	id       = 'Rings';
 		addon    = 'ConsolePort_Rings';
 		variable = 'moduleRings';
-		image    = Asset('TargetScan');
 	};
 	{	id       = 'Target';
 		addon    = CPAPI.TargetAddOn;
 		variable = 'moduleTarget';
-		image    = Asset('RaidCursor');
 	};
 	{	id       = 'Cursor';
 		addon    = CPAPI.CursorAddOn;
 		variable = 'UIenableCursor';
 		name     = 'Interface Cursor';
 		desc     = 'Navigate the interface with the gamepad using a virtual cursor.';
-		image    = Asset('TargetScan');
 	};
 	{	id       = 'World';
 		addon    = 'ConsolePort_World';
 		variable = 'moduleWorld';
-		image    = Asset('TargetNearest');
 	};
 	{	id       = 'Keyboard';
 		addon    = 'ConsolePort_Keyboard';
 		variable = 'keyboardEnable';
 		name     = 'Keyboard';
 		desc     = 'Radial on-screen keyboard for typing with the gamepad.';
-		image    = Asset('UnitHotkey');
 	};
 };
 

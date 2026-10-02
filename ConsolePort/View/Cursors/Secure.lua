@@ -116,6 +116,7 @@ Cursor:Run([[
 ]])
 
 function Cursor:OnDataLoaded()
+	self:SetAttribute('priorityoverride', true)
 	self:SetAttribute('wrapDisable', db('UIWrapDisable'))
 	return CPAPI.KeepMeForLater;
 end

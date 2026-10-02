@@ -4,7 +4,7 @@
 		registerForClicks="AnyDown">
 		<Size x="24" y="200"/>
 		<Anchors>
-			<Anchor point="CENTER" x="-500" y="0"/>
+			<Anchor point="CENTER" x="-600" y="0"/>
 		</Anchors>
 		<Attributes>
 			<Attribute name="padding" value="20" type="number"/>

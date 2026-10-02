@@ -1,7 +1,7 @@
 local env, db, _, L = CPAPI.GetEnv(...);
 local Guide, Modules = env:GetContextPanel(), db.Modules;
 local TUTORIAL_ID = 'ModuleSelection';
-local PRESET_BUTTON_SPACING = 118;
+local PRESET_BUTTON_HEIGHT = 26;
 
 ---------------------------------------------------------------
 local Card = {};
@@ -19,7 +19,6 @@ function Card:SetModule(entry)
 	local name, desc = Modules:GetInfo(entry)
 	self.Name:SetText(name)
 	self.Desc:SetText(desc)
-	self.Image:SetTexture(entry.image)
 	if entry.presets then
 		self:CreatePresets(entry.presets)
 	end
@@ -66,7 +65,7 @@ function Card:CreatePresets(presets)
 	self.Presets = {};
 	for i, preset in ipairs(presets) do
 		local button = CreateFrame('CheckButton', nil, self, 'CPCheckButtonTemplate')
-		button:SetPoint('BOTTOMLEFT', 16 + (i - 1) * PRESET_BUTTON_SPACING, 14)
+		button:SetPoint('BOTTOMLEFT', 16, 14 + (#presets - i) * PRESET_BUTTON_HEIGHT)
 		button.Text:SetText(L(preset.name))
 		button.preset = preset;
 		button:SetScript('OnClick', GenerateClosure(self.OnPresetClicked, self, button))

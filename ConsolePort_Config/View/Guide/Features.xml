@@ -1,25 +1,17 @@
 <Ui>
 	<CheckButton name="CPFeatureCardTemplate" virtual="true" inherits="CPCardBaseTemplate">
-		<Size x="376" y="300"/>
+		<Size x="376" y="200"/>
 		<Layers>
-			<Layer level="ARTWORK" textureSubLevel="2">
-				<Texture parentKey="Image">
-					<Size x="344" y="140"/>
-					<Anchors>
-						<Anchor point="TOP" y="-16"/>
-					</Anchors>
-				</Texture>
-			</Layer>
 			<Layer level="OVERLAY">
 				<FontString parentKey="Name" inherits="CPSubtitleFont" justifyH="LEFT">
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Image" relativePoint="BOTTOMLEFT" y="-10"/>
+						<Anchor point="TOPLEFT" x="16" y="-16"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="Desc" inherits="GameFontHighlight" justifyH="LEFT" justifyV="TOP">
 					<Size x="344" y="0"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" y="-6"/>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" y="-10"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -27,7 +19,7 @@
 		<Frames>
 			<CheckButton parentKey="Toggle" inherits="CPCheckButtonTemplate">
 				<Anchors>
-					<Anchor point="TOPRIGHT" relativeKey="$parent.Image" relativePoint="BOTTOMRIGHT" x="4" y="-6"/>
+					<Anchor point="TOPRIGHT" x="-12" y="-12"/>
 				</Anchors>
 			</CheckButton>
 		</Frames>
