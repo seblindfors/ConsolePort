@@ -196,6 +196,7 @@ end
 
 function UnitMenuTrigger:IsTimedContextValid()
 	return not InCombatLockdown() and UnitExists('target')
+		and not not db('trgtEnablePlayerInteract');
 end
 
 function UnitMenuTrigger:OnTimedHintsDisplay(enabled, remaining, button)

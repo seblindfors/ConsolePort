@@ -252,7 +252,48 @@ function Keyboard:OnTextChanged(text, pos, focus)
 	self.cachedFocusText = text; -- cache for dictionary
 end
 
+---------------------------------------------------------------
+-- Button convention migration
+---------------------------------------------------------------
+-- The commands were renumbered to follow the native gamepad button
+-- convention, which moved both the default button and the index each
+-- command strokes. Those cancel out for a default install, but a saved
+-- button lands on a different index, which scrambles the typing layout.
+-- Each command inherits the button of whichever command used to stroke
+-- the same index, so the characters stay where they were.
+local BUTTON_CONVENTION_VERSION = 1;
+
+local BUTTON_INHERITS = {
+	keyboardEraseButton  = 'keyboardEscapeButton';
+	keyboardEscapeButton = 'keyboardEnterButton';
+	keyboardEnterButton  = 'keyboardEraseButton';
+};
+
+function Keyboard:MigrateButtonConvention()
+	if not ConsolePortSettings then return end;
+	if ( ConsolePortSettings.keyboardButtonVersion == BUTTON_CONVENTION_VERSION ) then return end;
+	ConsolePortSettings.keyboardButtonVersion = BUTTON_CONVENTION_VERSION;
+
+	for _, source in ipairs({ConsolePortSettings, ConsolePortCharacterSettings}) do
+		if source then
+			local before, changed = {}, false;
+			for varID in pairs(BUTTON_INHERITS) do
+				before[varID] = source[varID];
+				changed = changed or ( source[varID] ~= nil );
+			end
+			if changed then
+				for varID, inheritsFrom in pairs(BUTTON_INHERITS) do
+					source[varID] = before[inheritsFrom];
+				end
+				CPAPI.Log('Keyboard command buttons were realigned with the new button convention.')
+			end
+		end
+	end
+end
+
 function Keyboard:OnDataLoaded(...)
+	self:MigrateButtonConvention()
+
 	-- Keyboard layout
 	local defaultLayout = env:GetDefaultLayout()
 	if not ConsolePort_KeyboardLayout

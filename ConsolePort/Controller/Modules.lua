@@ -160,29 +160,49 @@ end
 -- re-enabled the addon on every login, so a user who switched a
 -- module off has it saved as false against an enabled addon.
 -- Carry that choice onto the addon list once, then drop the keys.
+-- id -> { old variable, what it defaulted to before the move }
 Modules.Deprecated = {
-	Bar      = 'moduleActionBar';
-	Menu     = 'moduleMenus';
-	Rings    = 'moduleRings';
-	Target   = 'moduleTarget';
-	World    = 'moduleWorld';
-	Cursor   = 'UIenableCursor';
-	Keyboard = 'keyboardEnable';
+	Bar      = { 'moduleActionBar',  true  };
+	Menu     = { 'moduleMenus',      true  };
+	Rings    = { 'moduleRings',      true  };
+	Target   = { 'moduleTarget',     true  };
+	World    = { 'moduleWorld',      true  };
+	Cursor   = { 'UIenableCursor',   true  };
+	Keyboard = { 'keyboardEnable',   false };
 };
 
+-- Bumped when the stored shape changes, so the repair runs once per user.
+local MODULE_STATE_VERSION = 1;
+
 function Modules:MigrateFromSettings()
-	for id, varID in pairs(self.Deprecated) do
+	if not ConsolePortSettings then return end;
+	if ( ConsolePortSettings.moduleStateVersion == MODULE_STATE_VERSION ) then return end;
+
+	for id, deprecated in pairs(self.Deprecated) do
+		local varID, default = deprecated[1], deprecated[2];
+		local saved;
 		for _, source in ipairs({ConsolePortSettings, ConsolePortCharacterSettings}) do
-			local saved = source and source[varID];
-			if ( saved ~= nil ) then
-				local entry = self:GetEntry(id);
-				if ( entry and not saved ) then
-					CPAPI.DisableAddOn(entry.addon)
-				end
+			if ( source and source[varID] ~= nil ) then
+				saved = source[varID];
 				source[varID] = nil;
 			end
 		end
+		local entry = self:GetEntry(id);
+		if entry then
+			-- Load used to enable the addon on every login, so whatever the user
+			-- had on must be written to the addon list once. 3.3.3 wrote only the
+			-- off case, which dropped the module for anyone who had ever unticked
+			-- it in the addon list, and cleared the variable that said otherwise.
+			if ( ( saved == nil ) and default or not not saved ) then
+				CPAPI.EnableAddOn(entry.addon)
+			elseif ( saved ~= nil ) then
+				CPAPI.DisableAddOn(entry.addon)
+			end
+		end
 	end
+
+	ConsolePortSettings.moduleStateVersion = MODULE_STATE_VERSION;
+	CPAPI.Log('Module selection now lives in the AddOns list; your modules were restored there.')
 end
 
 function Modules:OnDataLoaded()
