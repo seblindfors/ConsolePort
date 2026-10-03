@@ -18,6 +18,7 @@ db:Register('Layers', Layers)
 Layers.Proxies     = {};
 Layers.States      = {};
 Layers.StateInfo   = {};
+Layers.StateFrames = {};
 Layers.StateCount  = 0;
 Layers.driverCount = 0;
 
@@ -196,6 +197,15 @@ Layers.Env = {
 				value = segment[3];
 				break;
 			end
+		end
+
+		-- An unprotected frame is written outside the environment.
+		if entry[7] then
+			if ( value ~= entry[4] ) then
+				entry[4] = value;
+				self:CallMethod('ApplyInsecureState', index, value)
+			end
+			return;
 		end
 
 		-- 'state-visibility' shows or hides and writes no attribute, per the
@@ -466,6 +476,30 @@ function Layers:MatchClause(clause, layer)
 	return true;
 end
 
+-- @param index : entry in STATES
+-- @param value : resolved driver value, as the snippet saw it
+function Layers:ApplyInsecureState(index, value)
+	local info = self.StateFrames[index];
+	if not info then return end;
+	local frame = info.frame;
+	if info.visibility then
+		if ( value == 'show' ) then
+			frame:Show()
+			frame:SetAttribute('statehidden', nil)
+		elseif ( value == 'hide' ) then
+			frame:Hide()
+			frame:SetAttribute('statehidden', true)
+		end
+		return;
+	end
+	if ( value == 'nil' ) then
+		value = nil;
+	elseif value then
+		value = tonumber(value) or value;
+	end
+	frame:SetAttribute(info.attribute, value)
+end
+
 -- Stands in for the engine's registration where it cannot see the
 -- whole driver.
 -- @param frame      : registrant
@@ -479,21 +513,30 @@ function Layers:RegisterState(frame, attribute, driver, body, visibility)
 	local index = self.States[key] or ( self.StateCount + 1 );
 	local bodyKey, refKey = 'layerbody-'..attribute, ('state%d'):format(index);
 
+	-- The restricted environment refuses a handle to an unprotected
+	-- frame in combat, so such a frame is written to from insecure Lua
+	-- instead, the way the engine's own driver writes to it.
+	local insecure = not frame:IsProtected();
 	if body then
+		assert(not insecure, 'A layer body needs a protected frame.')
 		frame:SetAttribute(bodyKey, ('local newstate = self:GetAttribute(%q); %s'):format(attribute, body))
 	end
-	self:SetFrameRef(refKey, frame)
+	if not insecure then
+		self:SetFrameRef(refKey, frame)
+	end
+	self.StateFrames[index] = { frame = frame; attribute = attribute; visibility = visibility };
 	self:Execute(CPAPI.FormatSecureBody({
 		ref = refKey; attribute = attribute; body = body and bodyKey or ''; index = index;
-		visibility = not not visibility;
+		visibility = not not visibility; insecure = insecure;
 	}, [[
 		local entry = newtable();
-		entry[1] = self:GetFrameRef({ref});
+		entry[1] = not {insecure} and self:GetFrameRef({ref}) or false;
 		entry[2] = {attribute};
 		entry[3] = newtable();
 		entry[5] = {body};
 		if ( entry[5] == '' ) then entry[5] = nil end;
 		entry[6] = {visibility};
+		entry[7] = {insecure};
 		STATES[{index}] = entry;
 	]]))
 
@@ -617,6 +660,7 @@ function Layers:UnregisterState(frame, attribute)
 	if not index then return end;
 	self.States[key]    = nil;
 	self.StateInfo[key] = nil;
+	self.StateFrames[index] = nil;
 	UnregisterStateDriver(self, ('layernative%d'):format(index))
 	self:Execute(('STATES[%d] = nil'):format(index))
 end
