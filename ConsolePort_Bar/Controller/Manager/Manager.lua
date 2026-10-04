@@ -147,13 +147,20 @@ Manager:Run([[
 ---------------------------------------------------------------
 -- Targeting module
 ---------------------------------------------------------------
-local PendingBars = {};
+local PendingBars, PendingParents = {}, {};
 
 function Manager:CacheActionBar(bar)
 	if db.Raid then
 		return db.Raid:CacheActionBar(bar)
 	end
 	PendingBars[bar] = true;
+end
+
+function Manager:CacheActionButtons(parent)
+	if db.Raid then
+		return db.Raid:CacheActionButtons(parent)
+	end
+	PendingParents[parent] = true;
 end
 
 EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetAddOn, function()
@@ -167,7 +174,10 @@ EventUtil.ContinueOnAddOnLoaded(CPAPI.TargetAddOn, function()
 		for bar in pairs(PendingBars) do
 			db.Raid:CacheActionBar(bar)
 		end
-		PendingBars = nil;
+		for parent in pairs(PendingParents) do
+			db.Raid:CacheActionButtons(parent)
+		end
+		PendingBars, PendingParents = nil, nil;
 	end)
 end)
 

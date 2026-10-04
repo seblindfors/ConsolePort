@@ -263,7 +263,6 @@ end
 
 db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
 	if not value then return end;
-	-- See ClearBlockedBindings: no saving until the binding set has settled.
 	if not self.IsDispatchReady then return end;
 	local setID = GetCurrentBindingSet();
 	if ( setID ~= Enum.BindingSet.Account and setID ~= Enum.BindingSet.Character ) then
@@ -399,9 +398,6 @@ end
 -- Wipe the incompatible bindings for a modifier when it's set.
 -- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
 function GamepadAPI:ClearBlockedBindings()
-	-- On a reload the client reports the previous session's set while it
-	-- is still loading bindings, and saving then leaves the player on
-	-- character bindings. Entering the world requeues this pass.
 	if not self.IsDispatchReady then return end;
 	local setID = GetCurrentBindingSet();
 	if ( setID ~= Enum.BindingSet.Account and setID ~= Enum.BindingSet.Character ) then

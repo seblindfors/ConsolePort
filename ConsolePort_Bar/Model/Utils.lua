@@ -11,6 +11,7 @@ env.UIHandler  = CPAPI.CreateEventHandler({'Frame'}, {
 UIHandler:Hide()
 function UIHandler:OnDataLoaded()
 	self:HideBlizzard()
+	env.Manager:CacheActionButtons(self)
 	env:TriggerEvent('OnEnvLoaded')
 	return CPAPI.BurnAfterReading;
 end
