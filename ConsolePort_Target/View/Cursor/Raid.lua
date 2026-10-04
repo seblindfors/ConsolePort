@@ -78,8 +78,6 @@ Cursor:CreateEnvironment({
 				NODES[node] = true;
 			end
 		elseif action and tonumber(action) then
-			-- Not drawn is fine: a hidden button (e.g. the default bar under
-			-- the gamepad bars) still receives its key binding.
 			local parent = node:GetParent()
 			local owner  = parent and parent:GetName() or 1;
 			self::AddOwner(owner)
@@ -599,17 +597,7 @@ db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
 -- UI Caching
 ---------------------------------------------------------------
 local CachedFrames = {[Cursor] = true; [Cursor.Toggle] = true};
-local PendingBars  = {};
-local BLIZZARD_ACTION_BUTTONS = {
-	'ActionButton';
-	'MultiBarBottomLeftButton';
-	'MultiBarBottomRightButton';
-	'MultiBarRightButton';
-	'MultiBarLeftButton';
-	'MultiBar5Button';
-	'MultiBar6Button';
-	'MultiBar7Button';
-};
+local PendingBars, PendingParents = {}, {};
 local function CursorCacheNode(node)
 	if not Cursor.isActiveComponent then return end;
 	if not CachedFrames[node] then
@@ -636,6 +624,15 @@ function Cursor:CacheActionBar(bar)
 	Scan.Execute(CursorCacheNode, iterator(), iterator, true)
 end
 
+function Cursor:CacheActionButtons(parent)
+	if not self.isActiveComponent then
+		PendingParents[parent] = true;
+		return
+	end
+	local iterator = GenerateClosure(next, db.Actionbar:GetActionButtons(true, parent))
+	Scan.Execute(CursorCacheNode, iterator(), iterator, true)
+end
+
 function Cursor:UpdateActiveState()
 	local bindings = db.Bindings.Custom;
 	local active = not db('lazyLoadingEnable') or not not (
@@ -651,18 +648,11 @@ function Cursor:UpdateActiveState()
 			self:CacheActionBar(bar)
 		end
 		wipe(PendingBars)
-		-- The default bars are hidden (and some parented away from UIParent)
-		-- under the gamepad bars, so the node scan never reaches them, yet a
-		-- key bound to e.g. ACTIONBUTTON6 still clicks the button. Reroute
-		-- those like the visible ones.
-		for _, prefix in ipairs(BLIZZARD_ACTION_BUTTONS) do
-			for i = 1, NUM_ACTIONBAR_BUTTONS do
-				local button = _G[prefix..i];
-				if button then
-					CursorCacheNode(button)
-				end
-			end
+		for parent in pairs(PendingParents) do
+			self:CacheActionButtons(parent)
 		end
+		wipe(PendingParents)
+		self:CacheActionButtons(UIParent)
 	end
 end
 
