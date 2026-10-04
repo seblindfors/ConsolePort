@@ -70,21 +70,21 @@ Cursor:Execute(([[
 ---------------------------------------------------------------
 Cursor:CreateEnvironment({
 	FilterNode = [[
-		if self::IsDrawn(node:GetRect()) then
-			local unit = node:GetAttribute('unit')
-			local action = node:GetAttribute('action')
+		local unit = node:GetAttribute('unit')
+		local action = node:GetAttribute('action')
 
-			if unit and not action then
-				if self::IsValidNode(unit) and node:IsVisible() then
-					NODES[node] = true;
-				end
-			elseif action and tonumber(action) then
-				local parent = node:GetParent()
-				local owner  = parent and parent:GetName() or 1;
-				self::AddOwner(owner)
-				if ( ACTIONS[owner][node] == nil ) then
-					ACTIONS[owner][node] = unit or false;
-				end
+		if unit and not action then
+			if self::IsDrawn(node:GetRect()) and self::IsValidNode(unit) and node:IsVisible() then
+				NODES[node] = true;
+			end
+		elseif action and tonumber(action) then
+			-- Not drawn is fine: a hidden button (e.g. the default bar under
+			-- the gamepad bars) still receives its key binding.
+			local parent = node:GetParent()
+			local owner  = parent and parent:GetName() or 1;
+			self::AddOwner(owner)
+			if ( ACTIONS[owner][node] == nil ) then
+				ACTIONS[owner][node] = unit or false;
 			end
 		end
 	]];
@@ -610,6 +610,16 @@ db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
 ---------------------------------------------------------------
 local CachedFrames = {[Cursor] = true; [Cursor.Toggle] = true};
 local PendingBars  = {};
+local BLIZZARD_ACTION_BUTTONS = {
+	'ActionButton';
+	'MultiBarBottomLeftButton';
+	'MultiBarBottomRightButton';
+	'MultiBarRightButton';
+	'MultiBarLeftButton';
+	'MultiBar5Button';
+	'MultiBar6Button';
+	'MultiBar7Button';
+};
 local function CursorCacheNode(node)
 	if not Cursor.isActiveComponent then return end;
 	if not CachedFrames[node] then
@@ -651,6 +661,18 @@ function Cursor:UpdateActiveState()
 			self:CacheActionBar(bar)
 		end
 		wipe(PendingBars)
+		-- The default bars are hidden (and some parented away from UIParent)
+		-- under the gamepad bars, so the node scan never reaches them, yet a
+		-- key bound to e.g. ACTIONBUTTON6 still clicks the button. Reroute
+		-- those like the visible ones.
+		for _, prefix in ipairs(BLIZZARD_ACTION_BUTTONS) do
+			for i = 1, NUM_ACTIONBAR_BUTTONS do
+				local button = _G[prefix..i];
+				if button then
+					CursorCacheNode(button)
+				end
+			end
+		end
 	end
 end
 
