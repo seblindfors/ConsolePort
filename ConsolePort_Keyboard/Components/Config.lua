@@ -53,23 +53,14 @@ local function ShowDataContainer()
 	local active  = db.Gamepad.Active;
 	local dataBin = CreateDataContainer()
 
-	local modOrder, setOrder, dirOrder = {}, {
-		'keyboardEraseButton';
-		'keyboardEscapeButton';
-		'keyboardSpaceButton';
-		'keyboardEnterButton';
-	}, { 'NN', 'NE', 'EE', 'SE', 'SS', 'SW', 'WW', 'NW'};
+	local modOrder, dirOrder = {}, { 'NN', 'NE', 'EE', 'SE', 'SS', 'SW', 'WW', 'NW'};
 
 	for mod in db.table.mpairs(db.Gamepad.Index.Modifier.Active) do
 		tinsert(modOrder, mod);
 	end
 
 	local function GetButtonID(value)
-		local varID = setOrder[tonumber(value)];
-		if varID then
-			return db(varID);
-		end
-		return nil;
+		return env.StrokeButtons[tonumber(value)];
 	end
 
 	local function GetModifier(value)

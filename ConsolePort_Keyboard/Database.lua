@@ -27,15 +27,15 @@ ConsolePort:AddVariables({
 		name = 'Space';
 		desc = 'Button to use to trigger the space command.';
 	};
-	keyboardEnterButton = _{Data.Button('PAD3');
+	keyboardEnterButton = _{Data.Button('PAD2');
 		name = 'Enter';
 		desc = 'Button to use to trigger the enter command.';
 	};
-	keyboardEraseButton = _{Data.Button('PAD4');
+	keyboardEraseButton = _{Data.Button('PAD3');
 		name = 'Erase';
 		desc = 'Button to use to erase characters.';
 	};
-	keyboardEscapeButton = _{Data.Button('PAD2');
+	keyboardEscapeButton = _{Data.Button('PAD4');
 		name = 'Escape';
 		desc = 'Button to use to trigger the escape command.';
 	};
@@ -133,6 +133,11 @@ env.Cmd = {
 	Erase  = '{cmd3}';
 	Escape = '{cmd4}';
 };
+
+-- Each key set draws four characters as a diamond, top first and clockwise,
+-- matching the face buttons; the button pressed decides which one is typed.
+env.StrokeButtons = { 'PAD4', 'PAD2', 'PAD1', 'PAD3' };
+env.StrokeIndex   = tInvert(env.StrokeButtons);
 
 env.DefaultMarkers = {
 	['{rt1}']          = _ [[TARGETINGFRAME\UI-RaidTargetingIcon_1]];
