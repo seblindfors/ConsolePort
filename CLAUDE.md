@@ -913,3 +913,30 @@ Drivers built entirely from native conditions (`[vehicleui]`, `[combat]`, `[grou
 the global functions directly. The macro condition vocabulary itself lives in
 `ConsolePort/Utils/Macro.lua`: `CPAPI.ConvertDriver`, `ParseDriver`, `MapDriver`,
 `ClassifyDriver`, `IsModSubset`.
+
+**Nothing outside the controller writes an override binding.** The engine keeps one binding
+per key per tier and lets the newest writer win, so two frames binding the same key fight
+over recency. The controller holds every claim and writes the engine itself. A claimant
+names itself and a level; the highest level holds the key, newest on a tie, and releasing
+surfaces the next claim:
+
+```lua
+-- insecure
+db.Layers:Claim(frame, 'NAV', key, 'click', target, mouseButton)
+db.Layers:Claim(frame, 'OVERRIDE', key, 'binding', action)
+db.Layers:Release(frame, key)
+db.Layers:ReleaseAll(frame)
+
+-- restricted, with layers = self:GetFrameRef('Layers')
+layers::Claim(OWNER, 'MODAL', key, 'click', OWNER, button)
+layers::ReleaseAll(OWNER)
+```
+
+| Level | Holds | Engine tier |
+|---|---|---|
+| `BASE` | the controller's own binding row | low |
+| `OVERRIDE` | conditional replacements of the row: interact, unit menu triggers | low |
+| `NAV` | cursors: raid, secure, interface | priority |
+| `MODAL` | rings, menus, unit hotkeys, quick menu | priority |
+
+Owners and click targets are frame names, since frame handles do not survive `RunAttribute`.

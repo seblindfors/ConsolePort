@@ -45,7 +45,7 @@ Cursor:CreateEnvironment({
 			self:Show()
 		else
 			self::ClearHighlight()
-			self:ClearBindings()
+			layers::ReleaseAll(OWNER)
 			self:Hide()
 		end
 	]];
@@ -53,16 +53,16 @@ Cursor:CreateEnvironment({
 		local enabled = ...;
 
 		local user = self:GetParent()
-		if enabled and curnode then
-			local prioritize = owner:GetAttribute('priorityoverride')
+		local target = enabled and curnode and curnode:GetName();
+		if target then
 			for clickID, buttonID in pairs(CLICKS) do
 				local button = user:GetAttribute(clickID) or buttonID;
-				self:SetBindingClick(prioritize, button, curnode, clickID)
+				layers::Claim(OWNER, 'NAV', button, 'click', target, clickID)
 			end
 		else
 			for clickID, buttonID in pairs(CLICKS) do
 				local button = user:GetAttribute(clickID) or buttonID;
-				self:ClearBinding(button)
+				layers::Release(OWNER, button)
 			end
 		end
 	]];
@@ -116,7 +116,6 @@ Cursor:Run([[
 ]])
 
 function Cursor:OnDataLoaded()
-	self:SetAttribute('priorityoverride', true)
 	self:SetAttribute('wrapDisable', db('UIWrapDisable'))
 	return CPAPI.KeepMeForLater;
 end
@@ -125,10 +124,6 @@ db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'OnDataLoaded',
 	'Settings/UIWrapDisable'
 );
-
-db:RegisterSafeCallback('OnUpdateOverrides', function(self, isPriority)
-	self:Execute('self:RunAttribute("ToggleCursor", enabled)')
-end, Cursor)
 
 function Cursor:CallScript(scriptID, name)
 	local widget = _G[name];

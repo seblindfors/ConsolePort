@@ -97,7 +97,7 @@ db:Register('Nav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {
 		local modifier = ...;
 		modifier = modifier and modifier or '';
 		for _, binding in pairs({self::GetBaseBindings()}) do
-			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..binding, self, binding)
+			layers::Claim(OWNER, 'NAV', modifier..binding, 'click', OWNER, binding)
 		end
 	]];
 	-----------------------------------------------------------
@@ -223,10 +223,13 @@ db:Register('Nav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {
 }}), {
 	__call = function(self, obj)
 		Mixin(obj, self)
+		obj:SetFrameRef('Layers', db.Layers)
 		obj:Execute([[
 			CACHE = newtable();
 			NODES = newtable();
 			CACHE[self] = true;
+			layers = self:GetFrameRef('Layers');
+			OWNER  = self:GetName();
 		]])
 		return obj;
 	end;

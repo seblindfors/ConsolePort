@@ -109,7 +109,7 @@ Cursor:CreateEnvironment({
 		local modifier = ...;
 		modifier = modifier or '';
 		for buttonID, keyID in pairs(BUTTONS) do
-			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..keyID, self, buttonID)
+			layers::Claim(OWNER, 'NAV', modifier..keyID, 'click', OWNER, buttonID)
 		end
 	]];
 	RefreshOwners = [[
@@ -249,7 +249,7 @@ Cursor:CreateEnvironment({
 			self::PrepareReroute()
 			self:SetAttribute('node', nil)
 			self:SetAttribute(CURSOR_UNIT, nil)
-			self:ClearBindings()
+			layers::ReleaseAll(OWNER)
 			self:Hide()
 		end
 	]];
@@ -270,7 +270,6 @@ Cursor:CreateEnvironment({
 	OwnerChanged = [[
 		widget = ...;
 		if enabled then
-			self::SetBaseBindings(self:GetAttribute('navmodifier'))
 			if self::RefreshOwner(widget) then
 				self::PostNodeSelect()
 			end
@@ -314,7 +313,6 @@ function Cursor:OnDataLoaded()
 
 	self:SetFilter(db('raidCursorFilter'))
 	self:SetAttribute('wrapDisable', db('raidCursorWrapDisable'))
-	self:SetAttribute('priorityoverride', db('raidCursorPriorityOverride'))
 	self:SetScale(db('raidCursorScale'))
 	self:UpdatePointer()
 
@@ -328,12 +326,6 @@ function Cursor:OnDataLoaded()
 	return CPAPI.KeepMeForLater;
 end
 
-function Cursor:OnUpdateOverrides(isPriority)
-	if not isPriority then
-		self:Run('self::ToggleCursor(enabled)')
-	end
-end
-
 db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'Settings/raidCursorScale',
 	'Settings/raidCursorMode',
@@ -345,10 +337,8 @@ db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'Settings/raidCursorDown',
 	'Settings/raidCursorLeft',
 	'Settings/raidCursorRight',
-	'Settings/raidCursorWrapDisable',
-	'Settings/raidCursorPriorityOverride'
+	'Settings/raidCursorWrapDisable'
 );
-db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 
 ---------------------------------------------------------------
 -- Script handlers

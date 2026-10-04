@@ -75,8 +75,84 @@ Layers.Env = {
 	-----------------------------------------------------------
 	ClearRow = [[
 		for i = #APPLIED, 1, -1 do
-			self:ClearBinding(APPLIED[i])
+			self::Release(ROWOWNER, APPLIED[i])
 			APPLIED[i] = nil;
+		end
+	]];
+	-----------------------------------------------------------
+	-- One engine binding per key: the highest level claim, newest on a tie.
+	-- Base and override claims sit on the engine's low tier, navigation
+	-- and modal claims on the priority tier.
+	-- @param key : full key, chord and button
+	Resolve = [[
+		local key = ...;
+		local list, best = CLAIMS[key];
+		if list then
+			for i = 1, #list do
+				local entry = list[i];
+				if ( not best or entry[2] >= best[2] ) then
+					best = entry;
+				end
+			end
+		end
+		if not best then
+			if LIVE[key] then
+				self:ClearBinding(key)
+				LIVE[key] = nil;
+			end
+			return;
+		end
+		local priority = best[2] >= LEVEL_NAV;
+		if ( best[3] == 'click' ) then
+			self:SetBindingClick(priority, key, best[4], best[5])
+		else
+			self:SetBinding(priority, key, best[4])
+		end
+		LIVE[key] = true;
+	]];
+	-----------------------------------------------------------
+	-- Frame handles do not survive RunAttribute, so owners and targets
+	-- are names.
+	-- @param owner : name of the claimant
+	-- @param level : LEVEL_BASE .. LEVEL_MODAL, or its name
+	-- @param key   : full key, chord and button
+	-- @param kind  : 'click' or 'binding'
+	-- @param a     : click target frame name, or binding action
+	-- @param b     : mouse button for a click
+	Claim = [[
+		local owner, level, key, kind, a, b = ...;
+		if ( type(level) == 'string' ) then level = LEVELS[level] end;
+		local list = CLAIMS[key];
+		if not list then list = newtable() CLAIMS[key] = list end;
+		for i = #list, 1, -1 do
+			if ( list[i][1] == owner ) then tremove(list, i) end;
+		end
+		list[#list + 1] = newtable(owner, level, kind, a, b);
+		self::Resolve(key)
+	]];
+	-----------------------------------------------------------
+	Release = [[
+		local owner, key = ...;
+		local list = CLAIMS[key];
+		if not list then return end;
+		for i = #list, 1, -1 do
+			if ( list[i][1] == owner ) then tremove(list, i) end;
+		end
+		if ( #list == 0 ) then CLAIMS[key] = nil end;
+		self::Resolve(key)
+	]];
+	-----------------------------------------------------------
+	ReleaseAll = [[
+		local owner = ...;
+		for key in pairs(CLAIMS) do
+			self::Release(owner, key)
+		end
+	]];
+	-----------------------------------------------------------
+	ResolveAll = [[
+		wipe(LIVE)
+		for key in pairs(CLAIMS) do
+			self::Resolve(key)
 		end
 	]];
 	-----------------------------------------------------------
@@ -111,9 +187,9 @@ Layers.Env = {
 				for i = 1, emulated and 2 or 1 do
 					local key = chord..( ( i == 1 ) and button or emulated );
 					if ( entry[1] == 'click' ) then
-						self:SetBindingClick(false, key, entry[2], entry[3])
+						self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', entry[2], entry[3])
 					else
-						self:SetBinding(false, key, entry[2])
+						self::Claim(ROWOWNER, LEVEL_BASE, key, 'binding', entry[2])
 					end
 					APPLIED[#APPLIED + 1] = key;
 				end
@@ -290,6 +366,12 @@ function Layers:OnEnvironmentChanged()
 		CLAIMED  = CLAIMED  or newtable();
 		EMULATED = EMULATED or newtable();
 		STATES   = STATES   or newtable();
+		CLAIMS   = CLAIMS   or newtable();
+		LIVE     = LIVE     or newtable();
+		LEVEL_BASE, LEVEL_OVERRIDE, LEVEL_NAV, LEVEL_MODAL = 1, 2, 3, 4;
+		LEVELS = LEVELS or newtable();
+		LEVELS.BASE, LEVELS.OVERRIDE, LEVELS.NAV, LEVELS.MODAL = 1, 2, 3, 4;
+		ROWOWNER = 'row';
 		ROW      = ROW      or newtable();
 	]])
 	self:CreateEnvironment()
@@ -432,6 +514,46 @@ function Layers:Refresh()
 		end
 		self::UpdatePrefix()
 	]]))
+end
+
+---------------------------------------------------------------
+-- Claims
+---------------------------------------------------------------
+-- A consumer names the level it plays at; the controller owns the
+-- numbers and writes one engine binding per key.
+local function ClaimName(frame)
+	local name = type(frame) == 'string' and frame or frame:GetName();
+	assert(name, 'A claimant needs a name.')
+	return name;
+end
+
+-- @param frame : claimant, a named frame or its name
+-- @param level : 'BASE', 'OVERRIDE', 'NAV' or 'MODAL'
+-- @param key   : full key, chord and button
+-- @param kind  : 'click' or 'binding'
+-- @param a     : click target, a named frame or its name, or a binding action
+-- @param b     : mouse button for a click
+function Layers:Claim(frame, level, key, kind, a, b)
+	if InCombatLockdown() then return false end;
+	self:Execute(CPAPI.FormatSecureBody({
+		owner = ClaimName(frame); level = level; key = key; kind = kind;
+		a = ( kind == 'click' ) and ClaimName(a) or a; b = b or false;
+	}, [[ self::Claim({owner}, {level}, {key}, {kind}, {a}, {b} or nil) ]]))
+	return true;
+end
+
+function Layers:Release(frame, key)
+	if InCombatLockdown() then return false end;
+	self:Execute(CPAPI.FormatSecureBody({ owner = ClaimName(frame); key = key },
+		[[ self::Release({owner}, {key}) ]]))
+	return true;
+end
+
+function Layers:ReleaseAll(frame)
+	if InCombatLockdown() then return false end;
+	self:Execute(CPAPI.FormatSecureBody({ owner = ClaimName(frame) },
+		[[ self::ReleaseAll({owner}) ]]))
+	return true;
 end
 
 ---------------------------------------------------------------
@@ -685,6 +807,7 @@ function Layers:ReleaseModifiers()
 	self:Execute(CPAPI.ConvertSecureBody([[
 		ENABLED = false;
 		self::ClearRow()
+		self::ResolveAll()
 		wipe(MODS) wipe(CLAIMED)
 		PREFIX, CHORD = nil, nil;
 		self:SetAttribute('chord', nil)

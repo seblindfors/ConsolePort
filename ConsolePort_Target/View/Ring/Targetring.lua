@@ -42,12 +42,12 @@ Ring:CreateEnvironment({
 	]];
 	SetAcceptBinding = [[
 		local enabled = ...;
-		local button = self:GetAttribute('acceptButton')
+		local button, name = self:GetAttribute('acceptButton'), self:GetName();
 		for _, binding in ipairs({ self::GetBindingsForButton(button) }) do
 			if enabled then
-				self:SetBindingClick(true, binding, self, 'accept')
+				layers::Claim(name, 'MODAL', binding, 'click', name, 'accept')
 			else
-				self:ClearBinding(binding)
+				layers::Release(name, binding)
 			end
 		end
 	]];

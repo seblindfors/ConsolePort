@@ -596,8 +596,6 @@ function GamepadAPI:OnNewBindings()
 	self:ClearBlockedBindings()
 	local newBindings = self:GetBindings(true)
 	db:TriggerEvent('OnNewBindings', newBindings)
-	db:TriggerEvent('OnUpdateOverrides', false, newBindings)
-	db:TriggerEvent('OnUpdateOverrides', true,  newBindings)
 end
 
 GamepadAPI.QueueOnNewBindings = CPAPI.Debounce(GamepadAPI.OnNewBindings, GamepadAPI)

@@ -308,6 +308,17 @@ function InputMixin:Clear(manual)
 end
 
 ---------------------------------------------------------------
+-- Binding claims
+---------------------------------------------------------------
+function InputMixin:SetOverrideBinding(isPriority, key, target, button)
+	db.Layers:Claim(self, isPriority and 'NAV' or 'OVERRIDE', key, 'click', target, button)
+end
+
+function InputMixin:ClearOverrideBinding()
+	db.Layers:ReleaseAll(self)
+end
+
+---------------------------------------------------------------
 -- Conflict handler
 ---------------------------------------------------------------
 -- Handles a specific case when external overrides knock input
@@ -315,10 +326,8 @@ end
 -- stack. Might need a var for this assertion if other addons
 -- leverage custom gamepad controls outside combat.
 
-InputMixin.SetOverrideBinding = SetOverrideBindingClick;
-InputMixin.ClearOverrideBinding = ClearOverrideBindings;
-
 do local function HandleConflict(owner, isPriority, key)
+		if ( owner == db.Layers ) then return end;
 		local formattedKey = tostring(key):upper()
 		if IsBindingForGamePad(formattedKey) then
 			local widget = InputAPI.Widgets[formattedKey];
