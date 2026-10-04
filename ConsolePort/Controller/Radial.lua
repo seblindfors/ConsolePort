@@ -243,7 +243,8 @@ RadialMixin.Env = {
 	]];
 	SetBinding = [[
 		local btn, mod = ...
-		self:SetBindingClick(true, ((mod or '')..btn):upper(), self, btn)
+		local key, name = ((mod or '')..btn):upper(), self:GetName();
+		layers::Claim(name, 'MODAL', key, 'click', name, btn)
 		self:CallMethod('OnBindingSet', btn, mod)
 	]];
 	SetBindingsForTriggers = [[
@@ -561,7 +562,8 @@ Radial:CreateEnvironment({
 ---------------------------------------------------------------
 function Radial:Register(header, name, ...)
 	header:SetFrameRef('radial', self)
-	header:Execute('radial = self:GetFrameRef("radial")')
+	header:SetFrameRef('layers', db.Layers)
+	header:Execute('radial, layers = self:GetFrameRef("radial"), self:GetFrameRef("layers")')
 
 	self.Headers[header] = true;
 	self:SetFrameRef(name, header)

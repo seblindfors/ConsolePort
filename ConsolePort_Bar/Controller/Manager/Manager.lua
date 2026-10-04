@@ -5,7 +5,6 @@ env.Manager = Manager;
 ---------------------------------------------------------------
 Manager.Env = {
 	_onhide = [[
-		self:ClearBindings()
 		layers::ClearRegistered()
 		layers::ApplyRegistered()
 	]];
@@ -16,7 +15,6 @@ Manager.Env = {
 	]];
 	RefreshBindings = [[
 		local owner = ...;
-		self:ClearBindings()
 		self::ApplyBindings()
 		if owner then
 			mouse::OnBindingsChanged()
@@ -90,7 +88,6 @@ function Manager:ClearOverrides()
 	if not self.hasEnvironment then return end;
 	self:Run([[
 		bindings = wipe(bindings);
-		self:ClearBindings()
 		layers::ClearRegistered()
 		layers::ApplyRegistered()
 	]])
@@ -99,7 +96,6 @@ end
 function Manager:UpdateOverrides()
 	if not self.hasEnvironment then return end;
 	self:Run([[
-		self:ClearBindings()
 		self::ApplyBindings()
 		mouse::OnBindingsChanged()
 	]])

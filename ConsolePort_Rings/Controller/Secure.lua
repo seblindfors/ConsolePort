@@ -148,14 +148,15 @@ Secure:CreateEnvironment({
 		local isInConflict = self::IsControlBindingInConflict(button)
 		self:SetAttribute(%q, isInConflict)
 
+		local name = self:GetName();
 		if enabled and not isInConflict then
-			local removeWidget = self:GetFrameRef('Remove')
+			local target = self:GetFrameRef('Remove'):GetName();
 			for _, binding in ipairs(bindings) do
-				self:SetBindingClick(true, binding, removeWidget)
+				layers::Claim(name, 'MODAL', binding, 'click', target)
 			end
 		else
 			for _, binding in ipairs(bindings) do
-				self:ClearBinding(binding)
+				layers::Release(name, binding)
 			end
 		end
 	]]):format(env.Attributes.RemoveButton, env.Attributes.RemoveBlocked);
@@ -166,13 +167,14 @@ Secure:CreateEnvironment({
 		local isInConflict = self::IsControlBindingInConflict(button)
 		self:SetAttribute('acceptButtonBlocked', isInConflict)
 
+		local name = self:GetName();
 		if enabled and not isInConflict then
 			for _, binding in ipairs(bindings) do
-				self:SetBindingClick(true, binding, self, clickID)
+				layers::Claim(name, 'MODAL', binding, 'click', name, clickID)
 			end
 		else
 			for _, binding in ipairs(bindings) do
-				self:ClearBinding(binding)
+				layers::Release(name, binding)
 			end
 		end
 	]]):format(env.Attributes.AcceptButton, env.Attributes.AcceptBlocked);
@@ -229,7 +231,8 @@ Secure:CreateEnvironment({
 	]];
 	Disable = [[
 		self::ClearContext()
-		self:ClearBindings()
+		local name = self:GetName();
+		layers::ReleaseAll(name)
 		self:Hide()
 	]];
 	Commit = [[

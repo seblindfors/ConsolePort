@@ -91,7 +91,9 @@ db.Secure:RegisterUser(QMenu) -- Secure
 QMenu:SetAttribute(CPAPI.ActionUseOnKeyDown, true)
 QMenu:SetAttribute(CPAPI.SkipHotkeyRender, true)
 QMenu:SetFrameRef('SecureCursor', db.Secure)
+QMenu:SetFrameRef('Layers', db.Layers)
 QMenu:Run([[
+	layers, OWNER = self:GetFrameRef('Layers'), self:GetName();
 	FRAMES, FCOUNT = {}, 0;
 	AURAS, AHEIGHT = {}, 0;
 	cursor = self:GetFrameRef('SecureCursor');
@@ -148,9 +150,9 @@ QMenu:CreateEnvironment({
 
 		-- Cancel bindings
 		local cancelBinding = %q;
-		self:SetBindingClick(true, self:GetAttribute('cancelButton'), self, 'LeftButton')
+		layers::Claim(OWNER, 'MODAL', self:GetAttribute('cancelButton'), 'click', OWNER, 'LeftButton')
 		for _, key in ipairs({ GetBindingKey(cancelBinding) }) do
-			self:SetBindingClick(true, key, self, 'LeftButton')
+			layers::Claim(OWNER, 'MODAL', key, 'click', OWNER, 'LeftButton')
 		end
 
 		opening = nil;
@@ -159,7 +161,7 @@ QMenu:CreateEnvironment({
 	]]):format(db.Bindings.Proxied.ToggleGameMenu);
 	Disable = [[
 		self:Hide()
-		self:ClearBindings()
+		layers::ReleaseAll(OWNER)
 	]];
 })
 

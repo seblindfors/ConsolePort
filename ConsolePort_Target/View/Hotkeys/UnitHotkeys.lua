@@ -66,7 +66,9 @@ local Scan  = env.Scan;
 local Input = ConsolePortEasyMotionInput;
 UH.Assignments, UH.UnitFrames = {}, {};
 
+UH:SetFrameRef('Layers', db.Layers)
 UH:Run([[bindRef = %q;
+	layers, OWNER = self:GetFrameRef('Layers'), self:GetName();
 	-- Unit and binding tables
 	sorted, lookup, sequence = newtable(), newtable(), newtable()
 ]], ConsolePortEasyMotionInput:GetName())
@@ -162,7 +164,7 @@ UH:CreateEnvironment({
 
 	Clear = [[
 		self::ClearInput()
-		self:ClearBindings()
+		layers::ReleaseAll(OWNER)
 	]];
 
 	ClearInput = [[
@@ -174,7 +176,7 @@ UH:CreateEnvironment({
 		for i=1, self:GetAttribute('numkeys') do
 			local binding = self:GetAttribute(tostring(i))
 			if binding then
-				self:SetBindingClick(true, modifier..binding, bindRef, tostring(i))
+				layers::Claim(OWNER, 'MODAL', modifier..binding, 'click', bindRef, tostring(i))
 			end
 		end
 	]];

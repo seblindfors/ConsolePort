@@ -47,7 +47,8 @@ Selector.PrivateEnv = {
 	]];
 	OnFlyoutHide = [[
 		wipe(BUTTONS)
-		control:ClearBindings()
+		local name = control:GetName();
+		layers::ReleaseAll(name)
 		control:Hide()
 		control:CallMethod('ReleaseAll')
 		self:SetAlpha(1)

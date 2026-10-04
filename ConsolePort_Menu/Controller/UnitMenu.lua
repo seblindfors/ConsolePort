@@ -91,10 +91,12 @@ end)
 ---------------------------------------------------------------
 UnitMenuSecure:RegisterForClicks('AnyDown')
 UnitMenuSecure:SetAttribute(CPAPI.ActionUseOnKeyDown, true)
+UnitMenuSecure:SetFrameRef('Layers', db.Layers)
 UnitMenuSecure:Execute([[
 	UNIT_DRIVER = '[@%s,exists] %s; nil';
 	BUTTONS = newtable();
 	ESCAPES = newtable();
+	layers, OWNER = self:GetFrameRef('Layers'), self:GetName();
 ]]) for cmd, button in pairs(UnitMenuSecure.Buttons) do
 	UnitMenuSecure:Run([[
 		BUTTONS[%q] = %q;
@@ -109,15 +111,14 @@ UnitMenuSecure:CreateEnvironment({
 		local unit = ...;
 		self::ToggleMenu(unit)
 		if not unit then
-			self:ClearBindings()
+			layers::ReleaseAll(OWNER)
 			UnregisterStateDriver(self, 'unit')
 		else
-			local name = self:GetName()
 			for escape in pairs(ESCAPES) do
-				self:SetBindingClick(true, escape, name, BUTTONS.CLOSE)
+				layers::Claim(OWNER, 'MODAL', escape, 'click', OWNER, BUTTONS.CLOSE)
 			end
 			for cmd, button in pairs(BUTTONS) do
-				self:SetBindingClick(true, button, name, button)
+				layers::Claim(OWNER, 'MODAL', button, 'click', OWNER, button)
 			end
 		end
 	]];
@@ -187,11 +188,11 @@ function UnitMenuTrigger:OnLoad()
 end
 
 function UnitMenuTrigger:SetOverride(key)
-	SetOverrideBindingClick(self, false, key, self:GetName(), key:match('[^-]+$'))
+	db.Layers:Claim(self, 'OVERRIDE', key, 'click', self, key:match('[^-]+$'))
 end
 
 function UnitMenuTrigger:ClearOverrides()
-	ClearOverrideBindings(self)
+	db.Layers:ReleaseAll(self)
 end
 
 function UnitMenuTrigger:IsTimedContextValid()

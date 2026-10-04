@@ -65,8 +65,9 @@ Selector.PrivateEnv = {
 	OnGameMenuShow = [[
 		isMenuOpen = true;
 		selector::ClearAndHide(true)
+		local name = selector:GetName();
 		for binding, action in pairs(TRIGGERS) do
-			selector:SetBinding(true, binding, action)
+			layers::Claim(name, 'MODAL', binding, 'binding', action)
 		end
 	]];
 	OnGameMenuHide = [[
@@ -82,17 +83,17 @@ Selector.PrivateEnv = {
 			return selector::ClearAndHide(true)
 		end
 		selector::EnableRing()
+		local name = selector:GetName();
 		for binding, action in pairs(TRIGGERS) do
-			selector:SetBinding(true, binding, action)
+			layers::Claim(name, 'MODAL', binding, 'binding', action)
 		end
 
 		local mods = { selector::GetActiveModifiers() };
-		local name = selector:GetName();
 
 		for binding, command in pairs(COMMANDS) do
-			selector:SetBindingClick(true, binding, name, command)
+			layers::Claim(name, 'MODAL', binding, 'click', name, command)
 			for _, mod in ipairs(mods) do
-				selector:SetBindingClick(true, mod..binding, name, command)
+				layers::Claim(name, 'MODAL', mod..binding, 'click', name, command)
 			end
 		end
 	]];
@@ -110,7 +111,8 @@ Selector.PrivateEnv = {
 		end
 
 		self:Hide()
-		self:ClearBindings()
+		local name = self:GetName();
+		layers::ReleaseAll(name)
 		self:CallMethod('RemoveHint', ACCEPT)
 	]];
 	PreClick = ([[
@@ -205,7 +207,8 @@ function Selector:OnControlsChanged()
 	self:Run([[
 		wipe(TRIGGERS)
 		wipe(COMMANDS)
-		self:ClearBindings()
+		local name = self:GetName();
+		layers::ReleaseAll(name)
 	]])
 
 	local sticks    = db.Radial:GetStickStruct(db('radialPrimaryStick'))
