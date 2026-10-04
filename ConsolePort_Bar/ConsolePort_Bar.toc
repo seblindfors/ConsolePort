@@ -12,8 +12,8 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-## SavedVariables: ConsolePort_BarPresets
-## SavedVariablesPerCharacter: ConsolePort_BarLayout, ConsolePort_BarDB
+## SavedVariables: ConsolePort_BarPresets, ConsolePort_BarSharedLayout, ConsolePort_BarSharedDB, ConsolePort_BarShareAll
+## SavedVariablesPerCharacter: ConsolePort_BarLayout, ConsolePort_BarDB, ConsolePort_BarScope
 
 Model\Utils.lua
 Model\Assets.lua

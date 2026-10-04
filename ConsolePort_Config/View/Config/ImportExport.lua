@@ -219,7 +219,7 @@ local Aggregators = {
 		end
 		return vars;
 	end;
-	ConsolePort_BarLayout = function() return ConsolePort_BarLayout end;
+	ConsolePort_BarLayout = function() return _G[db('BarLayoutKey') or 'ConsolePort_BarLayout'] end;
 	ConsolePort_BarPresets = function() return ConsolePort_BarPresets end;
 	ConsolePort_BarLoadout = function()
 		local actions = {};
@@ -284,7 +284,8 @@ local Evaluators = {
 		end
 	end};
 	{'ConsolePort_BarLayout', function(setup)
-		ConsolePort_BarLayout = setup;
+		-- The character's own layout, or the shared one if it uses that.
+		_G[db('BarLayoutKey') or 'ConsolePort_BarLayout'] = setup;
 		return true;
 	end};
 	{'ConsolePort_BarPresets', function(presets)

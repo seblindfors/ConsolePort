@@ -715,6 +715,27 @@ Loadout.LayoutControls = {
 			self:GetParent():TogglePresetSaveFrame(true)
 		end;
 	};
+	{
+		tooltipTitle = L'Share Across Characters';
+		tooltipText  = L'Choose whether this character, or all characters, use their own loadout and bar settings or the shared ones. Bindings and action bar contents stay per character.';
+		icon         = [[Interface\FriendsFrame\UI-Toast-FriendOnlineIcon]];
+		iconSize     = 18;
+		onClickHandler = function(self)
+			local parent = self:GetParent()
+			local popupName = 'ConsolePort_Loadout_Confirm_Share';
+			local shared, chosen = env:UsesSharedLayout(), env:GetSharedLayoutChoice() ~= nil;
+			local status = shared and L'shared by all characters' or L'for this character only';
+			if chosen then
+				status = L('%s (chosen for this character)', status)
+			elseif shared then
+				status = L('%s (account default)', status)
+			end
+			CPAPI.Popup(popupName, parent.Popups[popupName],
+				status, shared and L'Stop sharing them' or L'Share them', {
+				shared = not shared;
+			})
+		end;
+	};
 };
 
 Loadout.PresetControls = {
@@ -751,6 +772,23 @@ Loadout.PresetControls = {
 };
 
 Loadout.Popups = {
+	ConsolePort_Loadout_Confirm_Share = {
+		button1   = L'This character';
+		button2   = CANCEL;
+		button3   = L'All characters';
+		showAlert = true;
+		OnAccept = function(_, data)
+			env:SetSharedLayout(data.shared)
+			ReloadUI()
+		end;
+		OnAlt = function(_, data)
+			env:SetSharedLayout(data.shared, true)
+			ReloadUI()
+		end;
+		text = L('Loadout and bar settings are currently %s.\n\n%s for this character, or for all characters? All characters sets the account default, which every character follows unless it has its own choice. The interface will reload. Nothing is deleted.',
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+			'%s');
+	};
 	ConsolePort_Loadout_Confirm_Add = {
 		button1   = OKAY;
 		button2   = CANCEL;
