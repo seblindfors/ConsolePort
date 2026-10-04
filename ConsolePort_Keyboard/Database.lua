@@ -134,6 +134,11 @@ env.Cmd = {
 	Escape = '{cmd4}';
 };
 
+-- Each key set draws four characters as a diamond, top first and clockwise,
+-- matching the face buttons; the button pressed decides which one is typed.
+env.StrokeButtons = { 'PAD4', 'PAD2', 'PAD1', 'PAD3' };
+env.StrokeIndex   = tInvert(env.StrokeButtons);
+
 env.DefaultMarkers = {
 	['{rt1}']          = _ [[TARGETINGFRAME\UI-RaidTargetingIcon_1]];
 	['{rt2}']          = _ [[TARGETINGFRAME\UI-RaidTargetingIcon_2]];

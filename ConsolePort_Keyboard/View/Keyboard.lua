@@ -100,7 +100,9 @@ function Keyboard:GetFocusKey(index)
 	return self.focusSet:GetKeyByIndex(index);
 end
 
-function Keyboard:Stroke(index)
+function Keyboard:Stroke(button)
+	local index = env.StrokeIndex[button];
+	if not index then return false end;
 	local key = self:GetFocusKey(index);
 	if not key then
 		self.Controls:GetKeyByIndex(index):Flash()
@@ -118,14 +120,14 @@ function Keyboard:Insert(key)
 	end
 end
 
-function Keyboard:Escape()
-	if self:Stroke(2) then return end;
+function Keyboard:Escape(button)
+	if self:Stroke(button) then return end;
 	ExecuteFrameScript(self.focusFrame, 'OnEscapePressed')
 	self:OnFocusChanged(nil)
 end
 
-function Keyboard:Enter()
-	if self:Stroke(4) then return end;
+function Keyboard:Enter(button)
+	if self:Stroke(button) then return end;
 	ExecuteFrameScript(self.focusFrame, 'OnEnterPressed')
 	if self.cachedFocusText then
 		env.DictHandler:Update(env.Dictionary, self.cachedFocusText)
@@ -133,14 +135,14 @@ function Keyboard:Enter()
 	end
 end
 
-function Keyboard:Space()
-	if self:Stroke(3) then return end;
+function Keyboard:Space(button)
+	if self:Stroke(button) then return end;
 	ExecuteFrameScript(self.focusFrame, 'OnSpacePressed')
 	self.focusFrame:Insert(' ')
 end
 
-function Keyboard:Erase()
-	if self:Stroke(1) then return end;
+function Keyboard:Erase(button)
+	if self:Stroke(button) then return end;
 	if IsControlKeyDown() then
 		return self.focusFrame:SetText('')
 	end
@@ -255,37 +257,35 @@ end
 ---------------------------------------------------------------
 -- Button convention migration
 ---------------------------------------------------------------
--- The commands were renumbered to follow the native gamepad button
--- convention, which moved both the default button and the index each
--- command strokes. Those cancel out for a default install, but a saved
--- button lands on a different index, which scrambles the typing layout.
--- Each command inherits the button of whichever command used to stroke
--- the same index, so the characters stay where they were.
-local BUTTON_CONVENTION_VERSION = 1;
+-- Version 1 rotated saved command buttons; strokes now follow the
+-- button pressed, so that rotation is undone and saved values stand.
+local BUTTON_CONVENTION_VERSION = 2;
 
-local BUTTON_INHERITS = {
-	keyboardEraseButton  = 'keyboardEscapeButton';
-	keyboardEscapeButton = 'keyboardEnterButton';
-	keyboardEnterButton  = 'keyboardEraseButton';
+local BUTTON_RESTORES = {
+	keyboardEscapeButton = 'keyboardEraseButton';
+	keyboardEnterButton  = 'keyboardEscapeButton';
+	keyboardEraseButton  = 'keyboardEnterButton';
 };
 
 function Keyboard:MigrateButtonConvention()
 	if not ConsolePortSettings then return end;
-	if ( ConsolePortSettings.keyboardButtonVersion == BUTTON_CONVENTION_VERSION ) then return end;
+	local version = ConsolePortSettings.keyboardButtonVersion;
+	if ( version == BUTTON_CONVENTION_VERSION ) then return end;
 	ConsolePortSettings.keyboardButtonVersion = BUTTON_CONVENTION_VERSION;
+	if ( version ~= 1 ) then return end;
 
 	for _, source in ipairs({ConsolePortSettings, ConsolePortCharacterSettings}) do
 		if source then
 			local before, changed = {}, false;
-			for varID in pairs(BUTTON_INHERITS) do
+			for varID in pairs(BUTTON_RESTORES) do
 				before[varID] = source[varID];
 				changed = changed or ( source[varID] ~= nil );
 			end
 			if changed then
-				for varID, inheritsFrom in pairs(BUTTON_INHERITS) do
-					source[varID] = before[inheritsFrom];
+				for varID, restoreFrom in pairs(BUTTON_RESTORES) do
+					source[varID] = before[restoreFrom];
 				end
-				CPAPI.Log('Keyboard command buttons were realigned with the new button convention.')
+				CPAPI.Log('Keyboard command buttons were restored to your saved choices.')
 			end
 		end
 	end
@@ -367,12 +367,19 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardPrevWordButton')]  = self.PrevWord;
 		[db('keyboardAutoCorrButton')]  = self.AutoCorrect;
 	};
-	self.Controls:SetData({
-		{ env.Cmd.Erase,  };
-		{ env.Cmd.Escape, };
-		{ env.Cmd.Space,  };
-		{ env.Cmd.Enter,  };
-	})
+	local controls = { {''}, {''}, {''}, {''} };
+	for varID, cmd in pairs({
+		keyboardEraseButton  = env.Cmd.Erase;
+		keyboardEscapeButton = env.Cmd.Escape;
+		keyboardSpaceButton  = env.Cmd.Space;
+		keyboardEnterButton  = env.Cmd.Enter;
+	}) do
+		local index = env.StrokeIndex[db(varID)];
+		if index then
+			controls[index] = { cmd };
+		end
+	end
+	self.Controls:SetData(controls)
 	self.Controls:SetState(1)
 	-- update dictionary settings
 	env.DictMatchPattern  = db('keyboardDictPattern');
