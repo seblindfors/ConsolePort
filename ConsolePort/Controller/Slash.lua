@@ -74,10 +74,14 @@ local function Uninstall()
 		'ConsolePortUIStack',
 		'ConsolePortShared',
 		'ConsolePortRingsShared',
+		'ConsolePort_BarSharedDB',
+		'ConsolePort_BarSharedLayout',
+		'ConsolePort_BarShareAll',
 		-- Saved variables per character
 		'ConsolePortUtility', 'ConsolePortRings',
 		'ConsolePort_BarDB',
 		'ConsolePort_BarLayout',
+		'ConsolePort_BarScope',
 	}) do _G[var] = nil; end
 	ReloadUI()
 end

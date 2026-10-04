@@ -43,23 +43,87 @@ do -- Data handler
 	-----------------------------------------------------------
 	local VAR_SETTINGS, VAR_LAYOUT, VAR_PRESETS =
 		'ConsolePort_BarDB', 'ConsolePort_BarLayout', 'ConsolePort_BarPresets';
+	local VAR_SHARED_SETTINGS, VAR_SHARED_LAYOUT, VAR_SHARE_ALL, VAR_SCOPE =
+		'ConsolePort_BarSharedDB', 'ConsolePort_BarSharedLayout', 'ConsolePort_BarShareAll', 'ConsolePort_BarScope';
+	local activeSettings, activeLayout = VAR_SETTINGS, VAR_LAYOUT;
+
+	-- @return choice : true/false if this character chose, nil if it follows the account
+	function env:GetSharedLayoutChoice()
+		local scope = _G[VAR_SCOPE];
+		if ( type(scope) == 'table' ) then
+			return scope.shared;
+		end
+	end
+
+	-- @return shareAll : whether sharing is the account default
+	function env:IsSharedLayoutDefault()
+		return _G[VAR_SHARE_ALL] == true;
+	end
+
+	-- Whether this character uses the account-wide layout and settings.
+	-- Its own choice wins. Otherwise it follows the account default, and
+	-- without one, a character with no layout of its own follows a shared
+	-- layout once one exists.
+	function env:UsesSharedLayout()
+		local choice = self:GetSharedLayoutChoice()
+		if ( choice ~= nil ) then
+			return choice;
+		end
+		if ( _G[VAR_SHARED_LAYOUT] == nil ) then
+			return false;
+		end
+		return self:IsSharedLayoutDefault() or _G[VAR_LAYOUT] == nil;
+	end
+
+	-- Takes effect on the next load. Neither copy is ever deleted: the
+	-- first character to share seeds the account copy with its own, and
+	-- a character that stops sharing returns to its own (or starts from
+	-- the shared one if it never had one).
+	-- @param shared   : whether to share
+	-- @param everyone : set the account default instead of choosing for
+	--                   this character, which then follows the default too
+	function env:SetSharedLayout(shared, everyone)
+		shared = not not shared;
+		if shared and not _G[VAR_SHARED_LAYOUT] then
+			_G[VAR_SHARED_LAYOUT]   = CopyTable(_G[VAR_LAYOUT] or self:GetDefaultLayout())
+			_G[VAR_SHARED_SETTINGS] = CopyTable(_G[VAR_SETTINGS] or {})
+		elseif not shared and not _G[VAR_LAYOUT] and _G[VAR_SHARED_LAYOUT] then
+			_G[VAR_LAYOUT]   = CopyTable(_G[VAR_SHARED_LAYOUT])
+			_G[VAR_SETTINGS] = CopyTable(_G[VAR_SHARED_SETTINGS] or {})
+		end
+		if everyone then
+			_G[VAR_SHARE_ALL] = shared or nil;
+			_G[VAR_SCOPE] = nil;
+		else
+			_G[VAR_SCOPE] = { shared = shared };
+		end
+	end
 
 	function env:UpdateDataSource()
-		if not _G[VAR_SETTINGS] then _G[VAR_SETTINGS] = {} end;
-		local settings = CPAPI.Proxy(_G[VAR_SETTINGS], self.Defaults);
+		if self:UsesSharedLayout() then
+			activeSettings, activeLayout = VAR_SHARED_SETTINGS, VAR_SHARED_LAYOUT;
+		else
+			activeSettings, activeLayout = VAR_SETTINGS, VAR_LAYOUT;
+		end
+
+		-- Lets the global import/export find whichever layout is active.
+		env.db:Register('BarLayoutKey', activeLayout, true)
+
+		if not _G[activeSettings] then _G[activeSettings] = {} end;
+		local settings = CPAPI.Proxy(_G[activeSettings], self.Defaults);
 		env:Register('Settings', settings, true)
 		env:Default(settings)
-		env:Save('Settings', VAR_SETTINGS)
+		env:Save('Settings', activeSettings)
 
 		if not _G[VAR_PRESETS]  then _G[VAR_PRESETS] = {} end;
 		local presets  = CPAPI.Proxy(_G[VAR_PRESETS], self.Presets);
 		env:Register('Presets', presets, true)
 		env:Save('Presets', VAR_PRESETS)
 
-		if not _G[VAR_LAYOUT] then _G[VAR_LAYOUT] = env:GetDefaultLayout() end;
-		local layout = env.BuildLayout(_G[VAR_LAYOUT]);
+		if not _G[activeLayout] then _G[activeLayout] = env:GetDefaultLayout() end;
+		local layout = env.BuildLayout(_G[activeLayout]);
 		env:Register('Layout', layout, true)
-		env:Save('Layout', VAR_LAYOUT)
+		env:Save('Layout', activeLayout)
 	end
 
 	function env:GetDefault(var)
@@ -94,7 +158,7 @@ do -- Data handler
 	end
 
 	env:RegisterCallback('OnEnvLoaded', env.OnEnvLoaded, env)
-	env:RegisterCallback('Layout', env.Save, env, 'Layout', VAR_LAYOUT)
+	env:RegisterCallback('Layout', function() env:Save('Layout', activeLayout) end, env)
 end -- Data handler
 
 ---------------------------------------------------------------
