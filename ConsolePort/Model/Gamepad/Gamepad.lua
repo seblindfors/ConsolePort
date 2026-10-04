@@ -263,6 +263,10 @@ end
 
 db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
 	if not value then return end;
+	local setID = GetCurrentBindingSet();
+	if ( setID ~= Enum.BindingSet.Account and setID ~= Enum.BindingSet.Character ) then
+		return;
+	end
 	for buttonID in pairs(self.Index.Button.Binding) do
 		if not CPAPI.IsButtonValidForBinding(buttonID) then
 			for modifier in pairs(self.Index.Modifier.Active) do
@@ -283,7 +287,9 @@ db:RegisterSafeCallback('OnNewBindings', function(self)
 		SetCVar('GamePadStickAxisButtons', not allowSticks and 1 or 0)
 		CPAPI.Next(self.RegisterEvent, self, 'GAME_PAD_CONFIGS_CHANGED')
 	end
-	db:SetCVar('GamePadStickAxisButtons', allowSticks)
+	if ( GetCVarBool('GamePadStickAxisButtons') ~= allowSticks ) then
+		SetCVar('GamePadStickAxisButtons', allowSticks and 1 or 0)
+	end
 	if ( self:GetBindingKey('INTERACTTARGET') and not GetCVarBool('SoftTargetInteract') ) then
 		-- FIX: On Classic, the interact key is not enabled by default.
 		-- If it's bound and disabled, enable it. 1 = GamePad, see Console.lua.
@@ -391,15 +397,20 @@ end
 -- Wipe the incompatible bindings for a modifier when it's set.
 -- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
 function GamepadAPI:ClearBlockedBindings()
-	local cleared;
+	local setID = GetCurrentBindingSet();
+	if ( setID ~= Enum.BindingSet.Account and setID ~= Enum.BindingSet.Character ) then
+		return;
+	end
+	local cleared = {};
 	for combination in pairs(self.Index.Modifier.Blocked) do
 		if ( CPAPI.GetBindingAction(combination) ~= NM ) then
-			cleared = true;
+			cleared[#cleared + 1] = combination;
 			CPAPI.SetBinding(combination, nil)
 		end
 	end
-	if cleared then
-		CPAPI.SaveBindings()
+	if ( #cleared > 0 ) then
+		CPAPI.SaveBindings(setID)
+		CPAPI.Log('Removed bindings that cannot be used: %s', table.concat(cleared, ', '))
 	end
 end
 
