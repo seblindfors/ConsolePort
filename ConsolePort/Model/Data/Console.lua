@@ -3,8 +3,11 @@ local MOTION_SICKNESS_CHARACTER_CENTERED = MOTION_SICKNESS_CHARACTER_CENTERED or
 local MOTION_SICKNESS_REDUCE_CAMERA_MOTION = MOTION_SICKNESS_REDUCE_CAMERA_MOTION or 'Reduce Camera Motion';
 local SOFT_TARGET_DEVICE_OPTS = {[0] = OFF, [1] = 'Gamepad', [2] = 'KBM', [3] = ALWAYS};
 local SOFT_TARGET_ARC_ALLOWANCE = {[0] = 'Front', [1] = 'Cone', [2] = 'Around'};
+local HAS_CAMERA_INVERT = GetCVar('gamepadInvertPitch') ~= nil;
+
+-- Helpers
 local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
-local unpack, name, db = unpack, ...; local Console = {}; db('Data')();
+local Console, name, db = {}, ...; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
 ------------------------------------------------------------------------------------------------------------
@@ -179,16 +182,26 @@ db:Register('Console', CPAPI.Proxy({
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
 		};
 		{	cvar = 'GamePadCameraYawSpeed';
-			type = Range(1, 0.25, -4.0, 4.0);
+			type = Range(1, 0.25, HAS_CAMERA_INVERT and 0.5 or -4.0, 4.0);
 			name = 'Camera Yaw Speed';
 			desc = 'Camera speed for yaw - turning left/right.';
-			note = 'Choose a negative value to invert the axis.';
+			note = not HAS_CAMERA_INVERT and 'Choose a negative value to invert the axis.';
 		};
 		{	cvar = 'GamePadCameraPitchSpeed';
-			type = Range(1, 0.25, -4.0, 4.0);
+			type = Range(1, 0.25, HAS_CAMERA_INVERT and 0.5 or -4.0, 4.0);
 			name = 'Camera Pitch Speed';
 			desc = 'Camera speed for pitch - moving up/down.';
-			note = 'Choose a negative value to invert the axis.';
+			note = not HAS_CAMERA_INVERT and 'Choose a negative value to invert the axis.';
+		};
+		{	cvar = 'gamepadInvertYaw';
+			type = Bool(false);
+			name = 'Invert Yaw';
+			desc = 'Invert the camera yaw axis - turning left/right.';
+		};
+		{	cvar = 'gamepadInvertPitch';
+			type = Bool(false);
+			name = 'Invert Pitch';
+			desc = 'Invert the camera pitch axis - moving up/down.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
