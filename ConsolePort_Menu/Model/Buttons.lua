@@ -45,7 +45,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = CHARACTER_BUTTON;
 	ref   = IsRetailVersion and CharacterMicroButton;
-	click = IsClassicGameVersion and GenerateFlatClosure(ToggleCharacter, 'PaperDollFrame');
+	click = (IsClassicGameVersion or CPAPI.IsCamelotVersion) and GenerateFlatClosure(ToggleCharacter, 'PaperDollFrame');
 	OnLoad = function(self)
 		self:RegisterEvent('PLAYER_ENTERING_WORLD')
 		self:RegisterEvent('PLAYER_LEVEL_UP')
