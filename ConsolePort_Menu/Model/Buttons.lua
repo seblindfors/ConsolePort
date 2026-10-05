@@ -342,6 +342,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	text  = FRIENDS_LIST;
 	img   = [[Interface\FriendsFrame\Battlenet-Portrait]];
 	ref   = IsRetailVersion and QuickJoinToastButton or SocialsMicroButton or FriendsMicroButton;
+	click = CPAPI.IsCamelotVersion and GenerateFlatClosure(ToggleFriendsFrame, FRIEND_TAB_FRIENDS);
 	OnLoad = function(self)
 		self:RegisterEvent('FRIENDLIST_UPDATE')
 		self:RegisterEvent('BN_FRIEND_INFO_CHANGED')
