@@ -377,11 +377,43 @@ function SpellMenu:OnCursorChanged(isDefault, cursorType, oldCursorType)
 	end
 end
 
-function SpellMenu:OnSlotRequest(modID, btnID, kind, value, subType, spellID)
-	if ( kind == 'spell') then
-		self:SetSpell(spellID)
-		self:MapActionBar({ modID, btnID })
+function SpellMenu:FindFreeSlot()
+	local currentPage, freeSlot = db.Pager:GetCurrentPage();
+	for _, data in ipairs(SPELL_MAP_BAR_IDS) do
+		if data() then
+			for _, barID in ipairs(data) do
+				for i=1, NUM_ACTIONBAR_BUTTONS do
+					local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
+					local bindingID = db('Actionbar/Action/'..actionID)
+					if bindingID and not GetActionInfo(actionID) and not db.Gamepad:GetBindingKey(bindingID) then
+						if ( barID == currentPage ) then
+							return actionID, bindingID;
+						end
+						freeSlot = freeSlot or { actionID, bindingID };
+					end
+				end
+			end
+		end
 	end
+	if freeSlot then
+		return unpack(freeSlot)
+	end
+end
+
+function SpellMenu:OnSlotRequest(modID, btnID, kind, value, subType, spellID)
+	if ( kind ~= 'spell' ) then return end;
+	if not db('bindingShowSpellMenuGrid') and not InCombatLockdown() then
+		local actionID, bindingID = self:FindFreeSlot()
+		if actionID then
+			ClearCursor()
+			CPAPI.PickupSpell(spellID)
+			PlaceAction(actionID)
+			ClearCursor()
+			return CPAPI.SetBinding(modID..btnID, bindingID, true)
+		end
+	end
+	self:SetSpell(spellID)
+	self:MapActionBar({ modID, btnID })
 end
 
 function SpellMenu:PLAYER_REGEN_DISABLED()
