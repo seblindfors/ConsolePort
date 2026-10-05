@@ -79,7 +79,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = INVENTORY_TOOLTIP;
 	img   = ICON(IsRetailVersion and 'INV_Misc_Bag_29' or 'INV_Misc_Bag_08');
-	ref   = IsRetailVersion and MainMenuBarBackpackButton;
+	ref   = (IsRetailVersion or CPAPI.IsCamelotVersion) and MainMenuBarBackpackButton;
 	click = IsClassicGameVersion and ToggleAllBags;
 	OnLoad = function(self)
 		self:RegisterEvent('BAG_UPDATE_DELAYED')
