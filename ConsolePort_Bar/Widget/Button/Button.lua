@@ -192,6 +192,7 @@ local ProxyButton = CreateFromMixins(SlotButton, {
 			if not kind or not value then return false end;
 
 			local state = self:GetAttribute('state')
+			if not state then return false end;
 			local buttonType, buttonAction = self:GetAttribute('type'), nil;
 			if buttonType == 'custom' then
 				self:CallMethod('OnReceiveDragCustom', state, ...)
