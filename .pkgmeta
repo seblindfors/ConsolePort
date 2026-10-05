@@ -7,7 +7,6 @@ externals:
   ConsolePort/Libs/External/LibButtonGlow-1.0: https://repos.wowace.com/wow/libbuttonglow-1-0
   ConsolePort/Libs/External/LibStub: https://repos.wowace.com/wow/libstub/tags/1.0
   ConsolePort/Libs/External/RelaTable: https://github.com/seblindfors/RelaTable.git
-  ConsolePort_Config/Libs/AceSerializer-3.0: https://repos.wowace.com/wow/ace3/trunk/AceSerializer-3.0
   ConsolePort_Config/Libs/LibWoWQRCode: https://github.com/seblindfors/LibWoWQRCode.git
 
 move-folders:

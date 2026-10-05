@@ -2,6 +2,7 @@
 	<Script file="Database.lua"/>
 	<Script file="Loadout.lua"/>
 	<Script file="Profile.lua"/>
+	<Script file="Legacy.lua"/>
 	<Script file="Serializer.lua"/>
 	<Script file="Tutorial.lua"/>
 </Ui>
