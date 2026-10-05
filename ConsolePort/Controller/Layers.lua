@@ -275,6 +275,8 @@ Layers.Env = {
 			end
 		end
 
+		if ( value == nil ) then return end;
+
 		-- An unprotected frame is written outside the environment.
 		if entry[7] then
 			if ( value ~= entry[4] ) then
@@ -284,8 +286,8 @@ Layers.Env = {
 			return;
 		end
 
-		-- 'state-visibility' shows or hides and writes no attribute, per the
-		-- engine's own resolver. Reasserted every pass rather than guarded.
+		-- 'state-visibility' shows or hides and writes no attribute, and an
+		-- unmatched driver leaves the state alone, per the engine's resolver.
 		if entry[6] then
 			if ( value == 'show' ) then
 				entry[1]:Show()
