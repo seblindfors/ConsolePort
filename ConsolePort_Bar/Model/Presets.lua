@@ -334,7 +334,6 @@ Presets.CrossbarTriple = {
 		Left = Interface.Group : Render {
 			modifier = env.RunTimeFilter({
 				{ 'mod:M3M2M1', 'M1', M3, M2, M1 };
-				{ 'mod:M2M1', 'M2M1', M2, M1 };
 				{ 'mod:M3M1', 'M3M1', M3, M1 };
 				{ '', 'M1', M1 };
 			});
