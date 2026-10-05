@@ -118,6 +118,30 @@ if CPAPI.IsModernVersion then -- Misc retail addon fixes
 			return BaseHousingActionButtonMixin.OnLeave(self)
 		end;
 	end)
+	_('Blizzard_EditMode', function()
+		-- Hovering writes instructionsShown, which taints the next Edit Mode session.
+		Scripts.OnEnter[ EditModeSystemSelectionBaseMixin.OnEnter ] = function(self)
+			self.MouseOverHighlight:Show()
+			self:CheckShowInstructionalTooltip()
+		end;
+		Scripts.OnLeave[ EditModeSystemSelectionBaseMixin.OnLeave ] = function(self)
+			self.MouseOverHighlight:Hide()
+			self:HideInstructionalTooltip()
+		end;
+		for _, checkButton in pairs(EditModeManagerFrame.AccountSettings.settingsCheckButtons) do
+			local button = checkButton.Button;
+			Scripts.OnEnter[ button:GetScript('OnEnter') ] = function()
+				if checkButton.Label:IsTruncated() then
+					GameTooltip:SetOwner(button, 'ANCHOR_RIGHT')
+					GameTooltip_AddHighlightLine(GameTooltip, checkButton.Label:GetText())
+					GameTooltip:Show()
+				end
+			end;
+			Scripts.OnLeave[ button:GetScript('OnLeave') ] = function()
+				checkButton:HideButtonTooltip()
+			end;
+		end
+	end)
 	_('Blizzard_DelvesCompanionConfiguration', function()
 		-- CheckToggleAllowed() calls ClosestUnitPosition() which returns secret values.
 		-- Skip the check on hover; and skip the check in OnMouseDown.
