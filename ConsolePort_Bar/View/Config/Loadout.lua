@@ -390,6 +390,36 @@ function CopyButton:Reset()
 end
 
 ---------------------------------------------------------------
+local RenameButton = CreateFromMixins(CopyButton, {
+---------------------------------------------------------------
+	icon         = [[Interface\BUTTONS\UI-GuildButton-PublicNote-Up]];
+	tooltipTitle = BLUE_FONT_COLOR:WrapTextInColorCode(L'Rename');
+	tooltipText  = L('Rename this element.');
+	popupName    = 'ConsolePort_Mutable_Confirm_Rename';
+	popupData    = CreateFromMixins(CopyButton.popupData, {
+		OnAccept = function(popup, data)
+			local editBox = popup.editBox or popup:GetEditBox();
+			data.owner:OnRename(data.variableID, editBox:GetText():trim(), data.target)
+			ConsolePort:SetCursorNodeIfActive(data.owner)
+		end;
+		text = L('Rename %s in %s:',
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+	});
+});
+
+function RenameButton:onClickHandler()
+	local target = self:GetParent()
+	CPAPI.Popup(self.popupName, self.popupData, target:GetText(), self.owner:GetText(), {
+		variableID = self.variableID;
+		owner    = self.owner;
+		target   = target;
+		trigger  = self;
+		suggest  = GetEndpoint(self.variableID);
+	})
+end
+
+---------------------------------------------------------------
 -- Config widgets
 ---------------------------------------------------------------
 -- TODO: if these are ever used anywhere else, they should be
@@ -682,6 +712,7 @@ function Loadout:OnLoad(inputHandler, headerPool)
 
 	CreateDeleteButtonPool(self)
 	self.copyButtonPool = sharedConfig.CreateSquareButtonPool(self, CopyButton)
+	self.renameButtonPool = sharedConfig.CreateSquareButtonPool(self, RenameButton)
 	self.cmdButtonPool  = sharedConfig.CreateSquareButtonPool(self, sharedConfig.CmdButton)
 
 	self.factory = Mixin(CreateFrame('Frame', nil, self, 'CPSelectionPopoutTemplate'), Popout)
@@ -969,6 +1000,18 @@ function Loadout:OnCopy(path, name)
 	self:Update()
 end
 
+function Loadout:OnRename(path, name, widget)
+	local obj = CopyTable(env(path))
+	if widget.owner then
+		env:Release(widget.owner)
+	end
+	self:ReleaseAll()
+	env(path, nil)
+	env(PATH(BASE, name), obj)
+	env:TriggerEvent('OnLayoutChanged', true)
+	self:Update()
+end
+
 function Loadout:OnAdd(interface, name)
 	local newPath = PATH(BASE, name)
 	local newObj = interface:Render()
@@ -1241,6 +1284,7 @@ function Loadout:DrawConfiguration(layoutIndex)
 	self:ReleaseAll()
 	self.deleteButtonPool:ReleaseAll()
 	self.copyButtonPool:ReleaseAll()
+	self.renameButtonPool:ReleaseAll()
 
 	self.config = env:GetConfiguration()
 	for name, interface in db.table.spairs(self.config) do
@@ -1251,13 +1295,21 @@ function Loadout:DrawConfiguration(layoutIndex)
 		deleteButton:SetTarget(path, widget)
 		deleteButton:SetScript('OnHide', nil)
 
+		local offset = -32;
 		if not IsUniqueInterface(interface) then
 			local copyButton = self.copyButtonPool:Acquire()
 			copyButton.variableID = path;
 			copyButton:SetParent(widget)
-			copyButton:SetPoint('RIGHT', widget, 'RIGHT', -32, 0)
+			copyButton:SetPoint('RIGHT', widget, 'RIGHT', offset, 0)
 			copyButton:Show()
+			offset = offset - 32;
 		end
+
+		local renameButton = self.renameButtonPool:Acquire()
+		renameButton.variableID = path;
+		renameButton:SetParent(widget)
+		renameButton:SetPoint('RIGHT', widget, 'RIGHT', offset, 0)
+		renameButton:Show()
 	end
 	self.layoutIndexOffset = layoutIndex()
 end
