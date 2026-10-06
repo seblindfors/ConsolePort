@@ -6,7 +6,6 @@ local MENU_BLEED      = 60;
 local MENU_ALPHA      = 0.65;
 local NOTCH_ATLAS     = 'helptip-arrow';
 local NOTCH_BACKING   = 'helptip-arrow-mask';
-local NOTCH_MASK_FILE = [[Interface\HELPFRAME\HelptipArrowMask]];
 local NOTCH_WIDTH, NOTCH_HEIGHT = 65, 28;
 -- The art points down and rotates as a quad at its native size.
 local Directions = {
@@ -536,9 +535,6 @@ function Notch:OnLoad()
 	CPAPI.SetAtlas(self.NormalTexture, NOTCH_ATLAS, false)
 	CPAPI.SetAtlas(self.HighlightTexture, NOTCH_ATLAS, false)
 	CPAPI.SetAtlas(self.Backing, NOTCH_BACKING, false)
-	self.Mask:SetTexture(NOTCH_MASK_FILE)
-	self.NormalTexture:AddMaskTexture(self.Mask)
-	self.HighlightTexture:AddMaskTexture(self.Mask)
 end
 
 function Notch:OnClick()
@@ -561,7 +557,7 @@ end
 
 function Notch:SetDirection(direction)
 	local _, _, rotation, width, height = unpack(Directions[direction]);
-	for _, texture in ipairs({self.NormalTexture, self.HighlightTexture, self.Backing, self.Mask}) do
+	for _, texture in ipairs({self.NormalTexture, self.HighlightTexture, self.Backing}) do
 		texture:SetRotation(rotation)
 	end
 	local sideways = ( width < height );

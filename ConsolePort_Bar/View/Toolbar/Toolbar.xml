@@ -104,12 +104,6 @@
 								<Anchor point="CENTER"/>
 							</Anchors>
 						</Texture>
-						<MaskTexture parentKey="Mask">
-							<Size x="65" y="32"/>
-							<Anchors>
-								<Anchor point="CENTER"/>
-							</Anchors>
-						</MaskTexture>
 					</Layer>
 				</Layers>
 				<Scripts>
