@@ -45,7 +45,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = CHARACTER_BUTTON;
 	ref   = IsRetailVersion and CharacterMicroButton;
-	click = IsClassicGameVersion and GenerateFlatClosure(ToggleCharacter, 'PaperDollFrame');
+	click = (IsClassicGameVersion or CPAPI.IsCamelotVersion) and GenerateFlatClosure(ToggleCharacter, 'PaperDollFrame');
 	OnLoad = function(self)
 		self:RegisterEvent('PLAYER_ENTERING_WORLD')
 		self:RegisterEvent('PLAYER_LEVEL_UP')
@@ -79,7 +79,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = INVENTORY_TOOLTIP;
 	img   = ICON(IsRetailVersion and 'INV_Misc_Bag_29' or 'INV_Misc_Bag_08');
-	ref   = IsRetailVersion and MainMenuBarBackpackButton;
+	ref   = (IsRetailVersion or CPAPI.IsCamelotVersion) and MainMenuBarBackpackButton;
 	click = IsClassicGameVersion and ToggleAllBags;
 	OnLoad = function(self)
 		self:RegisterEvent('BAG_UPDATE_DELAYED')
@@ -342,6 +342,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	text  = FRIENDS_LIST;
 	img   = [[Interface\FriendsFrame\Battlenet-Portrait]];
 	ref   = IsRetailVersion and QuickJoinToastButton or SocialsMicroButton or FriendsMicroButton;
+	click = CPAPI.IsCamelotVersion and GenerateFlatClosure(ToggleFriendsFrame, FRIEND_TAB_FRIENDS);
 	OnLoad = function(self)
 		self:RegisterEvent('FRIENDLIST_UPDATE')
 		self:RegisterEvent('BN_FRIEND_INFO_CHANGED')
