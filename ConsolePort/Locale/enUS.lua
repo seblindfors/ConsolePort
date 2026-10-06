@@ -21,6 +21,7 @@ L.NAME_RING_TARGET            = 'Target Ring (Hold)';
 L.NAME_RING_UTILITY           = 'Utility Ring';
 L.NAME_UI_CURSOR_TOGGLE       = 'Toggle Interface Cursor';
 L.NAME_QUICK_MENU             = 'Quick Menu';
+L.NAME_TOOLBAR                = 'Toggle Toolbar';
 ---------------------------------------------------------------
 -- Formats
 ---------------------------------------------------------------
@@ -196,6 +197,10 @@ L.DESC_RING_MENU = [[
 
 	The ring can also be accessed from the game menu without a
 	separate binding, by switching page.
+]];
+L.DESC_TOOLBAR = [[
+	Opens the action bar toolbar, which holds the micro menu,
+	bag slots and shortcuts.
 ]];
 L.DESC_QUICK_MENU = [[
 	A quick access menu that gathers common actions performed

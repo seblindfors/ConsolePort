@@ -71,46 +71,76 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="CPToolbar" virtual="true" clampedToScreen="true" movable="true" mixin="CPToolbar" enableMouseClicks="false">
-		<Size x="900" y="64"/>
+	<Frame name="CPToolbar" virtual="true" clampedToScreen="true" movable="true" mixin="CPToolbar">
+		<Size x="96" y="32"/>
 		<Scripts>
+			<OnLoad method="OnLoad"/>
 			<OnDragStart method="StartMoving"/>
 			<OnDragStop method="StopMovingOrSizing"/>
-            <OnLoad method="OnLoad"/>
-			<OnEnter method="OnEnter"/>
-			<OnEvent method="OnEvent"/>
-			<OnSizeChanged method="OnSizeChanged"/>
 		</Scripts>
 		<Frames>
-			<Frame parentKey="PopoutContainer" clipChildren="true">
-				<Size x="300" y="300"/>
+			<Button parentKey="Notch" name="$parentToggle" mixin="CPToolbarNotch" registerForClicks="AnyDown" alpha="0">
+				<Size x="65" y="28"/>
 				<Anchors>
-					<Anchor point="BOTTOM" y="17"/>
+					<Anchor point="CENTER"/>
 				</Anchors>
+				<NormalTexture parentKey="NormalTexture">
+					<Size x="65" y="28"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD">
+					<Size x="65" y="28"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</HighlightTexture>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Backing">
+							<Size x="65" y="28"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+						<MaskTexture parentKey="Mask">
+							<Size x="65" y="32"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</MaskTexture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad method="OnLoad"/>
+					<OnClick method="OnClick"/>
+					<OnEnter method="OnEnter"/>
+					<OnLeave method="OnLeave"/>
+				</Scripts>
+			</Button>
+			<Frame parentKey="Menu" name="$parentMenu" frameStrata="HIGH" clampedToScreen="true" hidden="true">
+				<Size x="300" y="120"/>
 				<Frames>
-					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarSixSliceInverterFrame" alpha="0">
+					<Frame parentKey="Border" useParentLevel="true" inherits="NineSlicePanelTemplate">
+						<Anchors>
+							<Anchor point="TOPLEFT" y="-10"/>
+							<Anchor point="BOTTOMRIGHT" y="-10"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="Grid" inherits="GridLayoutFrame" scale="1.5">
 						<Size x="300" y="40"/>
 						<KeyValues>
 							<KeyValue key="childXPadding" value="1" type="number"/>
 							<KeyValue key="childYPadding" value="2" type="number"/>
-							<KeyValue key="stride" value="1" type="number"/>
+							<KeyValue key="stride" value="100" type="number"/>
 							<KeyValue key="isHorizontal" value="true" type="boolean"/>
 							<KeyValue key="layoutFramesGoingRight" value="true" type="boolean"/>
 							<KeyValue key="alwaysUpdateLayout" value="true" type="boolean"/>
 						</KeyValues>
 						<Anchors>
-							<Anchor point="BOTTOM" y="0"/>
+							<Anchor point="CENTER"/>
 						</Anchors>
-						<Layers>
-							<Layer level="BORDER">
-								<Texture parentKey="Gradient" inherits="CPDividerGradient">
-									<Anchors>
-										<Anchor point="TOPLEFT" x="0" y="0"/>
-										<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
-									</Anchors>
-								</Texture>
-							</Layer>
-						</Layers>
 						<Frames>
 							<Button parentKey="ExitVehicle" inherits="CPToolbarMicroButton">
 								<KeyValues>
@@ -148,57 +178,16 @@
 									<KeyValue key="layoutIndex" value="-1" type="number"/>
 								</KeyValues>
 							</Frame>
+							<Frame parentKey="Divider2" inherits="CPToolbarDivider">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="100" type="number"/>
+								</KeyValues>
+							</Frame>
 						</Frames>
 					</Frame>
 				</Frames>
-				<Animations>
-					<AnimationGroup parentKey="SlideIn" setToFinalAlpha="true">
-						<Alpha childKey="PopoutFrame" fromAlpha="0" toAlpha="1" duration="0.25"/>
-						<Translation parentKey="Translate" childKey="PopoutFrame" offsetX="0" offsetY="40" duration="0.25"/>
-						<Scripts>
-							<OnPlay>
-								self:GetParent().SlideOut:Finish();
-								self:GetParent().PopoutFrame:SetActive(false);
-							</OnPlay>
-							<OnFinished>
-								self:GetParent().PopoutFrame:SetActive(true);
-							</OnFinished>
-						</Scripts>
-					</AnimationGroup>
-					<AnimationGroup parentKey="SlideOut" setToFinalAlpha="true">
-						<Alpha childKey="PopoutFrame" fromAlpha="1" toAlpha="0" duration="0.25"/>
-						<Translation parentKey="Translate" childKey="PopoutFrame" offsetX="0" offsetY="-40" duration="0.25"/>
-						<Scripts>
-							<OnPlay>
-								self:GetParent().SlideIn:Finish();
-								self:GetParent().PopoutFrame:SetActive(true);
-							</OnPlay>
-							<OnFinished>
-								self:GetParent().PopoutFrame:SetActive(false);
-							</OnFinished>
-						</Scripts>
-					</AnimationGroup>
-				</Animations>
 			</Frame>
 		</Frames>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="BG" inherits="CPDividerGradient">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="16" y="60"/>
-						<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="BORDER">
-				<Texture parentKey="DividerLine" inherits="CPDividerLine">
-					<Anchors>
-						<Anchor point="BOTTOMLEFT" x="0" y="16"/>
-						<Anchor point="BOTTOMRIGHT" x="0" y="16"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
 	</Frame>
 
 </Ui>

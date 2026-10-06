@@ -13,6 +13,7 @@ env.Toplevel = {
 	Page    = false;
 	Petring = true;
 	Toolbar = true;
+	Watchbar = true;
 }; -- k: interface, v: unique
 
 ---------------------------------------------------------------
@@ -403,35 +404,18 @@ Interface.Petring = Data.Interface {
 	};
 };
 
-Interface.Toolbar = Data.Interface {
-	name = 'Toolbar';
-	desc = 'A toolbar with XP indicators, shortcuts, class specific bars, and miscellaneous information.';
+Interface.Watchbar = Data.Interface {
+	name = 'Watch Bar';
+	desc = 'XP and reputation bars with a color tint, and the class specific bars.';
 	Data.Table {
-		type = {hide = true; Data.String('Toolbar')};
+		type = {hide = true; Data.String('Watchbar')};
 		pos = _(Type.SimplePoint : Implement {
-			desc = 'Position of the toolbar.';
+			desc = 'Position of the watch bar.';
 			{
 				point    = 'BOTTOM';
 				relPoint = 'BOTTOM';
 			};
 		});
-		menu = _{
-			name = 'Menu';
-			desc = 'Menu buttons to display on the toolbar.';
-			Data.Table {
-				eye = _{
-					name = 'Cluster Modifier Toggle';
-					desc = 'Toggle visibility of all modifier flyouts for cluster action bars.';
-					Data.Bool(true);
-				};
-				micromenu = _{
-					name = 'Micro Menu';
-					desc = 'Take ownership of, and move the micro menu buttons to the toolbar.';
-					note = 'Requires /reload to fully unhook when disabled.';
-					Data.Bool(true);
-				};
-			};
-		};
 		castbar = _{
 			name = 'Casting Bar';
 			desc = 'Configure the casting bar.';
@@ -475,8 +459,69 @@ Interface.Toolbar = Data.Interface {
 		};
 		width = _{
 			name = 'Width';
-			desc = 'Width of the toolbar.';
+			desc = 'Width of the watch bar.';
 			Data.Range(900, 25, 300, 1200);
+		};
+	};
+};
+
+Interface.Toolbar = Data.Interface {
+	name = 'Toolbar';
+	desc = 'A notch that opens the micro menu, with shortcuts and bag slots.';
+	Data.Table {
+		type = {hide = true; Data.String('Toolbar')};
+		pos = _(Type.SimplePoint : Implement {
+			desc = 'Position of the toolbar notch.';
+			{
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 16;
+			};
+		});
+		notch = _{
+			name = 'Notch';
+			desc = 'The notch that opens the toolbar.';
+			Data.Table {
+				show = _{
+					name = 'Always Show';
+					desc = 'Show the notch at all times instead of on mouse over.';
+					Data.Bool(false);
+				};
+			};
+		};
+		menu = _{
+			name = 'Menu';
+			desc = 'Menu buttons to display on the toolbar.';
+			Data.Table {
+				eye = _{
+					name = 'Cluster Modifier Toggle';
+					desc = 'Toggle visibility of all modifier flyouts for cluster action bars.';
+					Data.Bool(true);
+				};
+				micromenu = _{
+					name = 'Micro Menu';
+					desc = 'Take ownership of, and move the micro menu buttons to the toolbar.';
+					note = 'Requires /reload to fully unhook when disabled.';
+					Data.Bool(true);
+				};
+				scale = _{
+					name = 'Scale';
+					desc = 'Scale of the toolbar menu.';
+					Data.Range(1.5, 0.25, 1, 3);
+				};
+			};
+		};
+		bags = _{
+			name = 'Bags';
+			desc = 'Bag controls on the toolbar.';
+			Data.Table {
+				enabled = _{
+					name = 'Enable';
+					desc = 'Take ownership of, and move the bag slots to the toolbar.';
+					note = 'Requires /reload to fully unhook when disabled.';
+					Data.Bool(true);
+				};
+			};
 		};
 	};
 };
