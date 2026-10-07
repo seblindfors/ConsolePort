@@ -110,12 +110,24 @@ end
 -- LAB custom type dynamic icon textures
 ---------------------------------------------------------------
 
-local function ProxyButtonTextureProvider(buttonID)
+local UNBOUND_GLYPH_ALPHA = 0.5;
+
+local function ResetGlyphTexture(obj)
+	obj:SetDesaturated(false)
+	obj:SetAlpha(1)
+end
+
+local function ProxyButtonTextureProvider(buttonID, isUnbound)
 	local texture = db('Icons/64/'..buttonID)
 	if texture then
-		return GenerateClosure(function(set, texture, obj)
-			set(obj, texture)
-		end, CPAPI.SetTextureOrAtlas, {texture, db.Gamepad.UseAtlasIcons})
+		return function(obj)
+			CPAPI.SetTextureOrAtlas(obj, {texture, db.Gamepad.UseAtlasIcons})
+			if isUnbound then
+				obj:SetDesaturated(true)
+				obj:SetAlpha(UNBOUND_GLYPH_ALPHA)
+				return ResetGlyphTexture;
+			end
+		end
 	end
 	return env.GetAsset([[Textures\Icons\Unbound]]);
 end
@@ -272,7 +284,7 @@ function ProxyButton:SetEligbleForRebind(state)
 	local info = env.GetRebindInfo(self.id)
 	return 'custom', {
 		tooltip = info.tooltip;
-		texture = ProxyButtonTextureProvider(self.id);
+		texture = ProxyButtonTextureProvider(self.id, true);
 		func    = self.OnRebindRequest;
 	};
 end
