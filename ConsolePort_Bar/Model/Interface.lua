@@ -582,12 +582,13 @@ Interface.Art = Data.Interface {
 	desc = 'Artwork for the interface.';
 	Data.Table {
 		type = {hide = true; Data.String('Art')};
-		pos = _(Type.SimplePoint : Implement {
+		pos = _(Type.ComplexPoint : Implement {
 			desc = 'Position of the artwork.';
 			{
 				point    = 'BOTTOM';
 				relPoint = 'BOTTOM';
 				y        = 16;
+				level    = 1;
 			};
 		});
 		width = _{
