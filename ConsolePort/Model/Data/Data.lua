@@ -311,8 +311,13 @@ function Table:Set(tbl, silent)
 	if tbl then
 		local inline = rawget(self, DATA);
 		for child, field in pairs(tbl) do
-			if inline[child] then
-				inline[child][DATA]:Set(field)
+			local target = inline[child] and inline[child][DATA];
+			if target then
+				if ( silent and target:IsType('Table') ) then
+					target:Set(field, silent)
+				else
+					target:Set(field)
+				end
 			elseif not silent then
 				error('Malformed table: field "'..child..'" does not exist in definition.')
 			end
