@@ -242,73 +242,99 @@ Presets.DiamondGrid = {
 };
 
 ---------------------------------------------------------------
--- Layer validation
+-- Gallery
 ---------------------------------------------------------------
--- One group per feature of the input layer controller, so that a
--- latched layer can be told apart from a held one at a glance. Each
--- group sits at 10% until its own layer is live, except the one that
--- hides outright, which exercises the engine's visibility shorthand
--- rather than opacity.
----------------------------------------------------------------
-do  local function Glyph(modifier, x, y)
-		return Interface.Glyph : Render {
-			modifier = modifier;
-			size     = 28;
-			pos      = { point = 'BOTTOM', relPoint = 'BOTTOM', x = x, y = y };
+Presets.Gallery = {
+	name       = 'Gallery';
+	desc       = 'Every element type in one layout, for testing.';
+	visibility = env.Const.ManagerVisibility;
+	children = {
+		Watchbar = Interface.Watchbar:Render {
+			width = 600;
 		};
-	end
-
-	local function Group(modifier, opacity, visibility, x, y)
-		return Interface.Group : Render {
-			modifier   = modifier;
-			opacity    = opacity;
-			visibility = visibility;
-			pos    = { point = 'BOTTOM', relPoint = 'BOTTOM', x = x, y = y };
-			width  = 120;
-			height = 60;
+		Toolbar  = Interface.Toolbar:Render {};
+		Petring  = Interface.Petring:Render {
+			scale = 0.65;
+			pos   = { x = 500, y = 120 };
+		};
+		Vehicle  = DefaultVehicle;
+		Cluster  = Interface.Cluster:Render {
+			width   = 600;
+			rescale = '80';
+			pos     = { y = 30 };
 			children = {
-				PAD1 = Handle:Warp { pos = { point = 'LEFT', relPoint = 'LEFT', x = 35, y = 0 } };
-				PAD2 = Handle:Warp { pos = { point = 'LEFT', relPoint = 'LEFT', x = 85, y = 0 } };
+				PADDLEFT  = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =   60, y = 0 } };
+				PADDRIGHT = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  180, y = 0 } };
+				PAD1      = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -180, y = 0 } };
+				PAD2      = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -60, y = 0 } };
 			};
 		};
-	end
-
-	Presets.Layers = {
-		name       = 'Layer Test';
-		desc       = 'One group per input layer feature, for validating latches against holds.';
-		visibility = env.Const.ManagerVisibility;
-		children = {
-			Vehicle = DefaultVehicle;
-			-- Base, so there is something to return to.
-			Base    = Group('[nomod] ;', '[nomod] 100; 10', nil, -260, 30);
-			-- Pure layer driver: every clause belongs to the controller.
-			Shift   = Group('[] M1;', '[mod:M1] 100; 10', nil, -130, 30);
-			-- Mixed driver: the first segment stays with the engine, so
-			-- this one also proves the residual trigger still fires.
-			Ctrl    = Group('[] M2;', '[vehicleui][overridebar] 0; [mod:M2] 100; 10', nil, 0, 30);
-			-- Reachable only by double tapping, and only while the
-			-- Doubled Bar option is on.
-			Doubled = Group('[] M1M1;', '[mod:M1M1] 100; 10', nil, 130, 30);
-			-- Shift then Ctrl, which is a different layer from M2M1
-			-- only while Modifier Order is on.
-			Ordered = Group('[] M1M2;', '[mod:M1M2] 100; 10', nil, 260, 30);
-			-- Shown rather than dimmed, through state-visibility.
-			Hidden  = Group('[] M2M1;', nil, '[mod:M2M1] show; hide', 0, 100);
-
-			-- Static labels, so each group says which layer it answers
-			-- for without having to read the driver.
-			LabelBase    = Glyph('M0',   -260, 95);
-			LabelShift   = Glyph('M1',   -130, 95);
-			LabelCtrl    = Glyph('M2',      0, 95);
-			LabelDoubled = Glyph('M1M1',  130, 95);
-			LabelOrdered = Glyph('M1M2',  260, 95);
-
-			-- The layer the controller reports it is in, right now.
-			LayerNow = Interface.Glyph : Render {
-				dynamic = true;
-				size    = 48;
-				pos     = { point = 'CENTER', relPoint = 'CENTER', y = 120 };
+		Group = Interface.Group : Render {
+			modifier = '[nomod] ;';
+			opacity  = '[nomod] 100; 50';
+			pos      = { point = 'BOTTOM', relPoint = 'BOTTOM', x = -300, y = 150 };
+			width    = 200;
+			height   = 50;
+			children = {
+				PADDUP       = Handle:Warp { pos = { point = 'LEFT', relPoint = 'LEFT', x =   0, y = 0 } };
+				PADDDOWN     = Handle:Warp { pos = { point = 'LEFT', relPoint = 'LEFT', x =  50, y = 0 } };
+				PADLSHOULDER = Handle:Warp { pos = { point = 'LEFT', relPoint = 'LEFT', x = 100, y = 0 } };
+				PADLTRIGGER  = Handle:Warp { pos = { point = 'LEFT', relPoint = 'LEFT', x = 150, y = 0 } };
 			};
+		};
+		Page = Interface.Page : Render {
+			pos   = { x = 300, y = 150 };
+			slots = 6;
+			page  = '6';
+		};
+		Divider = Interface.Divider : Render {
+			breadth    = 400;
+			depth      = 60;
+			transition = 150;
+			opacity    = '[mod:M1] 100; 40';
+			pos = { point = 'BOTTOM', relPoint = 'BOTTOM', y = 110 };
+		};
+		GlyphShift = Interface.Glyph : Render {
+			modifier = 'M1';
+			size     = 28;
+			pos      = { point = 'BOTTOM', relPoint = 'BOTTOM', x = -80, y = 220 };
+		};
+		GlyphLayer = Interface.Glyph : Render {
+			dynamic = true;
+			size    = 40;
+			pos     = { point = 'BOTTOM', relPoint = 'BOTTOM', x = 80, y = 220 };
+		};
+		Collage = Interface.Art : Render {
+			style  = 'Collage';
+			flavor = 'Class';
+			width  = 512;
+			height = 128;
+			pos    = { point = 'BOTTOM', relPoint = 'BOTTOM', y = 300 };
+		};
+		Artifact = Interface.Art : Render {
+			style  = 'Artifact';
+			flavor = 'Class';
+			width  = 512;
+			height = 128;
+			pos    = { point = 'BOTTOM', relPoint = 'BOTTOM', y = 440 };
+		};
+		TextureAtlas = Interface.Texture : Render {
+			file  = 'UI-HUD-ActionBar-Frame';
+			size  = { width = '[mod:M1] 192; 128', height = '[mod:M1] 48; 32' };
+			color = '[combat] ffff4040; ffffffff';
+			pos   = { point = 'BOTTOM', relPoint = 'BOTTOM', x = -400, y = 260 };
+		};
+		TexturePath = Interface.Texture : Render {
+			file    = [[Interface\Icons\INV_Misc_QuestionMark]];
+			size    = { width = '64', height = '64' };
+			rescale = '[mod:M2] 150; 100';
+			pos     = { point = 'BOTTOM', relPoint = 'BOTTOM', x = -400, y = 340 };
+		};
+		TextureID = Interface.Texture : Render {
+			file    = '[mod:M1] 134400; 136243';
+			size    = { width = '64', height = '64' };
+			opacity = '[combat] 100; 60';
+			pos     = { point = 'BOTTOM', relPoint = 'BOTTOM', x = -400, y = 420 };
 		};
 	};
-end
+};
