@@ -153,6 +153,32 @@ function env.BuildLayout(layout)
 
 	layout = EvaluateDynamicOptions(layout);
 
+	local function SplitToolbar(children)
+		for key, data in pairs(children) do
+			if ( data.type == 'Toolbar' and ( data.width or data.castbar or data.totem ) ) then
+				local menu, pos = data.menu, data.pos and CopyTable(data.pos);
+				data.menu, data.type = nil, 'Watchbar';
+				children[key] = nil;
+				children.Watchbar = children.Watchbar or data;
+				if pos then
+					local width = data.width or 900;
+					pos.y = (pos.y or 0) + (pos.point:match('^TOP') and -16 or 16);
+					if pos.point:match('LEFT$') then
+						pos.x = (pos.x or 0) + width / 2;
+					elseif pos.point:match('RIGHT$') then
+						pos.x = (pos.x or 0) - width / 2;
+					end
+				end
+				children.Toolbar = children.Toolbar or { type = 'Toolbar'; menu = menu; pos = pos };
+				return SplitToolbar(children);
+			end
+		end
+	end
+
+	if layout.children then
+		SplitToolbar(layout.children)
+	end
+
 	local UpgradeInterface;
 
 	local function UpgradeChildren(container)

@@ -49,9 +49,10 @@ Presets.Default = {
 	desc       = 'A cluster bar with a toolbar below it.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar  = Interface.Toolbar:Render {
+		Watchbar = Interface.Watchbar:Render {
 			totem = { pos = { y = 18 } };
 		};
+		Toolbar  = Interface.Toolbar:Render {};
 		VehicleL = Interface.Page : Render {
 			pos        = { x = -126, y = 54 };
 			slots      = 3;
@@ -93,9 +94,10 @@ Presets.Orthodox = {
 	desc       = 'A cluster bar with a toolbar below it, laid out horizontally.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar  = Interface.Toolbar:Render {
+		Watchbar = Interface.Watchbar:Render {
 			totem = { pos = { y = 116 } };
 		};
+		Toolbar  = Interface.Toolbar:Render {};
 		VehicleL = Interface.Page : Render {
 			pos        = { x = -126, y = 50 };
 			slots      = 3;
@@ -145,9 +147,11 @@ Presets.CrossbarMinimal = {
 	desc       = 'Group buttons in a single crossbar layout, with modifier swapping.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar : Render {
-			menu = { eye = false };
+		Watchbar = Interface.Watchbar:Render {
 			width = 600;
+		};
+		Toolbar  = Interface.Toolbar:Render {
+			menu = { eye = false };
 		};
 		Petring = Interface.Petring:Render {
 			scale = 0.7;
@@ -180,9 +184,11 @@ Presets.Crossbar = {
 	desc       = 'Group buttons for left and right triggers, with modifier swapping.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar : Render {
-			menu = { eye = false };
+		Watchbar = Interface.Watchbar:Render {
 			width = 600;
+		};
+		Toolbar  = Interface.Toolbar:Render {
+			menu = { eye = false };
 		};
 		Petring = Interface.Petring:Render {
 			scale = 0.7;
@@ -282,9 +288,11 @@ Presets.CrossbarTriple = {
 	desc       = 'Group buttons in three layouts, with modifier swapping.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar : Render {
-			menu = { eye = false };
+		Watchbar = Interface.Watchbar:Render {
 			width = 600;
+		};
+		Toolbar  = Interface.Toolbar:Render {
+			menu = { eye = false };
 		};
 		Petring = Interface.Petring:Render {
 			scale = 0.6;
@@ -427,9 +435,10 @@ Presets.Keyboard = {
 	desc       = 'A regular action bar.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar:Render {
+		Watchbar = Interface.Watchbar:Render {
 			width = 725;
 		};
+		Toolbar  = Interface.Toolbar:Render {};
 		Petring = Interface.Petring:Render {
 			scale = 0.7;
 			pos   = { x = 504, y = 100 };

@@ -24,6 +24,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		UnitMenuPlayer    = click ('Unit', 'player');
 		UnitMenuTarget    = click ('Unit', 'target');
 		QuickMenu         = click 'QuickMenu';
+		Toolbar           = click 'ToolbarToggle';
 		CustomRing        = click ('UtilityToggle', '(.*)');
 		--FocusButton     = click 'FocusButton';
 	};
@@ -39,6 +40,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		UnitMenuPlayer    = true;
 		UnitMenuTarget    = true;
 		QuickMenu         = true;
+		Toolbar           = true;
 	};
 end
 
@@ -123,6 +125,10 @@ do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end
 		{	binding = Bindings.Custom.QuickMenu;
 			name    = L.NAME_QUICK_MENU;
 			desc    = L.DESC_QUICK_MENU;
+		};
+		{	binding = Bindings.Custom.Toolbar;
+			name    = L.NAME_TOOLBAR;
+			desc    = L.DESC_TOOLBAR;
 		};
 		---------------------------------------------------------------
 		-- Pager
@@ -431,6 +437,7 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		[Bindings.Custom.MenuRing]         = CustomIcons.Menu;
 		[Bindings.Custom.UICursorToggle]   = CustomIcons.Menu;
 		[Bindings.Custom.QuickMenu]        = CustomIcons.Menu;
+		[Bindings.Custom.Toolbar]          = CustomIcons.Menu;
 		--[Bindings.Custom.FocusButton]    = client 'VAS_RaceChange';
 		---------------------------------------------------------------
 	};

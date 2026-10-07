@@ -87,3 +87,14 @@ _(env.GetAsset([[Atlas\EditModeUIVertical]]), {
     ['!editmode-actionbar-selected-nineslice-edgeleft'] = { 16, 16, 0.2890625, 0.4140625, 0, 1, false, true };
     ['!editmode-actionbar-selected-nineslice-edgeright'] = { 16, 16, 0.4296875, 0.5546875, 0, 1, false, true };
 });
+
+_(env.GetAsset([[Atlas\GMButton.blp]]), {
+    ['gm-btnback-disabled'] = { 16, 35, 0.001953125, 0.123046875, 0.00390625, 0.54296875, false, false };
+    ['gm-btnback-hover'] = { 16, 35, 0.126953125, 0.248046875, 0.00390625, 0.54296875, false, false };
+    ['gm-btnback-normal'] = { 16, 35, 0.251953125, 0.373046875, 0.00390625, 0.54296875, false, false };
+    ['gm-btnback-pressed'] = { 16, 35, 0.376953125, 0.498046875, 0.00390625, 0.54296875, false, false };
+    ['gm-btnforward-disabled'] = { 16, 35, 0.501953125, 0.623046875, 0.00390625, 0.54296875, false, false };
+    ['gm-btnforward-hover'] = { 16, 35, 0.626953125, 0.748046875, 0.00390625, 0.54296875, false, false };
+    ['gm-btnforward-normal'] = { 16, 35, 0.751953125, 0.873046875, 0.00390625, 0.54296875, false, false };
+    ['gm-btnforward-pressed'] = { 16, 35, 0.876953125, 0.998046875, 0.00390625, 0.54296875, false, false };
+})
