@@ -12,6 +12,7 @@ env.Toplevel = {
 	Group   = false;
 	Page    = false;
 	Petring = false;
+	Texture = false;
 	Toolbar = true;
 	Watchbar = true;
 }; -- k: interface, v: unique
@@ -660,6 +661,66 @@ Interface.Art = Data.Interface {
 			name = 'Blend Mode';
 			desc = 'Blend mode of the artwork.';
 			Data.Select('BLEND', env.Const.Art.Blend());
+		};
+		opacity = _(Type.Opacity : Implement {});
+		rescale = _(Type.Scale : Implement {});
+	};
+};
+
+Interface.Texture = Data.Interface {
+	name = 'Texture';
+	desc = 'A texture or atlas with conditional file, size, color and scale.';
+	Data.Table {
+		type = {hide = true; Data.String('Texture')};
+		pos = _(Type.SimplePoint : Implement {
+			desc = 'Position of the texture.';
+			{
+				point    = 'CENTER';
+				relPoint = 'CENTER';
+			};
+		});
+		file = _{
+			name = 'File';
+			desc = env.MakeMacroDriverDesc(
+				'File condition of the texture. Accepts pairs of a macro condition and an atlas name or texture path, or a single atlas name or texture path.',
+				'Shows the applicable atlas or texture file. A value containing a slash is a texture path, anything else is an atlas name.',
+				'condition', 'file', true
+			);
+			Data.String('UI-HUD-ActionBar-Frame');
+		};
+		size = _{
+			name = 'Size';
+			desc = 'Size of the texture.';
+			Data.Table {
+				width = _{
+					name = 'Width';
+					desc = env.MakeMacroDriverDesc(
+						'Width condition of the texture. Accepts pairs of a macro condition and a width, or a single width.',
+						'Sets the width of the texture to the applicable value.',
+						'condition', 'width', true
+					);
+					Data.String('256');
+				};
+				height = _{
+					name = 'Height';
+					desc = env.MakeMacroDriverDesc(
+						'Height condition of the texture. Accepts pairs of a macro condition and a height, or a single height.',
+						'Sets the height of the texture to the applicable value.',
+						'condition', 'height', true
+					);
+					Data.String('64');
+				};
+			};
+		};
+		color = _{
+			name = 'Color';
+			desc = env.MakeMacroDriverDesc(
+				'Vertex color condition of the texture. Accepts pairs of a macro condition and a hexadecimal color, or a single color.',
+				'Tints the texture with the applicable color.',
+				'condition', 'color', true
+			);
+			note = 'Colors are written as AARRGGBB in hexadecimal.';
+			Data.String('ffffffff');
 		};
 		opacity = _(Type.Opacity : Implement {});
 		rescale = _(Type.Scale : Implement {});
