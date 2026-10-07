@@ -120,7 +120,11 @@ do -- Data handler
 		env:Register('Presets', presets, true)
 		env:Save('Presets', VAR_PRESETS)
 
-		if not _G[activeLayout] then _G[activeLayout] = env:GetDefaultLayout() end;
+		if not _G[activeLayout] then
+			local preset = env:GetDefaultLayout();
+			env:ApplyPresetOptions(preset);
+			_G[activeLayout] = preset;
+		end;
 		local layout = env.BuildLayout(_G[activeLayout]);
 		env:Register('Layout', layout, true)
 		env:Save('Layout', activeLayout)
@@ -494,21 +498,26 @@ ConsolePort:AddSlashCommand('layout', {
 ---------------------------------------------------------------
 -- Presets
 ---------------------------------------------------------------
-function env:ApplyPreset(preset)
-	preset = CopyTable(preset)
-	self:ReleaseAll()
+function env:ApplyPresetOptions(preset)
+	-- Apply the options a preset was saved with, then strip them so the layout doesn't carry them.
 	if preset.settings then
 		for path, data in pairs(preset.settings) do
-			self(path, data)
+			self('Settings/'..path, data)
 		end
 		preset.settings = nil;
 	end
 	if preset.pager then
 		for path, data in pairs(preset.pager) do
-			self.db(path, data)
+			self.db('Settings/'..path, data)
 		end
 		preset.pager = nil;
 	end
+end
+
+function env:ApplyPreset(preset)
+	preset = CopyTable(preset)
+	self:ReleaseAll()
+	self:ApplyPresetOptions(preset)
 	self('Layout', self.BuildLayout(preset))
 	self:TriggerEvent('OnLayoutChanged', true)
 end
