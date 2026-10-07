@@ -153,22 +153,36 @@ function env.BuildLayout(layout)
 
 	layout = EvaluateDynamicOptions(layout);
 
-	local function UpgradeInterface(data)
-		if data.children then
-			for child, childData in pairs(data.children) do
-				data.children[child] = UpgradeInterface(childData)
+	local UpgradeInterface;
+
+	local function UpgradeChildren(container)
+		for child, data in pairs(container.children) do
+			local ok, result, reason = pcall(UpgradeInterface, data)
+			if ( ok and result ) then
+				container.children[child] = result;
+			else
+				container.children[child] = nil;
+				CPAPI.Log('Skipped layout element %s: %s', child, tostring(ok and reason or result))
 			end
 		end
+	end
+
+	function UpgradeInterface(data)
+		if data.children then
+			UpgradeChildren(data)
+		end
 		if data.type then
-			return env.Interface[data.type]():Warp(data)
+			local interface = env.Interface[data.type];
+			if not interface then
+				return nil, ('unknown element type %s'):format(tostring(data.type));
+			end
+			return interface():Warp(data)
 		end
 		return data;
 	end
 
 	if layout.children then
-		for child, data in pairs(layout.children) do
-			layout.children[child] = UpgradeInterface(data)
-		end
+		UpgradeChildren(layout)
 	end
 
 	return layout;
