@@ -489,9 +489,7 @@ end
 ---------------------------------------------------------------
 -- Factory
 ---------------------------------------------------------------
-env:AddFactory('Petring', function()
-	if not ConsolePortBarPetRing then
-		ConsolePortBarPetRing = CreateFrame('Button', 'ConsolePortBarPetRing', env.Manager, 'CPPetRing')
-	end
-	return ConsolePortBarPetRing;
+env:AddFactory('Petring', function(id)
+	local name = ConsolePortBarPetRing and env.MakeID('ConsolePortBarPetRing%s', id) or 'ConsolePortBarPetRing';
+	return CreateFrame('Button', name, env.Manager, 'CPPetRing')
 end, env.Interface.Petring)

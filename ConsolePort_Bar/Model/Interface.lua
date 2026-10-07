@@ -11,7 +11,7 @@ env.Toplevel = {
 	Glyph   = false;
 	Group   = false;
 	Page    = false;
-	Petring = true;
+	Petring = false;
 	Toolbar = true;
 }; -- k: interface, v: unique
 
