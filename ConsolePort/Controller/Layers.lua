@@ -121,6 +121,7 @@ Layers.Env = {
 	-- @param b     : mouse button for a click
 	Claim = [[
 		local owner, level, key, kind, a, b = ...;
+		key = ALIAS[key] or key;
 		if ( type(level) == 'string' ) then level = LEVELS[level] end;
 		local list = CLAIMS[key];
 		if not list then list = newtable() CLAIMS[key] = list end;
@@ -133,6 +134,7 @@ Layers.Env = {
 	-----------------------------------------------------------
 	Release = [[
 		local owner, key = ...;
+		key = ALIAS[key] or key;
 		local list = CLAIMS[key];
 		if not list then return end;
 		for i = #list, 1, -1 do
@@ -362,6 +364,7 @@ function Layers:OnEnvironmentChanged()
 		HELDSET  = HELDSET  or newtable();
 		LATCH    = LATCH    or newtable();
 		MODS     = MODS     or newtable();
+		ALIAS    = ALIAS    or newtable();
 		APPLIED  = APPLIED  or newtable();
 		BINDINGS = BINDINGS or newtable();
 		STORED   = STORED   or newtable();
@@ -810,7 +813,7 @@ function Layers:ReleaseModifiers()
 		ENABLED = false;
 		self::ClearRow()
 		self::ResolveAll()
-		wipe(MODS) wipe(CLAIMED)
+		wipe(MODS) wipe(ALIAS) wipe(CLAIMED)
 		PREFIX, CHORD = nil, nil;
 		self:SetAttribute('chord', nil)
 		self:SetAttribute('prefix', nil)
@@ -854,6 +857,11 @@ function Layers:SetModifiers()
 
 	local useEscapes = self:UsesTapGestures();
 	local layered    = db.Gamepad.Index.Modifier.Layered;
+
+	for blocked, modifier in pairs(db.Gamepad.Index.Modifier.Blocked) do
+		local tapKey = blocked:gsub(modifier..'%-', '');
+		self:Execute(([[ ALIAS[%q] = %q ]]):format(blocked, tapKey))
+	end
 
 	local index = 0;
 	for prefix, button in db.table.spairs(db.Gamepad.Index.Modifier.Prefix) do
