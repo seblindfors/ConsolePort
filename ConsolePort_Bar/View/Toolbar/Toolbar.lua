@@ -1,5 +1,58 @@
 local _, env, db, L = ...; db = env.db; L = db.Locale;
-local TOOLBAR_WATCH_UNIT = 16;
+local NOTCH_FADE_TIME = 0.2;
+local NOTCH_PULSE_TIME = 0.75;
+local MENU_PADDING    = 32;
+local MENU_GAP        = 8;
+local MENU_BLEED      = 60;
+local MENU_ALPHA      = 0.75;
+local NOTCH_ATLAS     = 'gm-btn%s-%s';
+local NOTCH_WIDTH, NOTCH_HEIGHT = 52, 24;
+local Directions = {
+	-- direction: menu anchor, toolbar anchor, notch size, menu offset
+	UP    = { 'BOTTOM', 'TOP',    NOTCH_WIDTH,  NOTCH_HEIGHT,  0,  1 };
+	DOWN  = { 'TOP',    'BOTTOM', NOTCH_WIDTH,  NOTCH_HEIGHT,  0, -1 };
+	RIGHT = { 'LEFT',   'RIGHT',  NOTCH_HEIGHT, NOTCH_WIDTH,  -1,  0 };
+	LEFT  = { 'RIGHT',  'LEFT',   NOTCH_HEIGHT, NOTCH_WIDTH,   1,  0 };
+};
+-- The art points left and rotates as a quad at its native size.
+local NotchRotation = {
+	UP    = math.pi * 1.5;
+	DOWN  = math.pi * 0.5;
+	RIGHT = math.pi;
+	LEFT  = 0;
+};
+
+local TooltipAnchors = {
+	UP    = 'ANCHOR_TOP';
+	DOWN  = 'ANCHOR_BOTTOM';
+	RIGHT = 'ANCHOR_RIGHT';
+	LEFT  = 'ANCHOR_LEFT';
+};
+
+local function GetDirection(point)
+	if ( point == 'LEFT' )  then return 'RIGHT' end;
+	if ( point == 'RIGHT' ) then return 'LEFT'  end;
+	if point:match('^TOP') then return 'DOWN' end;
+	return 'UP';
+end
+local BAG_INDEX_START = 110;
+local BAG_BUTTON_SIZE = 40;
+local BAG_BUTTONS = {
+	'MainMenuBarBackpackButton';
+	'CharacterBag0Slot';
+	'CharacterBag1Slot';
+	'CharacterBag2Slot';
+	'CharacterBag3Slot';
+	'CharacterReagentBag0Slot';
+	'KeyRingButton';
+};
+local SWAPPABLE_BAG_SLOTS = {
+	CharacterBag0Slot        = false;
+	CharacterBag1Slot        = false;
+	CharacterBag2Slot        = false;
+	CharacterBag3Slot        = false;
+	CharacterReagentBag0Slot = true;
+}; -- k: slot, v: takes reagent bags only
 ---------------------------------------------------------------
 local TooltipButton = {};
 ---------------------------------------------------------------
@@ -279,6 +332,10 @@ function CPMicroButton:OnShow()
 end
 
 function CPMicroButton:OnHide()
+	self:OnLeave()
+	if self:IsEnabled() then
+		self:SetNormal()
+	end
 	self:GetParent():Layout()
 end
 
@@ -295,44 +352,29 @@ function CPMicroButton:OnMouseUp()
 end
 
 ---------------------------------------------------------------
-local PopoutFrame = CreateFromMixins(CPToolbarSixSliceInverterMixin)
+local Grid = {};
 ---------------------------------------------------------------
-function PopoutFrame:RefreshMicroButtons()
-	local microButtons = {};
-
-	-- Titan/Retail: discover micro buttons from the MicroMenu container.
-	if MicroMenu then
-		for _, button in ipairs({MicroMenu:GetChildren()}) do
-			if button.layoutIndex then
-				microButtons[button] = button.layoutIndex;
-			end
-		end
+function Grid:Layout()
+	local children = self:GetLayoutChildren();
+	local layout = GridLayoutUtil.CreateStandardGridLayout(self.stride, self.childXPadding, self.childYPadding, 1, -1);
+	GridLayoutUtil.ApplyGridLayout(children, AnchorUtil.CreateAnchor('TOPLEFT', self, 'TOPLEFT'), layout)
+	local width, height, count = 0, 0, 0;
+	for _, child in ipairs(children) do
+		width, height, count = width + child:GetWidth(), max(height, child:GetHeight()), count + 1;
 	end
-
-	-- Fall back to the global list when available.
-	if not next(microButtons) and MICRO_BUTTONS then
-		for i, name in ipairs(MICRO_BUTTONS) do
-			local button = _G[name];
-			if button then
-				microButtons[button] = button.layoutIndex or i;
-			end
-		end
+	if ( count > 0 ) then
+		self:SetSize(width + (count - 1) * self.childXPadding, height)
 	end
-
-	self.MicroButtons = microButtons;
 end
 
-function PopoutFrame:OnLoad()
+function Grid:OnLoad()
 	Mixin(self.Eye, Eye):OnLoad()
 	Mixin(self.Config, Config):OnLoad()
 	Mixin(self.ExitVehicle, ExitVehicle):OnLoad()
-
-	self:RefreshMicroButtons()
-
-	self:SlideOut()
-	RunNextFrame(function()
-		self:Layout()
-	end)
+	self.MicroButtons, self.BagButtons, self.ownedBags, self.Popouts = {}, {}, {}, {};
+	self.direction = 'UP';
+	self.Flyout:SetFrameLevel(self:GetFrameLevel() + 10)
+	env:RegisterCallback('OnCombatLockdown', self.OnCombatLockdown, self)
 
 	if OverrideMicroMenuPosition then
 		hooksecurefunc('OverrideMicroMenuPosition', GenerateClosure(self.OnOverrideMicroMenuPosition, self))
@@ -343,39 +385,99 @@ function PopoutFrame:OnLoad()
 	if UpdateMicroButtons then
 		hooksecurefunc('UpdateMicroButtons', GenerateClosure(self.OnUpdateMicroButtonsParent, self))
 	end
-
-	self:HookScript('OnShow', self.MoveMicroButtons)
+	if BagsBar and BagsBar.Layout then
+		hooksecurefunc(BagsBar, 'Layout', GenerateClosure(self.OnBagsBarLayout, self))
+	end
+	if MainMenuBarBagManager and MainMenuBarBagManager.OnExpandBarChanged then
+		hooksecurefunc(MainMenuBarBagManager, 'OnExpandBarChanged', GenerateClosure(self.OnBagsBarLayout, self))
+	end
 end
 
-function PopoutFrame:Layout()
-	local container = self:GetParent()
-	local toolbar = ConsolePortToolbar;
-	local delta = self.inverted and -1 or 1;
-	local orientation = self.inverted and 'TOP' or 'BOTTOM';
-
-	self:ToggleInversion(self.inverted)
-
-	self.maximumWidth = toolbar:GetWidth() - 64;
-	self.stride = math.floor(self.maximumWidth / 32) - 1;
-
-	container:ClearAllPoints()
-	container:SetPoint(orientation, toolbar, orientation, 0, delta * (TOOLBAR_WATCH_UNIT + 1))
-	self:UpdatePoint(self.isActive)
-
-	GridLayoutFrameMixin.Layout(self)
-	container:SetSize(self:GetWidth() + 64, self:GetHeight() + 64)
-	container.SlideIn.Translate:SetOffset(0,   delta * self:GetHeight())
-	container.SlideOut.Translate:SetOffset(0, -delta * self:GetHeight())
+function Grid:OnBagsBarLayout()
+	if self.bags and self.bags.enabled and self:Owns(self.BagButtons) then
+		CPAPI.Next(self.Layout, self)
+	end
 end
 
-function PopoutFrame:MoveMicroButtons()
+function Grid:RefreshMicroButtons()
+	local microButtons = {};
+	if MicroMenu then
+		for _, button in ipairs({MicroMenu:GetChildren()}) do
+			if button.layoutIndex then
+				microButtons[button] = button.layoutIndex;
+			end
+		end
+	end
+	if not next(microButtons) and MICRO_BUTTONS then
+		for i, name in ipairs(MICRO_BUTTONS) do
+			local button = _G[name];
+			if button then
+				microButtons[button] = button.layoutIndex or i;
+			end
+		end
+	end
+	self.MicroButtons = microButtons;
+end
+
+function Grid:RefreshBagButtons()
+	local bagButtons = {};
+	for i, name in ipairs(BAG_BUTTONS) do
+		local button = _G[name];
+		if button then
+			bagButtons[button] = BAG_INDEX_START + i;
+		end
+	end
+	self.BagButtons = bagButtons;
+end
+
+-- A micro button that hides mid-move makes Blizzard's container lay
+-- out the buttons still under it, and one that was never placed has
+-- no centre to read. Moving into a shown parent hides nothing.
+function Grid:WhileShown(func, ...)
+	if self.moving then return end;
+	self.moving = true;
+	local menu = self:GetParent();
+	local wasShown = menu:IsShown();
+	if not wasShown then menu:Show() end;
+	func(self, ...)
+	if not wasShown then menu:Hide() end;
+	self.moving = nil;
+end
+
+function Grid:Owns(buttons)
+	for button in pairs(buttons) do
+		if ( button:GetParent() ~= self ) then
+			return false;
+		end
+	end
+	return true;
+end
+
+function Grid:MoveMicroButtons()
+	self:RefreshMicroButtons()
+	if self:Owns(self.MicroButtons) then
+		return self:MoveMicroButtonsNow();
+	end
+	self:WhileShown(self.MoveMicroButtonsNow)
+end
+
+function Grid:MoveBagButtons()
+	self:RefreshBagButtons()
+	if self:Owns(self.BagButtons) then
+		return self:MoveBagButtonsNow();
+	end
+	self:WhileShown(self.MoveBagButtonsNow)
+end
+
+function Grid:MoveMicroButtonsNow()
 	self.Divider1:SetShown(self.props.micromenu)
 	if not self.props.micromenu then return end;
 	self:RefreshMicroButtons()
 	for button, index in pairs(self.MicroButtons) do
-		button:SetParent(self)
-		button:ClearAllPoints()
-		button:SetIgnoreParentAlpha(true)
+		if ( button:GetParent() ~= self ) then
+			button:SetParent(self)
+			button:ClearAllPoints()
+		end
 		if ( button.layoutIndex ~= index ) then
 			button.layoutIndex = index;
 		end
@@ -387,45 +489,81 @@ function PopoutFrame:MoveMicroButtons()
 	end
 	MovePerformanceBar(self)
 	MovePortraitTextures()
-	self:Layout()
 end
 
-function PopoutFrame:SlideIn()
-	self:GetParent().SlideIn:Play()
+function Grid:MoveBagButtonsNow()
+	self.Divider2:SetShown(self.bags.enabled)
+	if not self.bags.enabled then return end;
+	self:RefreshBagButtons()
+	if BagBarExpandToggle and ( BagBarExpandToggle:GetParent() ~= self ) then
+		BagBarExpandToggle:SetParent(self)
+		BagBarExpandToggle:Hide()
+	end
+	for button, index in pairs(self.BagButtons) do
+		if ( button:GetParent() ~= self ) then
+			button:SetParent(self)
+			button:ClearAllPoints()
+		end
+		button:SetSize(BAG_BUTTON_SIZE, BAG_BUTTON_SIZE)
+		button.layoutIndex = index;
+		if not self.ownedBags[button] then
+			self.ownedBags[button] = true;
+			if button.SetBarExpanded then
+				hooksecurefunc(button, 'SetBarExpanded', GenerateClosure(self.OnBagExpansionChanged, self))
+			end
+		end
+		if ( SWAPPABLE_BAG_SLOTS[button:GetName()] ~= nil ) then
+			self:AcquirePopout(button)
+		end
+		button:Show()
+	end
+	env.UIHandler:HideBagsBar()
 end
 
-function PopoutFrame:SlideOut()
-	self:GetParent().SlideOut:Play()
-end
-
-function PopoutFrame:UpdatePoint(active)
-	local anchor = self.inverted and 'TOP' or 'BOTTOM';
-	local delta  = self.inverted and -1 or 1;
-	self:ClearAllPoints()
-	self:SetPoint(anchor, 0, active and 0 or -delta * self:GetHeight())
-end
-
-function PopoutFrame:SetActive(active)
-	self:UpdatePoint(active)
-	self.isActive = active;
-	if not self.MicroButtons then return end;
-	for button in pairs(self.MicroButtons) do
-		-- Show help tip frames when the micro buttons are hidden by clipping,
-		-- which is why this is true when the popout is NOT active.
-		button:SetIgnoreParentAlpha(not active)
+function Grid:OnBagExpansionChanged(button)
+	if self.bags and self.bags.enabled and self.ownedBags[button] then
+		button:Show()
 	end
 end
 
-function PopoutFrame:SetProps(props, inverted)
-	self.inverted = inverted;
-	self.props = props;
-	self.Eye:SetShown(props.eye)
+function Grid:AcquirePopout(button)
+	local popout = self.Popouts[button];
+	if not popout then
+		popout = CreateFrame('Button', nil, self, 'CPBagFlyoutPopoutTemplate')
+		popout:SetSlot(button, self.Flyout, SWAPPABLE_BAG_SLOTS[button:GetName()])
+		popout:SetEnabled(not InCombatLockdown())
+		self.Popouts[button] = popout;
+	end
+	popout:SetDirection(self.direction)
+	return popout;
+end
+
+function Grid:OnCombatLockdown(isLocked)
+	for _, popout in pairs(self.Popouts) do
+		popout:SetEnabled(not isLocked)
+	end
+end
+
+function Grid:SetDirection(direction)
+	self.direction = direction;
+	self.Flyout:SetDirection(direction)
+	for _, popout in pairs(self.Popouts) do
+		popout:SetDirection(direction)
+	end
+end
+
+function Grid:SetProps(menu, bags)
+	self.props = menu;
+	self.bags  = bags;
+	self:SetScale(menu.scale or 1.5)
+	self.Eye:SetShown(menu.eye)
 	self:MoveMicroButtons()
+	self:MoveBagButtons()
 	self:Layout()
 end
 
-function PopoutFrame:OnOverrideMicroMenuPosition(...)
-	if not self.props.micromenu then return end;
+function Grid:OnOverrideMicroMenuPosition(...)
+	if not self.props or not self.props.micromenu then return end;
 	if not MicroMenu then return end;
 	for button in pairs(self.MicroButtons) do
 		button:SetParent(MicroMenu)
@@ -433,10 +571,89 @@ function PopoutFrame:OnOverrideMicroMenuPosition(...)
 	MicroMenu:Layout()
 end
 
-function PopoutFrame:OnUpdateMicroButtonsParent(...)
-	if not self.props.micromenu then return end;
+function Grid:OnUpdateMicroButtonsParent(...)
+	if not self.props or not self.props.micromenu or self.moving then return end;
+	self:RefreshMicroButtons()
+	if self:Owns(self.MicroButtons) then return end;
 	self:MoveMicroButtons()
-	self:MarkDirty()
+	CPAPI.Next(self.Layout, self)
+end
+
+---------------------------------------------------------------
+CPToolbarNotch = {};
+---------------------------------------------------------------
+local Notch = CPToolbarNotch;
+
+function Notch:OnLoad()
+	self.direction = 'UP';
+	self:UpdateArt()
+end
+
+function Notch:UpdateArt()
+	local rotation = NotchRotation[self.direction];
+	local art = self.isOpen and 'back' or 'forward';
+	for state, texture in pairs({
+		normal  = self.NormalTexture;
+		pressed = self.PushedTexture;
+		hover   = self.HighlightTexture;
+	}) do
+		CPAPI.SetAtlas(texture, NOTCH_ATLAS:format(art, state), false)
+		texture:SetRotation(rotation)
+	end
+end
+
+function Notch:OnClick()
+	self:GetParent():Toggle()
+end
+
+function Notch:OnEnter()
+	db.Alpha.FadeIn(self, NOTCH_FADE_TIME, self:GetAlpha(), 1)
+	GameTooltip:SetOwner(self, TooltipAnchors[self.direction] or 'ANCHOR_TOP')
+	GameTooltip_SetTitle(GameTooltip, L.NAME_TOOLBAR)
+	GameTooltip_AddNormalLine(GameTooltip, CPAPI.FormatLongText(L.DESC_TOOLBAR))
+	GameTooltip_AddInstructionLine(GameTooltip, self.isOpen and L'Click to close.' or L'Click to open.')
+	local slug = db.Hotkeys:GetButtonSlugForBinding(db.Bindings.Custom.Toolbar)
+	if slug then
+		GameTooltip:AddDoubleLine(KEY_BINDING, slug, 1, 1, 1)
+	end
+	GameTooltip:Show()
+end
+
+function Notch:OnLeave()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+	if self.alwaysShow or self.isOpen then return end;
+	db.Alpha.FadeOut(self, NOTCH_FADE_TIME, self:GetAlpha(), 0)
+end
+
+function Notch:SetAlwaysShown(alwaysShow)
+	self.alwaysShow = alwaysShow;
+	self:SetAlpha(( alwaysShow or self.isOpen ) and 1 or 0)
+end
+
+function Notch:SetOpen(isOpen)
+	self.isOpen = isOpen;
+	self:UpdateArt()
+	if isOpen then
+		db.Alpha.FadeIn(self, NOTCH_FADE_TIME, self:GetAlpha(), 1)
+		self:LockHighlight()
+		db.Alpha.Flash(self.HighlightTexture, NOTCH_PULSE_TIME, NOTCH_PULSE_TIME, -1, false, 0, 0)
+	else
+		db.Alpha.Stop(self.HighlightTexture, 1)
+		self:UnlockHighlight()
+		if not self.alwaysShow and not self:IsMouseOver() then
+			db.Alpha.FadeOut(self, NOTCH_FADE_TIME, self:GetAlpha(), 0)
+		end
+	end
+end
+
+function Notch:SetDirection(direction)
+	local _, _, width, height = unpack(Directions[direction]);
+	self.direction = direction;
+	self:UpdateArt()
+	self:SetSize(width, height)
+	self:GetParent():SetSize(width, height)
 end
 
 ---------------------------------------------------------------
@@ -444,241 +661,60 @@ CPToolbar = CreateFromMixins(env.ConfigurableWidgetMixin);
 ---------------------------------------------------------------
 
 function CPToolbar:OnLoad()
-	env:RegisterCallbacks(self.OnDataLoaded, self,
-		'OnDataLoaded',
-		'Settings/enableXPBar',
-		'Settings/fadeXPBar',
-		'Settings/tintEnable',
-		'Settings/tintColor',
-		'Settings/xpBarColor'
-	);
-
-	db:RegisterCallback('OnHintsFocus', self.OnHints, self, 0)
-	db:RegisterCallback('OnHintsClear', self.OnHints, self, 1)
-
-	self.snapToPixels = 16;
-	self.TotemBar  = not CPAPI.IsModernVersion and MultiCastActionBarFrame;
-	self.CastBar   = not CPAPI.IsModernVersion and CastingBarFrame;
-	self.StanceBar = not CPAPI.IsModernVersion and StanceBarFrame;
-	self:RegisterEvent('CURSOR_CHANGED')
-	self.PopoutContainer:SetParent(self:GetParent())
-	self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)
-	Mixin(self.PopoutContainer.PopoutFrame, PopoutFrame):OnLoad()
+	self.snapToPixels = 8;
+	CPAPI.ApplyNineSlice(self.Menu.Border, CPAPI.Backdrops.Dropdown)
+	self.Menu.Border:SetAlpha(MENU_ALPHA)
+	self.Menu.Grid.Flyout:SetBorderAlpha(MENU_ALPHA)
+	Mixin(self.Menu.Grid, Grid):OnLoad()
+	self.Menu:HookScript('OnShow', GenerateClosure(self.OnMenuShow, self))
+	self.Menu:HookScript('OnHide', GenerateClosure(self.OnMenuHide, self))
+	self.Menu.Grid:HookScript('OnSizeChanged', GenerateClosure(self.OnGridSizeChanged, self))
+	self.Menu.CloseButton = self.Notch;
+	ConsolePort:AddInterfaceCursorFrame(self.Menu)
+	ConsolePort:AddInterfaceCursorFrame(self.Menu.Grid.Flyout)
 end
 
-function CPToolbar:OnEnter()
-	if self:GetScript('OnUpdate') then return end;
-	self.PopoutContainer.SlideIn:Play()
-	self:SetScript('OnUpdate', self.OnUpdate)
-	self.fadeOutTimer = 0;
+function CPToolbar:Toggle()
+	self.Menu:SetShown(not self.Menu:IsShown())
 end
 
-function CPToolbar:OnSizeChanged()
-	self.PopoutContainer.PopoutFrame:Layout()
-	if ( not self.XPBar ) then return end;
-	self.XPBar:SetWidth(self:GetWidth() * 0.8)
-	self.XPBar:UpdateBarsShown()
+function CPToolbar:OnMenuShow()
+	self.Notch:SetOpen(true)
+	self.Menu.Grid:MoveMicroButtons()
+	self.Menu.Grid:MoveBagButtons()
+	self.Menu.Grid:Layout()
 end
 
-function CPToolbar:OnUpdate(elapsed)
-	if self.PopoutContainer:IsMouseOver() then
-		self.fadeOutTimer = 0;
-		return;
-	end
-	self.fadeOutTimer = self.fadeOutTimer + elapsed;
-	if self.fadeOutTimer > 1 then
-		self.PopoutContainer.SlideOut:Play()
-		self:SetScript('OnUpdate', nil)
-	end
+function CPToolbar:OnMenuHide()
+	self.Notch:SetOpen(false)
 end
 
-function CPToolbar:OnEvent()
-	self.PopoutContainer:SetShown(not GetCursorInfo())
+function CPToolbar:OnGridSizeChanged()
+	local grid, scale = self.Menu.Grid, self.Menu.Grid:GetScale();
+	self.Menu:SetSize(grid:GetWidth() * scale + MENU_PADDING, grid:GetHeight() * scale + MENU_PADDING)
+	FrameUtil.UpdateScaleForFit(self.Menu, MENU_BLEED, MENU_BLEED)
 end
 
-function CPToolbar:SetTintColor(r, g, b, a)
-	local orientation, minColor, maxColor = env:GetColorGradient(r, g, b, a, .25, self.inverted)
-	self.BG:SetGradient(orientation, minColor, maxColor)
-	self.DividerLine:SetVertexColor(r, g, b, a)
-	self.PopoutContainer.PopoutFrame.Gradient:SetGradient(orientation, minColor, maxColor)
-end
-
-function CPToolbar:OnDataLoaded()
-	local enableTint, enableXP = env('tintEnable'), env('enableXPBar');
-	self.BG:SetShown(enableTint)
-	self.DividerLine:SetShown(enableTint)
-	self:ToggleXPBar(enableXP)
-	self:ToggleXPBarFade(enableXP)
-	return CPAPI.KeepMeForLater;
+function CPToolbar:UpdateDirection(props)
+	local direction = GetDirection(props.pos.point);
+	local menuAnchor, toolbarAnchor, _, _, dx, dy = unpack(Directions[direction]);
+	self.Menu:ClearAllPoints()
+	self.Menu:SetPoint(menuAnchor, self, toolbarAnchor, dx * -MENU_GAP, dy * -MENU_GAP)
+	self.Notch:SetDirection(direction)
+	self.Menu.Grid:SetDirection(direction)
 end
 
 function CPToolbar:SetProps(props)
-	self:OnDataLoaded()
-	self:UpdateInversion(props)
-	self:SetTintColor(env:GetColorRGBA('tintColor'))
 	self:SetDynamicProps(props)
-	self:OnSizeChanged()
+	self:UpdateDirection(props)
+	self.Notch:SetAlwaysShown(props.notch.show)
+	self.Menu.Grid:SetProps(props.menu, props.bags)
+	self:OnGridSizeChanged()
 	self:Show()
-	self:SetTotemBarProps(props.totem)
-	self:SetCastBarProps(props.castbar)
-	self:SetStanceBarProps(props.totem)
-	self.PopoutContainer.PopoutFrame:SetProps(props.menu, self.inverted)
-end
-
-function CPToolbar:UpdateInversion(props)
-	self.inverted = not not props.pos.point:match('^TOP');
-
-	local delta = self.inverted and -1 or 1;
-	local orientation = self.inverted and 'TOP' or 'BOTTOM';
-
-	self.DividerLine:ClearAllPoints()
-	self.DividerLine:SetPoint(orientation..'LEFT', 0, TOOLBAR_WATCH_UNIT * delta)
-	self.DividerLine:SetPoint(orientation..'RIGHT', 0, TOOLBAR_WATCH_UNIT * delta)
-
-	local bgOffsetTop = self.inverted and -16 or 60;
-	local bgOffsetBot = self.inverted and -60 or 16;
-	self.BG:SetPoint('TOPLEFT', TOOLBAR_WATCH_UNIT, bgOffsetTop)
-	self.BG:SetPoint('BOTTOMRIGHT', -TOOLBAR_WATCH_UNIT, bgOffsetBot)
-
-	if ( not self.XPBar ) then return end;
-	self.XPBar:ClearAllPoints()
-	self.XPBar:SetPoint(orientation)
-	self.XPBar:SetInversion(self.inverted)
 end
 
 function CPToolbar:OnPropsUpdated()
 	self:SetProps(self.props)
-end
-
-
----------------------------------------------------------------
--- Elements
----------------------------------------------------------------
-function CPToolbar:ToggleXPBar(enabled)
-	if ( not self.XPBar ) then
-		if not enabled then return end;
-		self.XPBar = CreateFrame('Frame', nil, self, 'CPWatchBarContainer')
-	end
-	self.XPBar:SetShown(enabled)
-	self.XPBar:SetMainBarColor(env:GetColorRGB('xpBarColor'))
-end
-
-function CPToolbar:ToggleXPBarFade(xpBarEnabled)
-	if ( not self.XPBar ) then return end;
-	if not xpBarEnabled then return end;
-	self.XPBar:OnShow() -- env('fadeXPBar') is handled by the XPBar itself
-end
-
-function CPToolbar:SetTotemBarProps(props)
-	if not self.TotemBar or not props.enabled then return end;
-	if not self.TotemBar.SetDynamicProps then
-		Mixin(self.TotemBar, env.ConfigurableWidgetMixin)
-		self.TotemBar:SetScript('OnUpdate', nil)
-		self.TotemBar.OnPropsUpdated = function(self) self:SetDynamicProps(self.props) end;
-	end
-	self.TotemBar:SetDynamicProps(props)
-	self.TotemBar:SetParent(props.hidden and env.UIHandler or UIParent)
-end
-
-function CPToolbar:SetStanceBarProps(props)
-	if not self.StanceBar or not props.enabled then return end;
-	if not self.StanceBarUpdate then
-		local stanceButtons = self.StanceBar.StanceButtons;
-		self.StanceBarUpdate = function(stanceBar)
-			local numForms = GetNumShapeshiftForms()
-			if ( numForms == 0 ) then return end;
-			local fL, fR = math.huge, 0;
-			for i = 1, numForms do
-				local button = stanceButtons[i];
-				local left, _, width = button:GetRect()
-				fL = min(fL, left)
-				fR = max(fR, left + width)
-			end
-			env:RunSafe(stanceBar.SetWidth, stanceBar, fR - fL + 22)
-			StanceBarLeft:SetTexture(nil)
-			StanceBarMiddle:SetTexture(nil)
-			StanceBarRight:SetTexture(nil)
-		end;
-		for i = 1, NUM_STANCE_SLOTS do
-			local texture = stanceButtons[i]:GetNormalTexture()
-			texture:ClearAllPoints()
-			texture:SetPoint('TOPLEFT', -11, 11)
-			texture:SetPoint('BOTTOMRIGHT', 12, -12)
-		end
-		self.StanceBar:HookScript('OnEvent', self.StanceBarUpdate)
-		self.StanceBarUpdate(self.StanceBar)
-	end
-	if self.TotemBar then
-		self.StanceBar:ClearAllPoints()
-		self.StanceBar:SetPoint('CENTER', self.TotemBar, 'CENTER', 0, 0)
-	else -- Classic Era (probably), no totem bar so stance bar owns the positioning
-		if not self.StanceBar.SetDynamicProps then
-			Mixin(self.StanceBar, env.ConfigurableWidgetMixin)
-			self.StanceBar.OnPropsUpdated = function(self) self:SetDynamicProps(self.props) end;
-		end
-		self.StanceBar:SetDynamicProps(props)
-		self.StanceBarUpdate(self.StanceBar)
-	end
-	self.StanceBar:SetParent(props.hidden and env.UIHandler or UIParent)
-end
-
-local MoveCastingBarFrame;
-function CPToolbar:SetCastBarProps(props)
-	-- Classic only, hook persists until /reload
-    if not self.CastBar or not props or not props.enabled then return end;
-
-	local inverted = self.inverted;
-	local delta = inverted and -1 or 1;
-	local point = inverted and 'TOP' or 'BOTTOM';
-
-	if self.castBarAnchor then
-		self.castBarAnchor[1] = point;
-		self.castBarAnchor[3] = point;
-		self.castBarAnchor[5] = delta;
-		return MoveCastingBarFrame()
-	end
-
-	self.castBarAnchor = { point, self, point, 0, delta };
-	-- TODO: check if this is still needed with disabled vehicle UI
-	hooksecurefunc(self.CastBar, 'SetPoint', function(bar, _, region)
-		if region ~= self then
-			bar:ClearAllPoints()
-			bar:SetPoint(unpack(self.castBarAnchor))
-		end
-	end)
-
-	local function ModifyCastingBarFrame()
-		CastingBarFrame_SetLook(self.CastBar, 'UNITFRAME')
-		self.CastBar.Border:SetShown(false)
-		self.CastBar.Text:SetPoint('TOPLEFT', 0, 0)
-		self.CastBar.Text:SetPoint('TOPRIGHT', 0, 0)
-		self.CastBar.Flash:SetTexture([[Interface\QUESTFRAME\UI-QuestLogTitleHighlight]])
-		self.CastBar.Flash:SetAllPoints(self.CastBar)
-		self.CastBar.BorderShield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
-		self.CastBar.BorderShield:SetPoint('CENTER', self.CastBar.Icon, 'CENTER', 10, 0)
-		self.CastBar.BorderShield:SetSize(49, 49)
-		local r, g, b = env:GetColorRGB('xpBarColor')
-		CastingBarFrame_SetStartCastColor(self.CastBar, r, g, b)
-	end
-
-	function MoveCastingBarFrame()
-		ModifyCastingBarFrame()
-		self.CastBar:ClearAllPoints()
-		self.CastBar:SetPoint(unpack(self.castBarAnchor))
-		self.CastBar:SetSize(self:GetWidth() - 190, 14)
-	end
-
-	env:RegisterCallback('Settings/xpBarColor', ModifyCastingBarFrame)
-	MoveCastingBarFrame()
-
-	self:HookScript('OnSizeChanged', MoveCastingBarFrame)
-	self:HookScript('OnShow', MoveCastingBarFrame)
-	self:HookScript('OnHide', MoveCastingBarFrame)
-end
-
-function CPToolbar:OnHints(alpha)
-	if self.TotemBar  then self.TotemBar:SetAlpha(alpha)  end;
-	if self.StanceBar then self.StanceBar:SetAlpha(alpha) end;
 end
 
 ---------------------------------------------------------------

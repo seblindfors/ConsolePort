@@ -30,6 +30,12 @@ local function hideActionButton(button)
 	purgeFromDispatchers(button)
 end
 
+function env.UIHandler:HideBagsBar()
+	if BagsBar and ( BagsBar:GetParent() ~= self ) then
+		hideEditModeFrame(BagsBar, true)
+	end
+end
+
 local function NPE_LoadUI()
 	if not (Tutorials and Tutorials.AddSpellToActionBar) then return end
 

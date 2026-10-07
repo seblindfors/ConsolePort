@@ -21,9 +21,11 @@ Presets.Grid = {
 	desc       = 'Group buttons by modifier in a grid layout.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar : Render {
-			menu = { eye = false };
+		Watchbar = Interface.Watchbar:Render {
 			width = 600;
+		};
+		Toolbar  = Interface.Toolbar:Render {
+			menu = { eye = false };
 		};
 		Petring = Interface.Petring:Render {
 			scale = 0.65;
@@ -145,9 +147,11 @@ Presets.DiamondGrid = {
 	desc       = 'Group buttons by modifier in a diamond layout.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar : Render {
-			menu = { eye = false };
+		Watchbar = Interface.Watchbar:Render {
 			width = 600;
+		};
+		Toolbar  = Interface.Toolbar:Render {
+			menu = { eye = false };
 		};
 		Petring = Interface.Petring:Render {
 			scale = 0.65;

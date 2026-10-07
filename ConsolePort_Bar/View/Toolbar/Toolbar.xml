@@ -1,5 +1,81 @@
 <Ui>
+	<Script file="Bagflyout.lua"/>
 	<Script file="Toolbar.lua"/>
+
+	<Button name="CPBagFlyoutButtonTemplate" mixin="CPBagFlyoutButton" registerForClicks="AnyUp" virtual="true">
+		<Size x="40" y="40"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Icon" setAllPoints="true"/>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Border" file="Interface\Common\WhiteIconFrame" setAllPoints="true" hidden="true"/>
+			</Layer>
+		</Layers>
+		<HighlightTexture file="Interface\Buttons\ButtonHilight-Square" alphaMode="ADD" setAllPoints="true"/>
+		<PushedTexture file="Interface\Buttons\UI-Quickslot-Depress" setAllPoints="true"/>
+		<Scripts>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
+	<Button name="CPBagFlyoutPopoutTemplate" mixin="CPBagFlyoutPopout" registerForClicks="AnyUp" motionScriptsWhileDisabled="true" virtual="true">
+		<Size x="26" y="11"/>
+		<NormalTexture parentKey="NormalTexture">
+			<Size x="26" y="11"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</NormalTexture>
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD">
+			<Size x="26" y="11"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</HighlightTexture>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnEnable>
+				self:SetAlpha(0.5);
+			</OnEnable>
+			<OnDisable>
+				self:SetAlpha(0.25);
+			</OnDisable>
+		</Scripts>
+	</Button>
+
+	<Frame name="CPBagFlyout" mixin="CPBagFlyout" clampedToScreen="true" hidden="true" virtual="true">
+		<Size x="64" y="64"/>
+		<KeyValues>
+			<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
+		</KeyValues>
+		<Frames>
+			<Frame parentKey="Border" scale="0.5" useParentLevel="true" inherits="NineSlicePanelTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" y="-10"/>
+					<Anchor point="BOTTOMRIGHT" y="-10"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Empty" inherits="GameFontDisableSmall" justifyH="CENTER">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+	</Frame>
 
 	<Button name="CPToolbarMicroButton" mixin="CPMicroButton" motionScriptsWhileDisabled="true" virtual="true">
 		<Size x="32" y="40"/>
@@ -71,46 +147,66 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="CPToolbar" virtual="true" clampedToScreen="true" movable="true" mixin="CPToolbar" enableMouseClicks="false">
-		<Size x="900" y="64"/>
+	<Frame name="CPToolbar" virtual="true" clampedToScreen="true" movable="true" mixin="CPToolbar">
+		<Size x="96" y="32"/>
 		<Scripts>
+			<OnLoad method="OnLoad"/>
 			<OnDragStart method="StartMoving"/>
 			<OnDragStop method="StopMovingOrSizing"/>
-            <OnLoad method="OnLoad"/>
-			<OnEnter method="OnEnter"/>
-			<OnEvent method="OnEvent"/>
-			<OnSizeChanged method="OnSizeChanged"/>
 		</Scripts>
 		<Frames>
-			<Frame parentKey="PopoutContainer" clipChildren="true">
-				<Size x="300" y="300"/>
+			<Button parentKey="Notch" name="$parentToggle" mixin="CPToolbarNotch" registerForClicks="AnyDown" alpha="0">
+				<Size x="52" y="24"/>
 				<Anchors>
-					<Anchor point="BOTTOM" y="17"/>
+					<Anchor point="CENTER"/>
 				</Anchors>
+				<NormalTexture parentKey="NormalTexture">
+					<Size x="24" y="52"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</NormalTexture>
+				<PushedTexture parentKey="PushedTexture">
+					<Size x="24" y="52"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</PushedTexture>
+				<HighlightTexture parentKey="HighlightTexture" alphaMode="BLEND">
+					<Size x="24" y="52"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</HighlightTexture>
+				<Scripts>
+					<OnLoad method="OnLoad"/>
+					<OnClick method="OnClick"/>
+					<OnEnter method="OnEnter"/>
+					<OnLeave method="OnLeave"/>
+				</Scripts>
+			</Button>
+			<Frame parentKey="Menu" name="$parentMenu" frameStrata="HIGH" clampedToScreen="true" hidden="true">
+				<Size x="300" y="120"/>
 				<Frames>
-					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarSixSliceInverterFrame" alpha="0">
+					<Frame parentKey="Border" useParentLevel="true" inherits="NineSlicePanelTemplate">
+						<Anchors>
+							<Anchor point="TOPLEFT" y="-10"/>
+							<Anchor point="BOTTOMRIGHT" y="-10"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="Grid" inherits="GridLayoutFrame" scale="1.5">
 						<Size x="300" y="40"/>
 						<KeyValues>
 							<KeyValue key="childXPadding" value="1" type="number"/>
 							<KeyValue key="childYPadding" value="2" type="number"/>
-							<KeyValue key="stride" value="1" type="number"/>
+							<KeyValue key="stride" value="100" type="number"/>
 							<KeyValue key="isHorizontal" value="true" type="boolean"/>
 							<KeyValue key="layoutFramesGoingRight" value="true" type="boolean"/>
 							<KeyValue key="alwaysUpdateLayout" value="true" type="boolean"/>
 						</KeyValues>
 						<Anchors>
-							<Anchor point="BOTTOM" y="0"/>
+							<Anchor point="CENTER"/>
 						</Anchors>
-						<Layers>
-							<Layer level="BORDER">
-								<Texture parentKey="Gradient" inherits="CPDividerGradient">
-									<Anchors>
-										<Anchor point="TOPLEFT" x="0" y="0"/>
-										<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
-									</Anchors>
-								</Texture>
-							</Layer>
-						</Layers>
 						<Frames>
 							<Button parentKey="ExitVehicle" inherits="CPToolbarMicroButton">
 								<KeyValues>
@@ -148,57 +244,17 @@
 									<KeyValue key="layoutIndex" value="-1" type="number"/>
 								</KeyValues>
 							</Frame>
+							<Frame parentKey="Divider2" inherits="CPToolbarDivider">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="100" type="number"/>
+								</KeyValues>
+							</Frame>
+							<Frame parentKey="Flyout" name="ConsolePortToolbarBagFlyout" inherits="CPBagFlyout"/>
 						</Frames>
 					</Frame>
 				</Frames>
-				<Animations>
-					<AnimationGroup parentKey="SlideIn" setToFinalAlpha="true">
-						<Alpha childKey="PopoutFrame" fromAlpha="0" toAlpha="1" duration="0.25"/>
-						<Translation parentKey="Translate" childKey="PopoutFrame" offsetX="0" offsetY="40" duration="0.25"/>
-						<Scripts>
-							<OnPlay>
-								self:GetParent().SlideOut:Finish();
-								self:GetParent().PopoutFrame:SetActive(false);
-							</OnPlay>
-							<OnFinished>
-								self:GetParent().PopoutFrame:SetActive(true);
-							</OnFinished>
-						</Scripts>
-					</AnimationGroup>
-					<AnimationGroup parentKey="SlideOut" setToFinalAlpha="true">
-						<Alpha childKey="PopoutFrame" fromAlpha="1" toAlpha="0" duration="0.25"/>
-						<Translation parentKey="Translate" childKey="PopoutFrame" offsetX="0" offsetY="-40" duration="0.25"/>
-						<Scripts>
-							<OnPlay>
-								self:GetParent().SlideIn:Finish();
-								self:GetParent().PopoutFrame:SetActive(true);
-							</OnPlay>
-							<OnFinished>
-								self:GetParent().PopoutFrame:SetActive(false);
-							</OnFinished>
-						</Scripts>
-					</AnimationGroup>
-				</Animations>
 			</Frame>
 		</Frames>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="BG" inherits="CPDividerGradient">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="16" y="60"/>
-						<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="BORDER">
-				<Texture parentKey="DividerLine" inherits="CPDividerLine">
-					<Anchors>
-						<Anchor point="BOTTOMLEFT" x="0" y="16"/>
-						<Anchor point="BOTTOMRIGHT" x="0" y="16"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
 	</Frame>
 
 </Ui>
