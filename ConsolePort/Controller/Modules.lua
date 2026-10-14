@@ -70,8 +70,12 @@ function Modules:GetInfo(entry)
 	return L(entry.name), L(entry.desc);
 end
 
+function Modules:GetCharacter()
+	return UnitGUID('player');
+end
+
 function Modules:IsEnabled(entry)
-	local state = CPAPI.GetAddOnEnableState(entry.addon)
+	local state = CPAPI.GetAddOnEnableState(entry.addon, self:GetCharacter())
 	return state ~= nil and state > 0;
 end
 
@@ -85,9 +89,9 @@ end
 
 function Modules:SetEnabled(entry, enabled)
 	if enabled then
-		CPAPI.EnableAddOn(entry.addon)
+		CPAPI.EnableAddOn(entry.addon, self:GetCharacter())
 	else
-		CPAPI.DisableAddOn(entry.addon)
+		CPAPI.DisableAddOn(entry.addon, self:GetCharacter())
 	end
 	self:OnEnableChanged(entry, not not enabled)
 end
@@ -172,11 +176,19 @@ Modules.Deprecated = {
 };
 
 -- Bumped when the stored shape changes, so the repair runs once per user.
-local MODULE_STATE_VERSION = 1;
+local MODULE_STATE_VERSION = 2;
 
 function Modules:MigrateFromSettings()
 	if not ConsolePortSettings then return end;
-	if ( ConsolePortSettings.moduleStateVersion == MODULE_STATE_VERSION ) then return end;
+	local restored = self:RestoreSavedSelection()
+	self:DisableDefaultOffModules(restored)
+end
+
+-- Once per account: carry the deprecated module variables onto the addon list.
+-- @return restored : set of module ids switched on from a saved variable
+function Modules:RestoreSavedSelection()
+	local restored = {};
+	if ( (ConsolePortSettings.moduleStateVersion or 0) >= 1 ) then return restored end;
 
 	for id, deprecated in pairs(self.Deprecated) do
 		local varID, default = deprecated[1], deprecated[2];
@@ -195,14 +207,37 @@ function Modules:MigrateFromSettings()
 			-- it in the addon list, and cleared the variable that said otherwise.
 			if ( ( saved == nil ) and default or not not saved ) then
 				CPAPI.EnableAddOn(entry.addon)
+				restored[id] = true;
 			elseif ( saved ~= nil ) then
 				CPAPI.DisableAddOn(entry.addon)
 			end
 		end
 	end
 
-	ConsolePortSettings.moduleStateVersion = MODULE_STATE_VERSION;
+	ConsolePortSettings.moduleStateVersion = 1;
 	CPAPI.Log('Module selection now lives in the AddOns list; your modules were restored there.')
+	return restored;
+end
+
+-- Once per character: modules that defaulted off were never ticked by the
+-- user, yet the addon list inherited them as enabled from before the move.
+-- @param restored : set of module ids just switched on from a saved variable
+function Modules:DisableDefaultOffModules(restored)
+	local character = self:GetCharacter();
+	if not character then return end;
+
+	local versions = ConsolePortSettings.moduleStateCharacters or {};
+	ConsolePortSettings.moduleStateCharacters = versions;
+	if ( (versions[character] or 0) >= MODULE_STATE_VERSION ) then return end;
+	versions[character] = MODULE_STATE_VERSION;
+
+	for id, deprecated in pairs(self.Deprecated) do
+		local entry, default = self:GetEntry(id), deprecated[2];
+		if ( entry and not default and not restored[id] and self:IsEnabled(entry) ) then
+			CPAPI.DisableAddOn(entry.addon, character)
+			CPAPI.Log('%s is off by default and has been switched off. Turn it on under Settings > Modules.', (self:GetInfo(entry)))
+		end
+	end
 end
 
 function Modules:OnDataLoaded()

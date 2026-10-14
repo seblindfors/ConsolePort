@@ -45,7 +45,7 @@ end
 
 local function ToggleConfig()
 	if not CPAPI.IsAddOnLoaded(CPAPI.ConfigAddOn) then
-		CPAPI.EnableAddOn(CPAPI.ConfigAddOn)
+		CPAPI.EnableAddOn(CPAPI.ConfigAddOn, db.Modules:GetCharacter())
 		CPAPI.LoadAddOn(CPAPI.ConfigAddOn)
 	end
 	local config = ConsolePortConfig:Load()
@@ -123,7 +123,7 @@ SLASH_FUNCTIONS = {
 			if action and frame then
 				local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
 				if loadable or CPAPI.IsAddOnLoaded(owner) then
-					CPAPI.EnableAddOn(CPAPI.CursorAddOn)
+					CPAPI.EnableAddOn(CPAPI.CursorAddOn, db.Modules:GetCharacter())
 					CPAPI.LoadAddOn(CPAPI.CursorAddOn)
 					return EventUtil.ContinueOnAddOnLoaded(CPAPI.CursorAddOn, function()
 						if ( action == 'add' ) then
