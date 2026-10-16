@@ -13,11 +13,11 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 	DirectProxy = {
 		trgtEnemy                 = db.Data.Cvar('SoftTargetEnemy');
 		trgtEnemyIcon             = db.Data.Cvar('SoftTargetIconEnemy');
-		trgtEnemyPlate            = db.Data.Cvar('SoftTargetNameplateEnemy');
+		trgtEnemyNameplate        = db.Data.Cvar('SoftTargetNameplateEnemy');
 		trgtEnemyTooltip          = db.Data.Cvar('SoftTargetTooltipEnemy');
 		trgtFriend                = db.Data.Cvar('SoftTargetFriend');
 		trgtFriendIcon            = db.Data.Cvar('SoftTargetIconFriend');
-		trgtFriendPlate           = db.Data.Cvar('SoftTargetNameplateFriend');
+		trgtFriendNameplate       = db.Data.Cvar('SoftTargetNameplateFriend');
 		trgtFriendTooltip         = db.Data.Cvar('SoftTargetTooltipFriend');
 	};
 }))
