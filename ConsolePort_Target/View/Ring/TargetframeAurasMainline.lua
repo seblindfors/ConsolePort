@@ -30,7 +30,7 @@ local function InitializeAuraButton(size, button)
 	button:SetIcon(icon)
 	button:SetDurationCooldown(cooldown)
 	button:SetApplicationCount(count)
-	button:SetAuraBorder(border, { style = Enum.CustomAuraButtonDispelTypeTextureStyle.Border })
+	button:AddDispelTypeTexture(border, { style = Enum.CustomAuraButtonDispelTypeTextureStyle.Border })
 end
 
 function Ring.CreateAuraContainer(parent, filter, size, gap, max)
