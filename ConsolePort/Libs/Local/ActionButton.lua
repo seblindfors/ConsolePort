@@ -7,6 +7,20 @@ local LAB = LibStub('LibActionButton-1.0')
 local LBG = LibStub('LibButtonGlow-1.0')
 ---------------------------------------------------------------
 
+LAB.RegisterCallback(Lib, 'OnButtonCreated', function(_, button)
+	local UpdateAction = button.UpdateAction;
+	button.UpdateAction = function(self, force)
+		local actionType, action = self:GetAction()
+		local actionChanged = force
+			or actionType ~= self._state_type
+			or action ~= self._state_action;
+		if actionChanged then
+			self.outOfRange = nil;
+		end
+		return UpdateAction(self, force)
+	end
+end)
+
 function Lib:NewPool(info)
 	local i = CreateCounter();
 	local id, name, header = info.id, info.name, info.header;
