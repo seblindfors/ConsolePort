@@ -280,11 +280,13 @@ function Unitbutton:SetUnit(unit)
 end
 
 function Unitbutton:OnFocus()
+	local unitframe = Ring.Unitframe;
+	if ( self.unit and unitframe.unit == self.unit and unitframe:IsShown() ) then return end;
 	Ring:SetActiveSliceText(self.unit and UnitName(self.unit) or nil)
 	if self.unit then
-		Ring.Unitframe:SetUnit(self.unit)
+		unitframe:SetUnit(self.unit)
 	else
-		Ring.Unitframe:ClearUnit()
+		unitframe:ClearUnit()
 	end
 end
 
