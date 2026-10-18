@@ -1,4 +1,5 @@
 local env, db, _, L = CPAPI.GetEnv(...);
+local MAX_ACCOUNT_MACROS = CPAPI.MAX_ACCOUNT_MACROS;
 
 ---------------------------------------------------------------
 -- Consts
@@ -173,12 +174,12 @@ local ActionPickupHandlers = {
 			end
 		end
 		for i=1, perChar do
-			if IsEquivalentMacro(GetMacroInfo(120 + i)) then
-				return PickupMacro(120 + i)
+			if IsEquivalentMacro(GetMacroInfo(MAX_ACCOUNT_MACROS + i)) then
+				return PickupMacro(MAX_ACCOUNT_MACROS + i)
 			end
 		end
 		-- Create new macro
-		local createOK, macroID = pcall(CreateMacro, name, icon, body, (id or 0) > 120)
+		local createOK, macroID = pcall(CreateMacro, name, icon, body, (id or 0) > MAX_ACCOUNT_MACROS)
 		if createOK and macroID then
 			return PickupMacro(macroID)
 		end
@@ -209,7 +210,7 @@ local function FindMacroIndex(actionID, id, subType)
 	local global, perChar = GetNumMacros()
 	local sameName;
 	for i = 1, global + perChar do
-		local index = i > global and (120 + i - global) or i;
+		local index = i > global and (MAX_ACCOUNT_MACROS + i - global) or i;
 		if ( GetMacroInfo(index) == name ) then
 			if IsMacroPayload(index, id, subType) then
 				return index;
