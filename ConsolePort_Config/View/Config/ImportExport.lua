@@ -1,4 +1,5 @@
 local env, db, _, L = CPAPI.GetEnv(...);
+local MAX_ACCOUNT_MACROS = CPAPI.MAX_ACCOUNT_MACROS;
 
 ---------------------------------------------------------------
 -- Consts
@@ -163,27 +164,71 @@ local ActionPickupHandlers = {
 			return ( mName == name and mIcon == icon and mBody == body )
 		end
 		-- Try to find equivalent macro
-		if IsEquivalentMacro(GetMacroInfo(id)) then
+		if ( id and IsEquivalentMacro(GetMacroInfo(id)) ) then
 			return PickupMacro(id)
 		end
 		local global, perChar = GetNumMacros()
 		for i=1, global do
 			if IsEquivalentMacro(GetMacroInfo(i)) then
-				return PickupMacro(id)
+				return PickupMacro(i)
 			end
 		end
 		for i=1, perChar do
-			if IsEquivalentMacro(GetMacroInfo(120 + i)) then
-				return PickupMacro(id)
+			if IsEquivalentMacro(GetMacroInfo(MAX_ACCOUNT_MACROS + i)) then
+				return PickupMacro(MAX_ACCOUNT_MACROS + i)
 			end
 		end
 		-- Create new macro
-		local createOK, macroID = pcall(CreateMacro, name, icon, body, id > 120)
+		local createOK, macroID = pcall(CreateMacro, name, icon, body, (id or 0) > MAX_ACCOUNT_MACROS)
 		if createOK and macroID then
 			return PickupMacro(macroID)
 		end
 	end;
 };
+
+---------------------------------------------------------------
+-- Macro identity
+---------------------------------------------------------------
+-- Retail-based clients report a macro action as its resolved spell
+-- or item, so the macro index has to be recovered from the action
+-- name and narrowed by what the macro casts or uses.
+local function IsMacroPayload(index, id, subType)
+	if ( subType == 'spell' ) then
+		return GetMacroSpell(index) == id;
+	elseif ( subType == 'item' ) then
+		local link = select(2, GetMacroItem(index))
+		return link and tonumber(link:match('item:(%d+)')) == id;
+	end
+	return true;
+end
+
+local function FindMacroIndex(actionID, id, subType)
+	local name = GetActionText(actionID)
+	if ( not subType and GetMacroInfo(id) == name ) then
+		return id;
+	end
+	local global, perChar = GetNumMacros()
+	local sameName;
+	for i = 1, global + perChar do
+		local index = i > global and (MAX_ACCOUNT_MACROS + i - global) or i;
+		if ( GetMacroInfo(index) == name ) then
+			if IsMacroPayload(index, id, subType) then
+				return index;
+			end
+			sameName = sameName or index;
+		end
+	end
+	return sameName;
+end
+
+local function GetMacroActionInfo(actionID, id, subType)
+	local index = FindMacroIndex(actionID, id, subType)
+	if not index then
+		CPAPI.Log('Could not identify the macro in action slot %d; it will be left out of the export.', actionID)
+		return {'macro'};
+	end
+	return {'macro', index, GetMacroInfo(index)};
+end
 
 ---------------------------------------------------------------
 -- Generate content for the browser
@@ -226,11 +271,12 @@ local Aggregators = {
 		for page = 1, 10 do
 			actions[page] = {};
 			for slot = 1, NUM_ACTIONBAR_BUTTONS do
-				local actionInfo = {GetActionInfo(((page - 1) * NUM_ACTIONBAR_BUTTONS) + slot)}
-				actions[page][slot] = actionInfo;
-				if (actionInfo[1] == 'macro') then
-					tAppendAll(actionInfo, {GetMacroInfo(actionInfo[2])})
+				local actionID = ((page - 1) * NUM_ACTIONBAR_BUTTONS) + slot;
+				local actionInfo = {GetActionInfo(actionID)}
+				if ( actionInfo[1] == 'macro' ) then
+					actionInfo = GetMacroActionInfo(actionID, actionInfo[2], actionInfo[3])
 				end
+				actions[page][slot] = actionInfo;
 			end
 		end
 		return actions;
