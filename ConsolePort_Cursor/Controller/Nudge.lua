@@ -37,8 +37,10 @@ Nudge.Flags = CPAPI.CreateFlagClosures(Nudge.Direction);
 function Nudge:OnDataLoaded()
 	Mixin(self, Vector2DMixin)
 	CPAPI.Start(self, true)
-	self:OnHide()
 	self:OnVariablesChanged()
+	self:OnHide()
+	self:Hide()
+	self:SetShown(not InCombatLockdown())
 	return CPAPI.BurnAfterReading;
 end
 
@@ -75,7 +77,7 @@ function Nudge:OnShow()
 end
 
 function Nudge:OnHide()
-	self:UnregisterAllEvents()
+	self:UnregisterEvent('MODIFIER_STATE_CHANGED')
 	self:EnableGamePadButton(false)
 	self:Reset()
 end
