@@ -37,7 +37,9 @@ Layers.Env = {
 
 		local prefix = chord;
 		if ( #HELD > 0 ) then
-			if ORDERED then
+			if ( #HELD == 1 and HELD[1] == HOLDDOUBLE ) then
+				prefix = HOLDDOUBLE..HOLDDOUBLE;
+			elseif ORDERED then
 				prefix = '';
 				for i = 1, #HELD do
 					prefix = prefix..HELD[i];
@@ -208,11 +210,18 @@ Layers.Env = {
 		HELDSET[mod] = down or nil;
 		if down then
 			HELD[#HELD + 1] = mod;
+			if ( ARMED == mod ) then
+				HOLDDOUBLE = mod;
+			end
+			ARMED = nil;
 		else
 			for i = #HELD, 1, -1 do
 				if ( HELD[i] == mod ) then
 					tremove(HELD, i)
 				end
+			end
+			if ( HOLDDOUBLE == mod ) then
+				HOLDDOUBLE = nil;
 			end
 		end
 		self::UpdatePrefix()
@@ -221,7 +230,12 @@ Layers.Env = {
 	-- @param mod : modifier prefix that was tapped
 	OnTap = [[
 		local mod = ...;
-		if not TAPLATCH then return end;
+		if not TAPLATCH then
+			if DOUBLEBAR then
+				self::ArmDoubleHold(mod)
+			end
+			return;
+		end
 		if ( DOUBLED == mod ) then return end;
 		if DOUBLED then
 			DOUBLED = nil;
@@ -239,7 +253,7 @@ Layers.Env = {
 	-- @param mod : modifier prefix that was double tapped
 	OnDoubleTap = [[
 		local mod = ...;
-		if not DOUBLEBAR then return end;
+		if not DOUBLEBAR or not TAPLATCH then return end;
 		if ( DOUBLED == mod ) then
 			DOUBLED = nil;
 		else
@@ -247,6 +261,24 @@ Layers.Env = {
 			wipe(LATCH)
 		end
 		self::UpdatePrefix()
+	]];
+	-----------------------------------------------------------
+	-- @param mod : modifier prefix that was tapped
+	ArmDoubleHold = [[
+		ARMED  = ...;
+		PULSES = ARM_PULSES;
+		self:SetAttribute('state-layerpulse', 0)
+	]];
+	-----------------------------------------------------------
+	-- @param newstate : 1 after a state driver pass
+	OnPulse = [[
+		local newstate = ...;
+		if ( newstate ~= 1 ) then return end;
+		PULSES = PULSES - 1;
+		if ( PULSES > 0 ) then
+			return self:SetAttribute('state-layerpulse', 0);
+		end
+		ARMED = nil;
 	]];
 	-----------------------------------------------------------
 	-- First match wins, as the macro conditional itself does.
@@ -349,7 +381,7 @@ Layers.Env = {
 	-----------------------------------------------------------
 	ClearState = [[
 		wipe(HELD) wipe(HELDSET) wipe(LATCH)
-		DOUBLED = nil;
+		DOUBLED, ARMED, HOLDDOUBLE = nil, nil, nil;
 		self::UpdatePrefix()
 	]];
 };
@@ -378,11 +410,15 @@ function Layers:OnEnvironmentChanged()
 		LEVELS.BASE, LEVELS.OVERRIDE, LEVELS.NAV, LEVELS.MODAL = 1, 2, 3, 4;
 		ROWOWNER = 'row';
 		ROW      = ROW      or newtable();
+		PULSES     = PULSES or 0;
+		ARM_PULSES = 3;
 	]])
 	self:CreateEnvironment()
 end
 
 Layers:OnEnvironmentChanged()
+Layers:SetAttribute('_onstate-layerpulse', CPAPI.ConvertSecureBody([[ self::OnPulse(newstate) ]]))
+RegisterStateDriver(Layers, 'layerpulse', '1')
 
 function Layers:SetFeatures(tapLatch, doubleBar, ordered)
 	self:Execute(([[

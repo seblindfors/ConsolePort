@@ -371,7 +371,7 @@ db:Register('Variables', CPAPI.Callable({
 	};
 	layersDoubleBar = _{Bool(false);
 		name = 'Doubled Bar';
-		desc = 'Double tapping a modifier swaps to its own bar, which combines with nothing.';
+		desc = 'A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.';
 		advd = true;
 	};
 	layersOrdered = _{Bool(false);
