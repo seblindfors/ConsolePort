@@ -22,6 +22,10 @@ L.NAME_RING_UTILITY           = 'Utility Ring';
 L.NAME_UI_CURSOR_TOGGLE       = 'Toggle Interface Cursor';
 L.NAME_QUICK_MENU             = 'Quick Menu';
 L.NAME_TOOLBAR                = 'Toggle Toolbar';
+L.NAME_INTERACT               = 'Interact';
+L.NAME_INSPECT                = 'Inspect';
+L.NAME_TARGET_FRIENDLY        = 'Target Friendly (Hold)';
+L.NAME_TARGET_HOSTILE         = 'Target Hostile (Hold)';
 ---------------------------------------------------------------
 -- Formats
 ---------------------------------------------------------------
@@ -201,6 +205,25 @@ L.DESC_RING_MENU = [[
 L.DESC_TOOLBAR = [[
 	Opens the action bar toolbar, which holds the micro menu,
 	bag slots and shortcuts.
+]];
+L.DESC_INTERACT = [[
+	Interacts with the soft target, attacks the enemy target, or
+	loots. Hold to toggle auto loot. Uses the game's own Interact
+	button.
+]];
+L.DESC_INSPECT = [[
+	Opens the target's unit menu, with raid markers while a
+	targeting button is held. Uses the game's own Inspect button.
+]];
+L.DESC_TARGET_FRIENDLY = [[
+	Hold to aim at friendly units with the reticle. Releasing
+	without a selection targets the nearest friend, when the game
+	option for it is on.
+]];
+L.DESC_TARGET_HOSTILE = [[
+	Hold to aim at hostile units with the reticle. Releasing
+	without a selection targets the nearest enemy, when the game
+	option for it is on.
 ]];
 L.DESC_QUICK_MENU = [[
 	A quick access menu that gathers common actions performed

@@ -291,7 +291,7 @@ db:RegisterSafeCallback('OnNewBindings', function(self)
 	if ( GetCVarBool('GamePadStickAxisButtons') ~= allowSticks ) then
 		SetCVar('GamePadStickAxisButtons', allowSticks and 1 or 0)
 	end
-	if ( self:GetBindingKey('INTERACTTARGET') and not GetCVarBool('SoftTargetInteract') ) then
+	if ( self:GetBindingKey('INTERACTTARGET') and not GetCVarBool('SoftTargetInteract') and not CPAPI.IsCamelotVersion ) then
 		-- FIX: On Classic, the interact key is not enabled by default.
 		-- If it's bound and disabled, enable it. 1 = GamePad, see Console.lua.
 		db:SetCVar('SoftTargetInteract', 1)
@@ -767,6 +767,11 @@ function GamepadMixin:GetPresetBindings()
 		)
 
 	local bindings = GamepadAPI:FlattenBindings(preset) -- (2)
+	if db.Actionbar.Gamepad then
+		for combination, binding in pairs(bindings) do
+			bindings[combination] = db.Actionbar:GetGamepadBinding(binding) or binding;
+		end
+	end
 	local mouse = GamepadAPI.Mouse; -- (3)
 	for key, cvar in pairs(mouse.Cvars) do
 		local buttonID = db:GetCVar(cvar, NM):match('^PAD.*')

@@ -14,4 +14,5 @@
 	<Script file="LED.lua"/>
 	<Script file="ExtraActions.lua"/>
 	<Script file="GamepadActions.lua"/>
+	<Script file="NativeGamepad.lua"/>
 </Ui>

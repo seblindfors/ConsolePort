@@ -220,7 +220,7 @@ db:Register('Variables', CPAPI.Callable({
 	--------------------------------------------------------------------------------------------------------
 	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse
 	--------------------------------------------------------------------------------------------------------
-	mouseHandlingEnabled = _{Bool(true);
+	mouseHandlingEnabled = _{Bool(not CPAPI.IsCamelotVersion);
 		name = 'Enable Mouse Handling';
 		desc = 'Enable custom mouse handling, automating cursor toggling and timeout while using left and right mouse button emulation.';
 		note = 'While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.';

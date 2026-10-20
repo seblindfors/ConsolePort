@@ -256,6 +256,47 @@ for i, set in ipairs(Bindings.Primary) do
 	set.name = set.name or GetBindingName(set.binding)
 end
 
+if CPAPI.IsCamelotVersion then
+	-- Blizzard's gamepad bar keeps Interact and Inspect on reserved
+	-- buttons; ConsolePort binds them by clicking those buttons.
+	local function reserved(index)
+		local frame = GamepadMainActionBarFrame;
+		local bars  = frame and frame.PageUnit and frame.PageUnit.actionBars;
+		local right = bars and bars.topBar and bars.topBar.Right;
+		local button = right and right['ActionButton'..index];
+		local name = button and button:GetName()
+			or ('GamepadMainActionBarFramePageUnitTopCenteredAnchorTopBarActionButton%d'):format(index + 4);
+		return ('CLICK %s:LeftButton'):format(name);
+	end
+	local function click(id) return ('CLICK %s%s:LeftButton'):format(_, id) end;
+
+	Bindings.Custom.Interact       = reserved(1);
+	Bindings.Custom.Inspect        = reserved(2);
+	Bindings.Custom.TargetFriendly = click 'TargetFriendly';
+	Bindings.Custom.TargetHostile  = click 'TargetHostile';
+	Bindings.Macroable.Interact    = true;
+	Bindings.Macroable.Inspect     = true;
+
+	for _, set in ipairs({
+		{	binding = Bindings.Custom.Interact;
+			name    = L.NAME_INTERACT;
+			desc    = L.DESC_INTERACT;
+		};
+		{	binding = Bindings.Custom.Inspect;
+			name    = L.NAME_INSPECT;
+			desc    = L.DESC_INSPECT;
+		};
+		{	binding = Bindings.Custom.TargetFriendly;
+			name    = L.NAME_TARGET_FRIENDLY;
+			desc    = L.DESC_TARGET_FRIENDLY;
+		};
+		{	binding = Bindings.Custom.TargetHostile;
+			name    = L.NAME_TARGET_HOSTILE;
+			desc    = L.DESC_TARGET_HOSTILE;
+		};
+	}) do tinsert(Bindings.Special, set) end
+end
+
 Bindings.Dynamic = {
 	{	binding = 'TARGETSELF';
 		unit    = 'player';
@@ -441,6 +482,13 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		--[Bindings.Custom.FocusButton]    = client 'VAS_RaceChange';
 		---------------------------------------------------------------
 	};
+end
+
+if CPAPI.IsCamelotVersion then
+	Bindings.DefaultIcons[Bindings.Custom.Interact]       = client 'INV_Misc_Note_01';
+	Bindings.DefaultIcons[Bindings.Custom.Inspect]        = client 'INV_Misc_Spyglass_03';
+	Bindings.DefaultIcons[Bindings.Custom.TargetFriendly] = Bindings.CustomIcons.TWNScan;
+	Bindings.DefaultIcons[Bindings.Custom.TargetHostile]  = Bindings.CustomIcons.TWNScan;
 end
 
 function Bindings:OnDataLoaded()
