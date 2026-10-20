@@ -13,4 +13,5 @@
 	<Script file="Convenience.lua"/>
 	<Script file="LED.lua"/>
 	<Script file="ExtraActions.lua"/>
+	<Script file="GamepadActions.lua"/>
 </Ui>

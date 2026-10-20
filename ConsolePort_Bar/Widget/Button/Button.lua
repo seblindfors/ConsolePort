@@ -7,6 +7,15 @@ env:RegisterCallback('Settings/showCooldownText', function(_, show)
 	db:SetCVar('countdownForCooldowns', show)
 end)
 
+local GAMEPAD = db.Actionbar.Gamepad;
+local GAMEPAD_WIDTH  = GAMEPAD and GAMEPAD.Width or 0;
+local GAMEPAD_FORMS  = GAMEPAD and GAMEPAD.Stance.Count or 0;
+local GAMEPAD_STANCE = GAMEPAD and db.Actionbar:GetSlotID(GAMEPAD.BarOffset + GAMEPAD.Stance.Bar, 1) or 0;
+
+local function GetGamepadPagedFirst()
+	return GAMEPAD and db.Actionbar:GetSlotID(db.Actionbar:GetGamepadPagedBar(), 1) or 0;
+end
+
 ---------------------------------------------------------------
 local SlotButton = Mixin({
 ---------------------------------------------------------------
@@ -17,11 +26,15 @@ local SlotButton = Mixin({
 			local state = ...; self:SetAttribute('state', state)
 			if not state then return end;
 			local typeof, numBarButtons = type, ]]..NUM_ACTIONBAR_BUTTONS..[[;
+			local gpPagedFirst, gpWidth, gpStanceFirst, gpForms, numPages =
+				self:GetAttribute('gamepadpagedfirst') or 0, ]]..GAMEPAD_WIDTH..[[, ]]..GAMEPAD_STANCE..[[, ]]..GAMEPAD_FORMS..[[, ]]..NUM_ACTIONBAR_PAGES..[[;
 
 			local type   = self:GetAttribute(format('labtype-%s', state)) or 'empty';
 			local action = self:GetAttribute(format('labaction-%s', state))
-			local mainBarActionID = (type == 'action' and typeof(action) == 'number' and action <= numBarButtons and action) or 0;
-			self:SetID(mainBarActionID)
+			local isActionSlot = (type == 'action' and typeof(action) == 'number');
+			local mainBarActionID = (isActionSlot and action <= numBarButtons and action) or 0;
+			local gamepadBarActionID = (isActionSlot and gpPagedFirst > 0 and action >= gpPagedFirst and action < gpPagedFirst + gpWidth and action - gpPagedFirst + 1) or 0;
+			self:SetID(mainBarActionID > 0 and mainBarActionID or gamepadBarActionID)
 
 			self:SetAttribute('type', type)
 			if ( type ~= 'empty' and type ~= 'custom' ) then
@@ -30,6 +43,12 @@ local SlotButton = Mixin({
 
 				if ( mainBarActionID > 0 ) then
 					action = action + ((actionPage - 1) * numBarButtons)
+					self:CallMethod('ButtonContentsChanged', state, type, action)
+				elseif ( gamepadBarActionID > 0 ) then
+					local bonus = actionPage - numPages;
+					if ( bonus >= 1 and bonus <= gpForms ) then
+						action = gpStanceFirst + ((bonus - 1) * gpWidth) + (gamepadBarActionID - 1)
+					end
 					self:CallMethod('ButtonContentsChanged', state, type, action)
 				end
 
@@ -82,9 +101,24 @@ local SlotButton = Mixin({
 function SlotButton:OnLoad()
 	self:CreateEnvironment()
 	self:SetAttribute(env.Attributes.GUID, true)
+	if GAMEPAD then
+		self:SetAttribute('gamepadpagedfirst', GetGamepadPagedFirst())
+	end
 	env.Manager:RegisterReroute(self)
 	env.LIB.Skin.SlotButton(self)
 	env.LIB.SkinUtility.SkinRotationHelper(self)
+end
+
+if GAMEPAD then
+	db:RegisterSafeCallback('Settings/gamepadPagedBar', function()
+		local pagedFirst = GetGamepadPagedFirst()
+		for button in pairs(env.LAB:GetAllButtons()) do
+			if button:GetAttribute('UpdateState') then
+				button:SetAttribute('gamepadpagedfirst', pagedFirst)
+				button:Run([[ self::UpdateState(self:GetAttribute('state')) ]])
+			end
+		end
+	end, SlotButton)
 end
 
 function SlotButton:OnTypeChanged(isAction)

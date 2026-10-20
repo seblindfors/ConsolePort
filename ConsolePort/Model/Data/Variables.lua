@@ -28,6 +28,12 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Response to condition for custom processing.';
 		hide = true;
 	};
+	gamepadPagedBar = _{Range(1, 1, 1, 10);
+		name = 'Paged Gamepad Bar';
+		desc = 'Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.';
+		hide = not CPAPI.IsCamelotVersion;
+		advd = true;
+	};
 	classFileOverride = _{String(nil);
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';

@@ -109,6 +109,9 @@ function Pager:OnDataLoaded()
 	local driver, response = self:GetPageCondition(), self:GetPageResponse()
 	response = response .. self:GetHeaderResponse()
 	self:SetConditionAndResponse(driver, response)
+	if Gamepad then
+		self:SetAttribute('gamepadpagedfirst', db.Actionbar:GetSlotID(db.Actionbar:GetGamepadPagedBar(), 1))
+	end
 	return CPAPI.KeepMeForLater;
 end
 
@@ -129,6 +132,11 @@ db:RegisterSafeCallback('Settings/actionPageResponse', Pager.OnDataLoaded, Pager
 --  IsHarmfulAction    : check if the action slot is harmful
 --  IsHelpfulAction    : check if the action slot is helpful
 ---------------------------------------------------------------
+local Gamepad = db.Actionbar.Gamepad;
+local GAMEPAD_WIDTH  = Gamepad and Gamepad.Width or 0;
+local GAMEPAD_FORMS  = Gamepad and Gamepad.Stance.Count or 0;
+local GAMEPAD_STANCE = Gamepad and db.Actionbar:GetSlotID(Gamepad.BarOffset + Gamepad.Stance.Bar, 1) or 0;
+
 Pager.Env = {
 	GetActionID = ([[
 		local id = ...
@@ -137,11 +145,17 @@ Pager.Env = {
 			local btns = %d
 			if id >= 1 and id <= btns then
 				return ( ( page - 1 ) * btns ) + id
-			else
-				return id
 			end
+			local gpFirst = self:GetAttribute('gamepadpagedfirst') or 0
+			if gpFirst > 0 and id >= gpFirst and id < gpFirst + %d then
+				local bonus = page - %d
+				if bonus >= 1 and bonus <= %d then
+					return %d + ( ( bonus - 1 ) * %d ) + ( id - gpFirst )
+				end
+			end
+			return id
 		end
-	]]):format(NUM_ACTIONBAR_BUTTONS);
+	]]):format(NUM_ACTIONBAR_BUTTONS, GAMEPAD_WIDTH, NUM_ACTIONBAR_PAGES, GAMEPAD_FORMS, GAMEPAD_STANCE, GAMEPAD_WIDTH);
 	GetActionInfo = [[
 		local id = self::GetActionID(...)
 		if id then
