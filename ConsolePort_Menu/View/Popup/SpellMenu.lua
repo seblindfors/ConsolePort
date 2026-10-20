@@ -140,8 +140,11 @@ function SpellMenu:MapActionBar(keyChord)
 				local text = self.ActionBarText:Acquire()
 				local name = db('Actionbar/Names/'..barID)
 
-				local isCurrentPage = barID == currentPage;
-				local isPagedMain   = ( barID == 1 and currentPage ~= 1 );
+				local isGamepadBar  = db.Actionbar:IsGamepadBar(barID);
+				local isCurrentPage = isGamepadBar and barID == db.Actionbar:GetGamepadPage() or barID == currentPage;
+				local isPagedMain   = isGamepadBar
+					and ( barID == db.Actionbar:GetGamepadPagedBar() and not isCurrentPage )
+					or  ( barID == 1 and currentPage ~= 1 );
 				local overrideColor = isPagedMain and GRAY_FONT_COLOR or isCurrentPage and GREEN_FONT_COLOR;
 
 				text:SetText(overrideColor and overrideColor:WrapTextInColorCode(name) or name)
@@ -149,8 +152,8 @@ function SpellMenu:MapActionBar(keyChord)
 				text:SetJustifyH('LEFT')
 				text:Show()
 
-				for i=1, NUM_ACTIONBAR_BUTTONS do
-					local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
+				for i=1, db.Actionbar:GetBarWidth(barID) do
+					local actionID = db.Actionbar:GetSlotID(barID, i);
 					local isFreeSlot = not GetActionInfo(actionID);
 					local widget, newObj = self.ActionButtons:Acquire()
 					if newObj then

@@ -661,15 +661,22 @@ local function ReleaseActionbarMapperButton(button)
 end
 
 local function IsMainActionBar(value)
+	local barID;
 	if type(value) == 'number' then
-		return value == 1;
+		barID = value;
+	elseif C_Widget.IsFrameWidget(value) then
+		barID = value:GetElementData():GetData().bar;
+	elseif type(value) == 'table' then
+		barID = value.bar;
 	end
-	if C_Widget.IsFrameWidget(value) then
-		return value:GetElementData():GetData().bar == 1;
+	return barID == 1 or barID == db.Actionbar:GetGamepadPagedBar();
+end
+
+local function IsActivePage(barID, activePage)
+	if db.Actionbar:IsGamepadBar(barID) then
+		return barID == db.Actionbar:GetGamepadPage();
 	end
-	if type(value) == 'table' then
-		return value.bar == 1;
-	end
+	return barID == activePage;
 end
 
 function ActionbarMapper:Init(elementData)
@@ -681,13 +688,12 @@ function ActionbarMapper:Init(elementData)
 end
 
 function ActionbarMapper:SetMinMaxRange(data)
-	self.rangeMin = (data.bar - 1) * NUM_ACTIONBAR_BUTTONS + 1;
-	self.rangeMax = self.rangeMin + NUM_ACTIONBAR_BUTTONS - 1;
+	self.rangeMin, self.rangeMax = db.Actionbar:GetSlotRange(data.bar)
 end
 
 function ActionbarMapper:UpdateActivePage(activePage)
 	local data = self:GetElementData():GetData()
-	self.isActivePage = activePage == data.bar;
+	self.isActivePage = IsActivePage(data.bar, activePage);
 	self.InnerContent.Highlight:SetShown(self.isActivePage)
 end
 
@@ -696,15 +702,18 @@ function ActionbarMapper:UpdateChildren(data)
 	local event   = data.event;
 	local offset  = pair and 44 or 46;
 	local padding = pair and 8 or 10;
+	local width   = db.Actionbar:GetBarWidth(data.bar);
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
 		local button = self[i];
 		if button then
-			button:SetID(((data.bar - 1) * NUM_ACTIONBAR_BUTTONS) + i)
-			button:SetPoint('RIGHT', -((NUM_ACTIONBAR_BUTTONS - i) * offset) - padding, 0)
+			local inBar = i <= width;
+			button:SetID(inBar and db.Actionbar:GetSlotID(data.bar, i) or 0)
+			button:SetPoint('RIGHT', -((width - i) * offset) - padding, 0)
 			button:SetBindingEvent(event)
 			button:SetPairMode(pair)
 			button:SetEditMode(false)
 			button:SetPairText(nil)
+			button:SetShown(inBar)
 		end
 	end
 end

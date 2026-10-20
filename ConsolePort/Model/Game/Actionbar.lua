@@ -113,6 +113,31 @@ function ActionBarAPI:GetGamepadPage()
 	return self:GetGamepadPagedBar()
 end
 
+function ActionBarAPI:GetTransposedSlot(id)
+	if ( id <= NUM_ACTIONBAR_BUTTONS ) then
+		return id + ((db.Pager:GetCurrentPage() - 1) * NUM_ACTIONBAR_BUTTONS);
+	end
+	local barID, index = self:GetFormattedIDs(id)
+	if ( self.Gamepad and barID == self:GetGamepadPagedBar() ) then
+		return self:GetSlotID(self:GetGamepadPage(), index);
+	end
+	return id;
+end
+
+function ActionBarAPI:GetExportableBars()
+	local bars = {};
+	for barID = 1, 10 do bars[#bars + 1] = barID end;
+	local gp = self.Gamepad;
+	if gp then
+		for k = 1, gp.Bars do bars[#bars + 1] = gp.BarOffset + k end;
+	end
+	return bars;
+end
+
+function ActionBarAPI:IsExportableBar(barID)
+	return ( barID >= 1 and barID <= 10 ) or self:IsGamepadBar(barID);
+end
+
 function ActionBarAPI:GetGamepadBinding(binding)
 	local gp = self.Gamepad;
 	local slot = gp and self.Binding[binding];
