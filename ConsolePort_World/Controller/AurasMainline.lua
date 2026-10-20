@@ -214,12 +214,12 @@ env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 	end
 
 	function Helpful:OnVariablesChanged()
-		self:UpdateState(db('QMenuCollectionBuffs'))
+		self:UpdateState(db('QMenuCollectionBuffs') and not CPAPI.IsNativeNavigationActive())
 		self:Update()
 	end
 
 	function Harmful:OnVariablesChanged()
-		self:UpdateState(db('QMenuCollectionDebuffs'))
+		self:UpdateState(db('QMenuCollectionDebuffs') and not CPAPI.IsNativeNavigationActive())
 		self:Update()
 	end
 

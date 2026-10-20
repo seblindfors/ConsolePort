@@ -3,7 +3,7 @@ local _, Data = CPAPI.LinkEnv(...)
 ConsolePort:AddVariables({
 ---------------------------------------------------------------
 	_(MAINMENU_BUTTON, INTERFACE_LABEL);
-	gameMenuEnable = _{Data.Bool(true);
+	gameMenuEnable = _{Data.Bool(not CPAPI.IsCamelotVersion);
 		name = 'Game Menu';
 		desc = 'Replaces the game menu with a controller-friendly menu and a quick access ring.';
 	};
