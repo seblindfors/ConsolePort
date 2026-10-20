@@ -669,7 +669,7 @@ local function IsMainActionBar(value)
 	elseif type(value) == 'table' then
 		barID = value.bar;
 	end
-	return barID == 1 or barID == db.Actionbar:GetGamepadPagedBar();
+	return barID ~= nil and ( barID == 1 or barID == db.Actionbar:GetGamepadPagedBar() );
 end
 
 local function IsActivePage(barID, activePage)

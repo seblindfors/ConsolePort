@@ -136,17 +136,23 @@ local GAMEPAD_BAR_BINDINGS = {
 	'GAMEPADLEFTMOD', 'GAMEPADRIGHTMOD',
 };
 
-local function hideGamepadBar()
+local hideGamepadBar;
+function hideGamepadBar()
 	local frame = GamepadMainActionBarFrame;
-	if not frame or InCombatLockdown() then return end;
+	if not frame then return end;
+	if InCombatLockdown() then
+		return env.db:RunSafe(hideGamepadBar);
+	end
 	Frame.Hide(frame)
 end
 
 function env.UIHandler:HideGamepadBar()
-	if not GamepadMainActionBarFrame or self.gamepadBarHidden then return end;
-	self.gamepadBarHidden = true;
+	if not GamepadMainActionBarFrame then return end;
 	hideGamepadBar()
-	hooksecurefunc(GamepadMainActionBarFrame, 'Show', hideGamepadBar)
+	if not self.gamepadBarHooked then
+		self.gamepadBarHooked = true;
+		hooksecurefunc(GamepadMainActionBarFrame, 'Show', hideGamepadBar)
+	end
 end
 
 function env.UIHandler:ClearGamepadBarBindings()

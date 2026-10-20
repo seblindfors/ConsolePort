@@ -12,7 +12,9 @@ CPAPI.IsModernVersion     = CPAPI.IsRetailVersion or CPAPI.IsCamelotVersion or n
 CPAPI.IsNativeGamepadUI   = C_GamepadUI ~= nil or nil;
 
 function CPAPI.IsNativeNavigationActive()
-	return CPAPI.IsCamelotVersion and InputUtil and InputUtil.IsGamepadUIEnabled() or false;
+	return CPAPI.IsCamelotVersion
+		and InputUtil and InputUtil.IsGamepadUIEnabled
+		and InputUtil.IsGamepadUIEnabled() or false;
 end
 
 ---------------------------------------------------------------

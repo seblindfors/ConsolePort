@@ -12,6 +12,11 @@ local Pager, _, db = Mixin(CPAPI.EventHandler(ConsolePortPager, {'UPDATE_BONUS_A
 db:Register('Pager', Pager)
 Pager:Execute('headers = newtable()')
 
+local Gamepad = db.Actionbar.Gamepad;
+local GAMEPAD_WIDTH  = Gamepad and Gamepad.Width or 0;
+local GAMEPAD_FORMS  = Gamepad and Gamepad.Stance.Count or 0;
+local GAMEPAD_STANCE = Gamepad and db.Actionbar:GetSlotID(Gamepad.BarOffset + Gamepad.Stance.Bar, 1) or 0;
+
 ---------------------------------------------------------------
 -- Action page swapper
 ---------------------------------------------------------------
@@ -132,11 +137,6 @@ db:RegisterSafeCallback('Settings/actionPageResponse', Pager.OnDataLoaded, Pager
 --  IsHarmfulAction    : check if the action slot is harmful
 --  IsHelpfulAction    : check if the action slot is helpful
 ---------------------------------------------------------------
-local Gamepad = db.Actionbar.Gamepad;
-local GAMEPAD_WIDTH  = Gamepad and Gamepad.Width or 0;
-local GAMEPAD_FORMS  = Gamepad and Gamepad.Stance.Count or 0;
-local GAMEPAD_STANCE = Gamepad and db.Actionbar:GetSlotID(Gamepad.BarOffset + Gamepad.Stance.Bar, 1) or 0;
-
 Pager.Env = {
 	GetActionID = ([[
 		local id = ...

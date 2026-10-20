@@ -1,4 +1,4 @@
-if not CPAPI.IsCamelotVersion then return end;
+if not CPAPI.IsCamelotVersion or not C_GamepadTargeting or not Enum.GamepadTargetingFilters then return end;
 ---------------------------------------------------------------
 -- Native gamepad targeting (Forever)
 ---------------------------------------------------------------

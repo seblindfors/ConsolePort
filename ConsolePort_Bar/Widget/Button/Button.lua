@@ -34,7 +34,8 @@ local SlotButton = Mixin({
 			local isActionSlot = (type == 'action' and typeof(action) == 'number');
 			local mainBarActionID = (isActionSlot and action <= numBarButtons and action) or 0;
 			local gamepadBarActionID = (isActionSlot and gpPagedFirst > 0 and action >= gpPagedFirst and action < gpPagedFirst + gpWidth and action - gpPagedFirst + 1) or 0;
-			self:SetID(mainBarActionID > 0 and mainBarActionID or gamepadBarActionID)
+			self:SetID(mainBarActionID)
+			self:SetAttribute('gamepadpaged', gamepadBarActionID > 0 or nil)
 
 			self:SetAttribute('type', type)
 			if ( type ~= 'empty' and type ~= 'custom' ) then
@@ -89,7 +90,7 @@ local SlotButton = Mixin({
 		]];
 		[env.Attributes.Update('actionpage')] = [[
 			self:SetAttribute('actionpage', message)
-			if self:GetID() > 0 then
+			if self:GetID() > 0 or self:GetAttribute('gamepadpaged') then
 				self::UpdateState(self:GetAttribute('state'))
 			end
 		]];

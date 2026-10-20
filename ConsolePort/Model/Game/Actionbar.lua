@@ -106,6 +106,7 @@ end
 
 function ActionBarAPI:GetGamepadPage()
 	local gp = self.Gamepad;
+	if not gp then return end;
 	local offset = GetBonusBarOffset()
 	if ( offset > 0 and offset <= gp.Stance.Count ) then
 		return gp.BarOffset + gp.Stance.Bar + offset - 1;
