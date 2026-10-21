@@ -2,9 +2,11 @@ local _, env, db, L = ...; db = env.db; L = db.Locale;
 local NOTCH_FADE_TIME = 0.2;
 local NOTCH_PULSE_TIME = 0.75;
 local MENU_PADDING    = 32;
+local MENU_PADDING_HOVER = 12;
 local MENU_GAP        = 8;
 local MENU_BLEED      = 60;
 local MENU_ALPHA      = 0.75;
+local HOVER_CLOSE_DELAY = 1;
 local NOTCH_ATLAS     = 'gm-btn%s-%s';
 local NOTCH_WIDTH, NOTCH_HEIGHT = 52, 24;
 local Directions = {
@@ -478,6 +480,10 @@ function Grid:MoveMicroButtonsNow()
 			button:SetParent(self)
 			button:ClearAllPoints()
 		end
+		if not button.toolbarClickHook then
+			button.toolbarClickHook = true;
+			button:HookScript('OnClick', GenerateClosure(self.OnMicroButtonClicked, self))
+		end
 		if ( button.layoutIndex ~= index ) then
 			button.layoutIndex = index;
 		end
@@ -489,6 +495,10 @@ function Grid:MoveMicroButtonsNow()
 	end
 	MovePerformanceBar(self)
 	MovePortraitTextures()
+end
+
+function Grid:OnMicroButtonClicked()
+	self:GetParent():GetParent():OnMicroButtonClicked()
 end
 
 function Grid:MoveBagButtonsNow()
@@ -552,10 +562,10 @@ function Grid:SetDirection(direction)
 	end
 end
 
-function Grid:SetProps(menu, bags)
+function Grid:SetProps(menu, bags, scale)
 	self.props = menu;
 	self.bags  = bags;
-	self:SetScale(menu.scale or 1.5)
+	self:SetScale(scale)
 	self.Eye:SetShown(menu.eye)
 	self:MoveMicroButtons()
 	self:MoveBagButtons()
@@ -606,7 +616,24 @@ function Notch:OnClick()
 	self:GetParent():Toggle()
 end
 
+function Notch:SetHoverMode(isHover)
+	self.isHover = isHover;
+	self:SetAlpha(( not isHover and ( self.alwaysShow or self.isOpen ) ) and 1 or 0)
+	if not isHover then
+		self:SetHitRectInsets(0, 0, 0, 0)
+	end
+end
+
+function Notch:SetHoverZone(width, height)
+	local dx = math.max(0, (width - self:GetWidth()) / 2);
+	local dy = math.max(0, (height - self:GetHeight()) / 2);
+	self:SetHitRectInsets(-dx, -dx, -dy, -dy)
+end
+
 function Notch:OnEnter()
+	if self.isHover then
+		return self:GetParent():OnHoverEnter()
+	end
 	db.Alpha.FadeIn(self, NOTCH_FADE_TIME, self:GetAlpha(), 1)
 	GameTooltip:SetOwner(self, TooltipAnchors[self.direction] or 'ANCHOR_TOP')
 	GameTooltip_SetTitle(GameTooltip, L.NAME_TOOLBAR)
@@ -623,18 +650,19 @@ function Notch:OnLeave()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
-	if self.alwaysShow or self.isOpen then return end;
+	if self.isHover or self.alwaysShow or self.isOpen then return end;
 	db.Alpha.FadeOut(self, NOTCH_FADE_TIME, self:GetAlpha(), 0)
 end
 
 function Notch:SetAlwaysShown(alwaysShow)
 	self.alwaysShow = alwaysShow;
-	self:SetAlpha(( alwaysShow or self.isOpen ) and 1 or 0)
+	self:SetAlpha(( not self.isHover and ( alwaysShow or self.isOpen ) ) and 1 or 0)
 end
 
 function Notch:SetOpen(isOpen)
 	self.isOpen = isOpen;
 	self:UpdateArt()
+	if self.isHover then return end;
 	if isOpen then
 		db.Alpha.FadeIn(self, NOTCH_FADE_TIME, self:GetAlpha(), 1)
 		self:LockHighlight()
@@ -675,7 +703,31 @@ function CPToolbar:OnLoad()
 end
 
 function CPToolbar:Toggle()
+	self.openedByHover = nil;
 	self.Menu:SetShown(not self.Menu:IsShown())
+end
+
+function CPToolbar:OnHoverEnter()
+	if self.Menu:IsShown() then return end;
+	self.openedByHover = true;
+	self.Menu:Show()
+end
+
+function CPToolbar:IsHoverOccupied()
+	return self.Notch:IsMouseOver()
+		or self.Menu:IsMouseOver()
+		or ( self.Menu.Grid.Flyout:IsShown() and self.Menu.Grid.Flyout:IsMouseOver() );
+end
+
+function CPToolbar:OnUpdate(elapsed)
+	if self:IsHoverOccupied() then
+		self.hoverLeaveTimer = 0;
+		return;
+	end
+	self.hoverLeaveTimer = (self.hoverLeaveTimer or 0) + elapsed;
+	if ( self.hoverLeaveTimer > HOVER_CLOSE_DELAY ) then
+		self.Menu:Hide()
+	end
 end
 
 function CPToolbar:OnMenuShow()
@@ -683,33 +735,63 @@ function CPToolbar:OnMenuShow()
 	self.Menu.Grid:MoveMicroButtons()
 	self.Menu.Grid:MoveBagButtons()
 	self.Menu.Grid:Layout()
+	if self.openedByHover then
+		self.hoverLeaveTimer = 0;
+		self:SetScript('OnUpdate', self.OnUpdate)
+	end
 end
 
 function CPToolbar:OnMenuHide()
 	self.Notch:SetOpen(false)
+	self.openedByHover = nil;
+	self:SetScript('OnUpdate', nil)
+end
+
+function CPToolbar:IsHoverMode()
+	return self.props and self.props.open == 'Hover';
+end
+
+function CPToolbar:OnMicroButtonClicked()
+	if ( not self:IsHoverMode() and self.Menu:IsShown() ) then
+		self.Menu:Hide()
+	end
 end
 
 function CPToolbar:OnGridSizeChanged()
 	local grid, scale = self.Menu.Grid, self.Menu.Grid:GetScale();
-	self.Menu:SetSize(grid:GetWidth() * scale + MENU_PADDING, grid:GetHeight() * scale + MENU_PADDING)
+	local padding = self:IsHoverMode() and MENU_PADDING_HOVER or MENU_PADDING;
+	self.Menu:SetSize(grid:GetWidth() * scale + padding, grid:GetHeight() * scale + padding)
 	FrameUtil.UpdateScaleForFit(self.Menu, MENU_BLEED, MENU_BLEED)
+	if self:IsHoverMode() then
+		self.Notch:SetHoverZone(self.Menu:GetWidth() * self.Menu:GetScale(), self.Notch:GetHeight())
+	end
 end
 
 function CPToolbar:UpdateDirection(props)
 	local direction = GetDirection(props.pos.point);
 	local menuAnchor, toolbarAnchor, _, _, dx, dy = unpack(Directions[direction]);
 	self.Menu:ClearAllPoints()
-	self.Menu:SetPoint(menuAnchor, self, toolbarAnchor, dx * -MENU_GAP, dy * -MENU_GAP)
+	if ( props.open == 'Hover' ) then
+		self.Menu:SetPoint(menuAnchor, self, menuAnchor)
+	else
+		self.Menu:SetPoint(menuAnchor, self, toolbarAnchor, dx * -MENU_GAP, dy * -MENU_GAP)
+	end
 	self.Notch:SetDirection(direction)
 	self.Menu.Grid:SetDirection(direction)
 end
 
 function CPToolbar:SetProps(props)
 	self:SetDynamicProps(props)
+	local isHover = props.open == 'Hover';
 	self:UpdateDirection(props)
+	self.Notch:SetHoverMode(isHover)
 	self.Notch:SetAlwaysShown(props.notch.show)
-	self.Menu.Grid:SetProps(props.menu, props.bags)
+	self.Menu.Border:SetScale(isHover and 0.5 or 1)
+	self.Menu.Grid:SetProps(props.menu, props.bags, isHover and 1 or props.menu.scale or 1.5)
 	self:OnGridSizeChanged()
+	if ( not isHover and self.openedByHover ) then
+		self.Menu:Hide()
+	end
 	self:Show()
 end
 
