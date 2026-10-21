@@ -468,17 +468,22 @@ Interface.Watchbar = Data.Interface {
 
 Interface.Toolbar = Data.Interface {
 	name = 'Toolbar';
-	desc = 'A notch that opens the micro menu, with shortcuts and bag slots.';
+	desc = 'The micro menu with shortcuts and bag slots, opened by a notch or by mouse over.';
 	Data.Table {
 		type = {hide = true; Data.String('Toolbar')};
 		pos = _(Type.SimplePoint : Implement {
-			desc = 'Position of the toolbar notch.';
+			desc = 'Position of the toolbar.';
 			{
 				point    = 'BOTTOM';
 				relPoint = 'BOTTOM';
 				y        = 16;
 			};
 		});
+		open = _{
+			name = 'Open';
+			desc = 'Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.';
+			Data.Select('Hover', 'Hover', 'Notch');
+		};
 		notch = _{
 			name = 'Notch';
 			desc = 'The notch that opens the toolbar.';
@@ -507,7 +512,7 @@ Interface.Toolbar = Data.Interface {
 				};
 				scale = _{
 					name = 'Scale';
-					desc = 'Scale of the toolbar menu.';
+					desc = 'Scale of the toolbar menu when opened by the notch.';
 					Data.Range(1.5, 0.25, 1, 3);
 				};
 			};
