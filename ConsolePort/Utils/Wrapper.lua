@@ -508,6 +508,38 @@ CPAPI.GetSpellBookItemInfo = function(...)
 	return C_SpellBook.GetSpellBookItemInfo(...) or {};
 end
 
+CPAPI.GetQuestInfo = function(...)
+	if C_QuestLog and C_QuestLog.GetInfo then
+		return C_QuestLog.GetInfo(...) or {};
+	end
+	if GetQuestLogTitle then
+		local title, level, suggestedGroup, isHeader, isCollapsed, isComplete,
+		frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI,
+		isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(...)
+		return {
+			--[[ QuestInfo ]]
+			--[[ string           ]] title = title;
+			--[[ number           ]] level = level;
+			--[[ number           ]] suggestedGroup = suggestedGroup;
+			--[[ boolean          ]] isHeader = isHeader;
+			--[[ boolean          ]] isCollapsed = isCollapsed;
+			--[[ boolean          ]] isComplete = isComplete;
+			--[[ Enum.QuestFrequency ]] frequency = frequency;
+			--[[ number           ]] questID = questID;
+			--[[ number           ]] startEvent = startEvent;
+			--[[ number           ]] displayQuestID = displayQuestID;
+			--[[ boolean          ]] isOnMap = isOnMap;
+			--[[ boolean          ]] hasLocalPOI = hasLocalPOI;
+			--[[ boolean          ]] isTask = isTask;
+			--[[ boolean          ]] isBounty = isBounty;
+			--[[ boolean          ]] isStory = isStory;
+			--[[ boolean          ]] isHidden = isHidden;
+			--[[ boolean          ]] isScaling = isScaling;
+		};
+	end
+	return {};
+end
+
 CPAPI.GetWatchedFactionData = function(...)
 	if C_Reputation and C_Reputation.GetWatchedFactionData then
 		return C_Reputation.GetWatchedFactionData(...)
