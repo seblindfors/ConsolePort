@@ -378,6 +378,21 @@ ActionBarAPI.Names = {
 	};
 }
 
+ActionBarAPI.KeyboardPrimary = ActionBarAPI.Pages[1];
+ActionBarAPI.GamepadPrimary  = ActionBarAPI.Pages[1];
+
+function ActionBarAPI:GetPrimarySet(barID)
+	return self:IsGamepadBar(barID) and self.GamepadPrimary or self.KeyboardPrimary;
+end
+
+function ActionBarAPI:GetPrimaryName(barID)
+	return self.Names[self:GetPrimarySet(barID)];
+end
+
+function ActionBarAPI:GetPrimaryGroupID(barID)
+	return tIndexOf(self.Pages, self:GetPrimarySet(barID)) or 1;
+end
+
 if ActionBarAPI.Gamepad then
 	local gp, Pages, Names = ActionBarAPI.Gamepad, ActionBarAPI.Pages, ActionBarAPI.Names;
 	local function Bars(from, to)
@@ -399,6 +414,7 @@ if ActionBarAPI.Gamepad then
 	for i, set in ipairs(sets) do
 		tinsert(Pages, i, set)
 	end
+	ActionBarAPI.GamepadPrimary = sets[1];
 	Names[sets[1]] = PRIMARY;
 	Names[sets[2]] = BINDING_HEADER_MULTIACTIONBAR;
 	Names[sets[3]] = BINDING_HEADER_MULTIACTIONBAR;
