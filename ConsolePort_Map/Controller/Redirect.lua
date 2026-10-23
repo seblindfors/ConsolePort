@@ -13,7 +13,6 @@ local Redirect = CPAPI.CreateEventHandler({'Frame', '$parentMapRedirect', Consol
 }); env.Redirect = Redirect;
 
 local Toggle = ConsolePortMapToggle;
-local TOGGLE_CLICK = ('CLICK %s:LeftButton'):format(Toggle:GetName());
 
 ---------------------------------------------------------------
 -- Binding override
@@ -24,10 +23,10 @@ function Redirect:UpdateBindings()
 		return
 	end
 	self.pendingBindings = nil;
-	ClearOverrideBindings(Toggle)
-	if not (db('mapEnable') and db('mapReplaceBinding')) then return end
+	db.Layers:ReleaseAll(Toggle)
+	if not db('mapReplaceBinding') then return end
 	for _, key in ipairs(db.Gamepad:GetBindingKey('TOGGLEWORLDMAP', true)) do
-		SetOverrideBinding(Toggle, false, key, TOGGLE_CLICK)
+		db.Layers:Claim(Toggle, 'OVERRIDE', key, 'click', Toggle, 'LeftButton')
 	end
 end
 
@@ -42,7 +41,6 @@ end
 ---------------------------------------------------------------
 local function OnWorldMapShown()
 	local Map = env.Map;
-	if not db('mapEnable') then return end
 	if db('mapRedirectBlizzard') and not InCombatLockdown() then
 		C_Timer.After(0, function()
 			if not WorldMapFrame:IsShown() or InCombatLockdown() then return end
@@ -66,7 +64,6 @@ end
 function Redirect:OnDataLoaded()
 	db:RegisterCallbacks(self.UpdateBindings, self,
 		'OnNewBindings',
-		'Settings/mapEnable',
 		'Settings/mapReplaceBinding'
 	);
 	self:UpdateBindings()

@@ -57,6 +57,11 @@ Modules.Registry = {
 		name     = 'Keyboard';
 		desc     = 'Radial on-screen keyboard for typing with the gamepad.';
 	};
+	{	id       = 'Map';
+		addon    = 'ConsolePort_Map';
+		name     = 'World Map';
+		desc     = 'Gamepad world map, quest log and flight map with stick controls.';
+	};
 };
 
 ---------------------------------------------------------------

@@ -4,6 +4,7 @@
 ## Notes: Gamepad world map, quest log and flight map
 ## RequiredDeps: ConsolePort
 ## LoadOnDemand: 1
+## DefaultState: disabled
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

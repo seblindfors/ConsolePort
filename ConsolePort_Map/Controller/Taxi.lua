@@ -34,7 +34,7 @@ function Taxi:HookFlightMapFrame()
 end
 
 function Taxi:TAXIMAP_OPENED(system)
-	if not db('mapFlightMode') or not db('mapEnable') then return end
+	if not db('mapFlightMode') then return end
 	if Enum.UIMapSystem and system == Enum.UIMapSystem.Taxi then return end
 	if not GetTaxiMapID then return end
 	local mapID = GetTaxiMapID()
