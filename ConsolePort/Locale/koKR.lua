@@ -267,11 +267,13 @@ L.DESC_JUMP = [[
 ]]; -- en:4c032315
 L.DESC_KEY_BUTTON1 = [[
 	자유 커서를 전환하는 데 사용되며, 카메라 스틱을 마우스 포인터로 사용할 수 있습니다.
-]]; -- en:fd3d111a
+	여기에 지정된 단일 버튼은 커서가 활성화된 동안 인터페이스에서 왼쪽 클릭도 수행합니다.
+]]; -- en:e0d6e796
 L.DESC_KEY_BUTTON2 = [[
 	중앙 커서를 전환하는 데 사용되며, 마우스 중앙 고정 위치에서
 	게임 세계의 오브젝트 및 캐릭터와 상호작용할 수 있습니다.
-]]; -- en:2f5c87e4
+	여기에 지정된 단일 버튼은 커서가 활성화된 동안 인터페이스에서 오른쪽 클릭도 수행합니다.
+]]; -- en:2c3e0f5e
 L.DESC_QUICK_MENU = [[
 	파티 전리품 굴림, 강화 효과 취소, 가방 아이템 사용 등
 	플레이 중 자주 수행하는 동작을 한곳에 모아 빠르게 접근할 수 있는 메뉴입니다.
@@ -420,12 +422,6 @@ L.DEVICE_DESC_XBOX = [[
 
 	Steam Input에도 권장되며, 에뮬레이트하는 Xbox 360 컨트롤러와 일관성이 있습니다.
 ]]; -- en:654501d3
-L.DISC_KEY_BUTTON1 = [[
-	버튼 중 하나가 마우스 좌클릭을 에뮬레이트하도록 설정되어 있는 동안에는 이 단축키를 변경할 수 없습니다.
-]]; -- en:e811ebc6
-L.DISC_KEY_BUTTON2 = [[
-	버튼 중 하나가 마우스 우클릭을 에뮬레이트하도록 설정되어 있는 동안에는 이 단축키를 변경할 수 없습니다.
-]]; -- en:b85c78b2
 L.EXPORT_DATA_TEXT = [[
 
 |cFFFFFF00내보내기|r
@@ -1518,3 +1514,40 @@ L['When set to zero, always face your movement stick direction.\nWhen set to max
 최대로 설정하면 이동 스틱 방향을 절대 바라보지 않습니다.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[%s 장치는 블루투스와 유선 연결을 별도로 처리합니다.
 어느 것을 사용 중이십니까?]];
+
+L.NAME_INTERACT = '상호작용'; -- en:53deafc6
+L.NAME_INSPECT = '살펴보기'; -- en:18ca87af
+L.NAME_TARGET_FRIENDLY = '아군 대상 지정 (누르고 있기)'; -- en:02e85141
+L.NAME_TARGET_HOSTILE = '적 대상 지정 (누르고 있기)'; -- en:bc8d3927
+L.DESC_INTERACT = '소프트 대상과 상호작용하거나 적 대상을 공격하거나 전리품을 획득합니다. 누르고 있으면 자동 획득을 전환합니다. 게임 자체의 상호작용 버튼을 사용합니다.'; -- en:3b3e14ba
+L.DESC_INSPECT = '대상의 유닛 메뉴를 열며, 대상 지정 버튼을 누르고 있는 동안 공격대 표시를 보여줍니다. 게임 자체의 살펴보기 버튼을 사용합니다.'; -- en:0290b557
+L.DESC_TARGET_FRIENDLY = '누르고 있으면 조준점으로 아군 유닛을 조준합니다. 선택 없이 놓으면 게임 옵션이 켜져 있을 때 가장 가까운 아군을 대상으로 지정합니다.'; -- en:a07c46a4
+L.DESC_TARGET_HOSTILE = '누르고 있으면 조준점으로 적 유닛을 조준합니다. 선택 없이 놓으면 게임 옵션이 켜져 있을 때 가장 가까운 적을 대상으로 지정합니다.'; -- en:0772559e
+L.PROMPT_MOUSE_BINDING_PLAIN = '%s이(가) %s에 지정되었습니다. 게임 세계를 클릭하며, 커서가 활성화된 동안 인터페이스에서 %s 역할을 합니다.'; -- en:fd73841a
+L.PROMPT_MOUSE_BINDING_CHORD = [[
+	%s이(가) %s에 지정되었습니다. 게임 세계를 클릭합니다. 인터페이스에서 %s 역할을 하려면 단일 버튼이 필요하므로 해당 기능이 꺼졌습니다.
+
+	인터페이스용 버튼을 고르려면 %s > %s > %s을(를) 확인하세요.
+]]; -- en:6bd55d64
+L.PROMPT_MOUSE_EMULATION = '%s은(는) 커서가 활성화된 동안 인터페이스에서 %s 역할을 하며, 이제 게임 세계를 클릭하도록 %s에도 지정되었습니다.'; -- en:24ae4e58
+L['Choose'] = '선택';
+L['Insert'] = '삽입';
+L['left click'] = '왼쪽 클릭';
+L['right click'] = '오른쪽 클릭';
+L['empty'] = '비어 있음';
+L['Select a slot to place this action.'] = '이 동작을 배치할 슬롯을 선택하세요.';
+L['Select a slot to bind %s and place this action.'] = '%s을(를) 지정하고 이 동작을 배치할 슬롯을 선택하세요.';
+L['Open'] = '열기';
+L['Notch'] = '노치';
+L['Hover'] = '마우스 오버';
+L['Paged Gamepad Bar'] = '페이지 전환 게임패드 단축바';
+L['Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.'] = '키보드의 기본 단축바처럼 태세 또는 변신 단축바로 전환되는 게임패드 단축바입니다.';
+L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = '노치: 노치를 클릭하거나 단축키를 누르면 메뉴가 열린 상태로 유지됩니다. 마우스 오버: 마우스가 도구 모음 위에 있는 동안 메뉴가 펼쳐지고, 벗어나면 잠시 후 원래 크기로 닫힙니다.';
+L['Scale of the toolbar menu when opened by the notch.'] = '노치로 열었을 때 도구 모음 메뉴의 크기입니다.';
+L['The micro menu with shortcuts and bag slots, opened by a notch or by mouse over.'] = '단축 기능과 가방 슬롯이 있는 마이크로 메뉴로, 노치 또는 마우스 오버로 엽니다.';
+L['Gamepad Bar %d'] = '게임패드 단축바 %d';
+L['Gamepad Bar %d Button %d'] = '게임패드 단축바 %d 버튼 %d';
+L['Form %d'] = '변신 %d';
+L['A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.'] = '조합키마다 다른 것과 조합되지 않는 전용 단축바가 생깁니다. 탭하여 고정 사용 시: 두 번 탭하면 다시 탭할 때까지 전환됩니다. 미사용 시: 탭한 뒤 누르고 있는 동안 사용합니다.';
+L['Could not identify the macro in action slot %d; it will be left out of the export.'] = '동작 슬롯 %d의 매크로를 식별할 수 없어 내보내기에서 제외됩니다.';
+L['%s is off by default and has been switched off. Turn it on under Settings > Modules.'] = '%s은(는) 기본적으로 꺼져 있어 비활성화되었습니다. 설정 > 모듈에서 켜세요.';

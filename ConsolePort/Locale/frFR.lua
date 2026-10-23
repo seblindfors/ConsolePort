@@ -269,11 +269,13 @@ L.DESC_JUMP = [[
 ]]; -- en:4c032315
 L.DESC_KEY_BUTTON1 = [[
 	Utilisé pour basculer le curseur libre, te permettant d'utiliser ton stick caméra comme un pointeur de souris.
-]]; -- en:fd3d111a
+	Un bouton seul assigné ici effectue aussi des clics gauches sur l'interface tant que le curseur est actif.
+]]; -- en:e0d6e796
 L.DESC_KEY_BUTTON2 = [[
 	Utilisé pour basculer le curseur centré, te permettant d'interagir avec des objets et des personnages
 	dans le monde du jeu, à une position fixe au centre.
-]]; -- en:2f5c87e4
+	Un bouton seul assigné ici effectue aussi des clics droits sur l'interface tant que le curseur est actif.
+]]; -- en:2c3e0f5e
 L.DESC_QUICK_MENU = [[
 	Un menu d'accès rapide qui rassemble les actions courantes effectuées
 	pendant le jeu, telles que jeter les dés sur le butin de groupe, annuler
@@ -434,12 +436,6 @@ L.DEVICE_DESC_XBOX = [[
 
 	Aussi recommandé pour Steam Input, en cohérence avec la manette Xbox 360 qu'il émule.
 ]]; -- en:654501d3
-L.DISC_KEY_BUTTON1 = [[
-	Tant qu'un de tes boutons émule le clic gauche, ce raccourci ne peut pas être modifié.
-]]; -- en:e811ebc6
-L.DISC_KEY_BUTTON2 = [[
-	Tant qu'un de tes boutons émule le clic droit, ce raccourci ne peut pas être modifié.
-]]; -- en:b85c78b2
 L.EXPORT_DATA_TEXT = [[
 
 |cFFFFFF00Exporter|r
@@ -1532,3 +1528,40 @@ L['When set to zero, always face your movement stick direction.\nWhen set to max
 Quand défini à max, ne fais jamais face à ta direction de stick de déplacement.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Ton appareil %s a une gestion séparée pour les connexions Bluetooth et filaire.
 Laquelle utilises-tu ?]];
+
+L.NAME_INTERACT = 'Interagir'; -- en:53deafc6
+L.NAME_INSPECT = 'Inspecter'; -- en:18ca87af
+L.NAME_TARGET_FRIENDLY = 'Cibler un allié (maintenir)'; -- en:02e85141
+L.NAME_TARGET_HOSTILE = 'Cibler un ennemi (maintenir)'; -- en:bc8d3927
+L.DESC_INTERACT = 'Interagit avec la cible souple, attaque la cible ennemie ou ramasse le butin. Maintenez pour basculer le butin automatique. Utilise le bouton Interagir du jeu.'; -- en:3b3e14ba
+L.DESC_INSPECT = "Ouvre le menu d'unité de la cible, avec les marqueurs de raid tant qu'un bouton de ciblage est maintenu. Utilise le bouton Inspecter du jeu."; -- en:0290b557
+L.DESC_TARGET_FRIENDLY = "Maintenez pour viser les unités alliées avec le réticule. Relâcher sans sélection cible l'allié le plus proche, si l'option du jeu correspondante est activée."; -- en:a07c46a4
+L.DESC_TARGET_HOSTILE = "Maintenez pour viser les unités ennemies avec le réticule. Relâcher sans sélection cible l'ennemi le plus proche, si l'option du jeu correspondante est activée."; -- en:0772559e
+L.PROMPT_MOUSE_BINDING_PLAIN = "%s est assigné à %s : il clique dans le monde et sert de %s sur l'interface tant que le curseur est actif."; -- en:fd73841a
+L.PROMPT_MOUSE_BINDING_CHORD = [[
+	%s est assigné à %s : il clique dans le monde. Servir de %s sur l'interface nécessite un bouton seul, cela a donc été désactivé.
+
+	Pour choisir un bouton pour l'interface, voir %s > %s > %s.
+]]; -- en:6bd55d64
+L.PROMPT_MOUSE_EMULATION = "%s sert de %s sur l'interface tant que le curseur est actif, et est désormais aussi assigné à %s pour cliquer dans le monde."; -- en:24ae4e58
+L['Choose'] = 'Choisir';
+L['Insert'] = 'Insérer';
+L['left click'] = 'clic gauche';
+L['right click'] = 'clic droit';
+L['empty'] = 'vide';
+L['Select a slot to place this action.'] = 'Sélectionnez un emplacement pour placer cette action.';
+L['Select a slot to bind %s and place this action.'] = 'Sélectionnez un emplacement pour assigner %s et placer cette action.';
+L['Open'] = 'Ouverture';
+L['Notch'] = 'Encoche';
+L['Hover'] = 'Survol';
+L['Paged Gamepad Bar'] = 'Barre de manette paginée';
+L['Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.'] = "Barre de manette qui bascule vers la barre de posture ou de forme, comme le fait la barre d'action principale au clavier.";
+L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = "Encoche : cliquez sur l'encoche ou appuyez sur le raccourci, et le menu reste ouvert. Survol : le menu se déploie tant que la souris est sur la barre d'outils et se referme peu après son départ, à sa taille d'origine.";
+L['Scale of the toolbar menu when opened by the notch.'] = "Échelle du menu de la barre d'outils lorsqu'il est ouvert par l'encoche.";
+L['The micro menu with shortcuts and bag slots, opened by a notch or by mouse over.'] = 'Le micro-menu avec raccourcis et emplacements de sacs, ouvert par une encoche ou au survol de la souris.';
+L['Gamepad Bar %d'] = 'Barre de manette %d';
+L['Gamepad Bar %d Button %d'] = 'Barre de manette %d bouton %d';
+L['Form %d'] = 'Forme %d';
+L['A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.'] = "Un modificateur obtient sa propre barre, qui ne se combine avec rien. Avec Taper pour verrouiller : tapez deux fois pour y basculer jusqu'au prochain tapotement. Sans : tapez puis maintenez pour l'utiliser tant que le bouton est maintenu.";
+L['Could not identify the macro in action slot %d; it will be left out of the export.'] = "Impossible d'identifier la macro de l'emplacement d'action %d ; elle sera exclue de l'export.";
+L['%s is off by default and has been switched off. Turn it on under Settings > Modules.'] = '%s est désactivé par défaut et a été désactivé. Activez-le dans Paramètres > Modules.';
