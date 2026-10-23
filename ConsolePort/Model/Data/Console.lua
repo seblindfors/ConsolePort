@@ -20,7 +20,8 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Modifier 1: Shift';
 			desc = 'Button that emulates the '..BLUE'Shift'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as first choice modifier.';
-			list = SETTINGS;
+			list = 'Modifiers';
+			sort = 0.1;
 			advd = true;
 		};
 		{	cvar = 'GamePadEmulateCtrl';
@@ -28,7 +29,8 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Modifier 2: Ctrl';
 			desc = 'Button that emulates the '..BLUE'Ctrl'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as second choice modifier.';
-			list = SETTINGS;
+			list = 'Modifiers';
+			sort = 0.2;
 			advd = true;
 		};
 		{ 	cvar = 'GamePadEmulateAlt';
@@ -36,7 +38,8 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Modifier 3: Alt';
 			desc = 'Button that emulates the '..BLUE'Alt'..' key. Hold this button to swap all your binding sets.';
 			note = 'Only recommended for super users.';
-			list = SETTINGS;
+			list = 'Modifiers';
+			sort = 0.3;
 			advd = true;
 		};
 		{	cvar = 'GamePadCursorLeftClick';
@@ -60,6 +63,8 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Modifier Tap Window';
 			desc = 'Buttons emulating modifiers will instead trigger bindings when pressed and released within the time span.';
 			note = 'Expressed in milliseconds. Pressing any combination of modifier and button will cancel the effect.';
+			list = 'Modifiers';
+			sort = 6.5;
 			advd = true;
 		};
 		{	cvar = 'GamePadOverlapMouseMs';

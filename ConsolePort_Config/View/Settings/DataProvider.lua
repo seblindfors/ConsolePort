@@ -119,7 +119,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 				AddSetting(main, list, {
 					varID = data.cvar;
 					field = data;
-					sort  = sort + i;
+					sort  = data.sort or (sort + i);
 					type  = env.Elements.Cvar;
 				});
 			end
