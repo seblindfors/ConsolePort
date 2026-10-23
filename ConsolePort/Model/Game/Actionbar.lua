@@ -433,10 +433,10 @@ CPAPI.Proxy(ActionBarAPI.Names, function(self, id)
 	-- Check for defined page name
 	data = self.Pages[id];
 	if data then return db.Locale(data) end;
-	-- Arbitrary page name
-	local displayID = 0;
+	-- Arbitrary page name, numbered within the bar's own slot set
+	local displayID, isGamepad = 0, ActionBarAPI:IsGamepadBar(id);
 	for _, pages in ipairs(ActionBarAPI.Pages) do
-		if pages() then
+		if ( pages() and ActionBarAPI:IsGamepadBar(pages[1]) == isGamepad ) then
 			for _, page in ipairs(pages) do
 				displayID = displayID + 1;
 				if (page == id) then
