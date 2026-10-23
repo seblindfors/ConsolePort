@@ -4,18 +4,12 @@
 local env, db, _, L = CPAPI.GetEnv(...);
 local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMenu, {
 	'PLAYER_REGEN_DISABLED';
-	'UPDATE_BINDINGS';
 }))
 ---------------------------------------------------------------
 local SPELL_MENU_SIZE = 440;
-local SPELL_MAP_BAR_SIZE = 660;
-local SPELL_MAP_BAR_OFF = 48;
-local SPELL_MAP_BAR_IDS = db.Actionbar.Pages;
 ---------------------------------------------------------------
 
 function SpellMenu:SetSpell(spellID)
-	self.ActionButtons:ReleaseAll()
-	self.ActionBarText:ReleaseAll()
 	self:SetDisplaySpell(spellID)
 	self:SetWidth(SPELL_MENU_SIZE)
 	self:SetTooltip()
@@ -91,115 +85,9 @@ function SpellMenu:RingClear(data)
 end
 
 function SpellMenu:MapActionBar(keyChord)
-	self:SetDisplaySpell(self:GetSpellID())
-	self:DisplayBindingsForSpellID(nil)
-
-	local keyChordSlug = keyChord and db.Hotkeys:GetActiveButtonSlug(keyChord[2], keyChord[1])
-	local description;
-	if keyChordSlug then
-		self.keyChord = keyChord;
-		description = L('Select a slot to bind %s and place this spell.', keyChordSlug);
-		self:DisplayBindingsForPending(keyChordSlug)
-	else
-		description = L'Select a slot to place this spell.';
-		keyChord = nil;
-	end
-
-	self:SetWidth(SPELL_MAP_BAR_SIZE)
-	self:SetDescription(description)
-	self:ReleaseAll()
-	self:FixHeight()
-	self:Show()
-
-	self.ActionButtons:ReleaseAll()
-
-	local drawnBars, actionButtonsWithSpellID = 0, tInvert(C_ActionBar.FindSpellActionButtons(self:GetSpellID()) or {})
-	local currentPage = db.Pager:GetCurrentPage()
-	local targetSlot, freeSlot, pageSlot;
-
-	local function GetPrioritySlot(target, candidate, actionID, targetKey, predicate)
-		if target then return target end;
-		if predicate then
-			if targetKey then
-				local binding = db('Actionbar/Action/'..actionID)
-				if not db.Gamepad:GetBindingKey(binding) then
-					return candidate;
-				end
-			else
-				return candidate;
-			end
-		end
-	end
-
-	for _, data in ipairs(SPELL_MAP_BAR_IDS) do
-		local shouldDrawBars = data();
-		if shouldDrawBars then
-			for _, barID in ipairs(data) do
-				drawnBars = drawnBars + 1;
-
-				local text = self.ActionBarText:Acquire()
-				local name = db('Actionbar/Names/'..barID)
-
-				local isCurrentPage = barID == currentPage;
-				local isPagedMain   = ( barID == 1 and currentPage ~= 1 );
-				local overrideColor = isPagedMain and GRAY_FONT_COLOR or isCurrentPage and GREEN_FONT_COLOR;
-
-				text:SetText(overrideColor and overrideColor:WrapTextInColorCode(name) or name)
-				text:SetWidth(50)
-				text:SetJustifyH('LEFT')
-				text:Show()
-
-				for i=1, NUM_ACTIONBAR_BUTTONS do
-					local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
-					local isFreeSlot = not GetActionInfo(actionID);
-					local widget, newObj = self.ActionButtons:Acquire()
-					if newObj then
-						widget:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-						widget:SetDrawOutline(true)
-						db.table.mixin(widget, db.PopupMenuMapActionButton)
-					end
-
-					pageSlot = GetPrioritySlot(pageSlot, widget, actionID, keyChord, isFreeSlot and isCurrentPage)
-					freeSlot = GetPrioritySlot(freeSlot, widget, actionID, keyChord, isFreeSlot)
-
-					if not targetSlot and actionButtonsWithSpellID[actionID] then
-						targetSlot = widget;
-					end
-
-					widget:SetID(actionID)
-					widget:SetSize(44, 44)
-					widget:SetPoint('TOPLEFT', (i-1) * SPELL_MAP_BAR_OFF + 64, -((drawnBars + 1) * SPELL_MAP_BAR_OFF - 24))
-					widget:Update()
-					widget:Show()
-					if ( i == 1 ) then
-						text:SetPoint('LEFT', widget, 'LEFT', -50, 0)
-					end
-				end
-			end
-		end
-	end
-	self:SetTargetHeight(drawnBars * SPELL_MAP_BAR_OFF + 80 + self.bottomPadding + (keyChordSlug and 16 or 0))
-	if targetSlot or freeSlot or pageSlot then
-		ConsolePort:SetCursorNodeIfActive(targetSlot or pageSlot or freeSlot)
-	end
-
-	local handle = db.UIHandle;
-	local leftClick, rightClick, specialClick, cancelClick =
-		db('UICursorLeftClick'), db('UICursorRightClick'), db('UICursorSpecial'), db('UICursorCancel')
-
-	handle:SetHintFocus(self, IsGamePadFreelookEnabled())
-	if leftClick then
-		handle:AddHint(leftClick, L'Place in slot')
-	end
-	if rightClick then
-		handle:AddHint(rightClick, keyChord and L'Cancel and clear cursor' or L'Clear slot or binding')
-	end
-	if specialClick and not keyChord then
-		handle:AddHint(specialClick, L'Set binding')
-	end
-	if cancelClick then
-		handle:AddHint(cancelClick, CANCEL)
-	end
+	local spellID = self:GetSpellID()
+	self:Hide()
+	env.ShowActionPlacer('spell', keyChord, spellID)
 end
 
 function SpellMenu:AddCommand(text, command, data)
@@ -248,57 +136,6 @@ function SpellMenu:ClearTooltip()
 	self.Tooltip:Hide()
 end
 
----------------------------------------------------------------
--- Catcher
----------------------------------------------------------------
-SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu, CPPopupBindingCatchButtonMixin.Template)
-
-function SpellMenu.CatchBinding:OnBindingCaught(button)
-	local bindingID = self.bindingID;
-	if not bindingID then return end;
-
-	if CPAPI.IsButtonValidForBinding(button) then
-		local keychord = CPAPI.CreateKeyChord(button)
-		return CPAPI.SetBinding(keychord, bindingID, true)
-	end
-end
-
-function SpellMenu:CatchBindingForSlot(slot, bindingID, text)
-	self.CatchBinding.bindingID = bindingID;
-	self.CatchBinding:TryCatchBinding({
-		text = text;
-		OnShow = function()
-			ConsolePort:SetCursorNodeIfActive(slot)
-		end;
-	})
-end
-
-function SpellMenu:ReportNoBinding(slot, bindingID)
-	self:CatchBindingForSlot(slot, bindingID, L.SLOT_NO_BINDING:format(self:GetSpellLink(), _G['BINDING_NAME_'..bindingID] or bindingID))
-end
-
-function SpellMenu:ReportSetBinding(slot, bindingID, actionID)
-	self:CatchBindingForSlot(slot, bindingID, L.SLOT_SET_BINDING:format(_G['BINDING_NAME_'..bindingID] or bindingID))
-end
-
-function SpellMenu:ReportSetBindingToKeyChord(bindingID)
-	if self.keyChord then
-		local keyChord = table.concat(self.keyChord)
-		CPAPI.SetBinding(keyChord, bindingID, true)
-		self.keyChord = nil;
-	end
-end
-
-function SpellMenu:ReportClearBinding(bindingID)
-	if bindingID then
-		CPAPI.ClearBindingsForID(bindingID, true)
-	end
-end
-
-function SpellMenu:HasPendingKeyChord()
-	return not not self.keyChord;
-end
-
 function SpellMenu:DisplayBindingsForSpellID(spellID)
 	if not spellID then return self.BindingHeader:Hide() end;
 	local actionButtons = C_ActionBar.FindSpellActionButtons(spellID)
@@ -320,14 +157,6 @@ function SpellMenu:DisplayBindingsForSpellID(spellID)
 			header:Show()
 		end
 	end
-end
-
-function SpellMenu:DisplayBindingsForPending(slug)
-	local header = self.BindingHeader;
-	header.Text:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(slug))
-	header:ClearAllPoints()
-	header:SetPoint('BOTTOM', 0, 20)
-	header:Show()
 end
 
 ---------------------------------------------------------------
@@ -353,34 +182,29 @@ end
 -- Handlers and init
 ---------------------------------------------------------------
 function SpellMenu:OnHide()
-	self.ActionButtons:ReleaseAll()
 	self.BindingHeader:Hide()
-	self.keyChord = nil;
-
-	local handle = db.UIHandle;
-	if handle:IsHintFocus(self) then
-		handle:HideHintBar()
-	end
-	handle:ClearHintsForFrame(self)
 end
 
 function SpellMenu:OnCursorChanged(isDefault, cursorType, oldCursorType)
 	if not db('bindingShowSpellMenuGrid') then return end;
 	if ConsolePortConfig and ConsolePortConfig:IsShown() then return end;
 
+	local placer = ConsolePortActionPlacer;
 	if ( isDefault and oldCursorType == Enum.UICursorType.Spell ) then
-		return self:Hide()
+		if ( placer and placer:IsShown() and not placer.placing ) then
+			placer:Hide()
+		end
 	elseif ( cursorType == Enum.UICursorType.Spell ) then
 		local _, _, _, spellID = GetCursorInfo()
-		self:SetSpell(spellID)
-		self:MapActionBar()
+		env.ShowActionPlacer('spell', nil, spellID)
 	end
 end
 
 function SpellMenu:OnSlotRequest(modID, btnID, kind, value, subType, spellID)
-	if ( kind == 'spell') then
-		self:SetSpell(spellID)
-		self:MapActionBar({ modID, btnID })
+	if ( kind == 'spell' ) then
+		env.ShowActionPlacer('spell', { modID, btnID }, spellID)
+	elseif ( kind == 'item' ) then
+		env.ShowActionPlacer('item', { modID, btnID }, value)
 	end
 end
 
@@ -388,18 +212,10 @@ function SpellMenu:PLAYER_REGEN_DISABLED()
 	self:Hide()
 end
 
-function SpellMenu:UPDATE_BINDINGS()
-	for widget in self.ActionButtons:EnumerateActive() do
-		widget:UpdateBinding()
-	end
-end
-
 ---------------------------------------------------------------
 SpellMenu:HookScript('OnHide', SpellMenu.OnHide)
 SpellMenu:SetAttribute('nodepass', true)
 SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
-SpellMenu.ActionButtons = CreateFramePool('CheckButton', SpellMenu, 'CPPopupActionSlotTemplate')
-SpellMenu.ActionBarText = CreateFontStringPool(SpellMenu, 'ARTWORK', nil, 'CPSmallFont')
 ---------------------------------------------------------------
 GameMenuFrame:HookScript('OnShow', GenerateClosure(SpellMenu.Hide, SpellMenu))
 ---------------------------------------------------------------

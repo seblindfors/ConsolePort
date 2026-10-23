@@ -318,7 +318,7 @@ function LoadoutSelector:UpdateLip(lip) lip = lip or self:GetLip();
 end
 
 function LoadoutSelector:GetSlotterData(actionID)
-	local barID  = ceil(actionID / NUM_ACTIONBAR_BUTTONS);
+	local barID  = db.Actionbar:GetFormattedIDs(actionID);
 	local stance = db.Actionbar.Lookup.Stances[barID];
 	local name   = env:GetBindingName(db('Actionbar/Action/'..actionID)) or BINDING_NAME_ACTIONBUTTON1:gsub('%d', actionID);
 	return {

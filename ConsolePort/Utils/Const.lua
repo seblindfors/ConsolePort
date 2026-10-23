@@ -11,6 +11,12 @@ CPAPI.IsCamelotVersion    = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT or nil;
 CPAPI.IsModernVersion     = CPAPI.IsRetailVersion or CPAPI.IsCamelotVersion or nil;
 CPAPI.IsNativeGamepadUI   = C_GamepadUI ~= nil or nil;
 
+function CPAPI.IsNativeNavigationActive()
+	return CPAPI.IsCamelotVersion
+		and InputUtil and InputUtil.IsGamepadUIEnabled
+		and InputUtil.IsGamepadUIEnabled() or false;
+end
+
 ---------------------------------------------------------------
 -- Button
 ---------------------------------------------------------------

@@ -119,7 +119,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 				AddSetting(main, list, {
 					varID = data.cvar;
 					field = data;
-					sort  = sort + i;
+					sort  = data.sort or (sort + i);
 					type  = env.Elements.Cvar;
 				});
 			end
@@ -304,20 +304,22 @@ env.ActionBarsProvider = (function(main, head, excludeSearch, AddSetting, GetSor
 				local list, name, icon, prio;
 
 				local stanceBarInfo = db.Actionbar.Lookup.Stances[barID];
+				local sortGroup = groupID;
 				if stanceBarInfo and stanceBarInfo.name then
-					list = PRIMARY;
+					list = db.Actionbar:GetPrimaryName(barID);
 					icon = stanceBarInfo.iconID;
 					name = stanceBarInfo.name;
-					prio = 10;
+					prio = 0;
+					sortGroup = db.Actionbar:GetPrimaryGroupID(barID);
 				else
 					list = db.Actionbar.Names[container];
 					name = db.Actionbar.Names[barID];
-					prio = 100;
+					prio = 50;
 				end
 
 				AddSetting(main, head, {
 					type = env.Elements.ActionbarMapper;
-					sort = sort + groupID * prio + barIndex;
+					sort = sort + sortGroup * 100 + prio + barIndex;
 					bar  = barID;
 					field = {
 						name = name;

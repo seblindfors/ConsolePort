@@ -40,6 +40,17 @@ local ActionBarAPI, _, db = {
 		};
 	};
 	PageExt = { 13, 14, 15 };
+	-- Blizzard's gamepad UI owns a second slot range, 181-360. Bars of eight
+	-- start at 185 so the stance blocks at 265-304 are whole bars (11-15).
+	Gamepad = CPAPI.IsCamelotVersion and {
+		First     = 185;
+		Width     = 8;
+		Bars      = 22;
+		BarOffset = 15;
+		Stance    = { Bar = 11; Count = 5 };
+		Format    = 'CLICK ConsolePortGamepadBar%dSlot%d:LeftButton';
+		Widget    = 'ConsolePortGamepadBar%dSlot%d';
+	} or nil;
 	Lookup = {
 		Buttons = {};
 		Ignore  = {};
@@ -55,7 +66,101 @@ db:Register('Actionbar', ActionBarAPI)
 ---------------------------------------------------------------
 -- Action buttons, IDs, and bindings
 ---------------------------------------------------------------
+function ActionBarAPI:IsGamepadBar(barID)
+	local gp = self.Gamepad;
+	return gp and barID > gp.BarOffset and barID <= gp.BarOffset + gp.Bars;
+end
+
+function ActionBarAPI:IsGamepadSlot(id)
+	local gp = self.Gamepad;
+	return gp and id >= gp.First;
+end
+
+function ActionBarAPI:IsGamepadStanceBar(barID)
+	local gp = self.Gamepad;
+	return gp and barID >= gp.BarOffset + gp.Stance.Bar
+		and barID < gp.BarOffset + gp.Stance.Bar + gp.Stance.Count;
+end
+
+function ActionBarAPI:GetBarWidth(barID)
+	return self:IsGamepadBar(barID) and self.Gamepad.Width or NUM_ACTIONBAR_BUTTONS;
+end
+
+function ActionBarAPI:GetSlotID(barID, index)
+	if self:IsGamepadBar(barID) then
+		local gp = self.Gamepad;
+		return gp.First + ((barID - gp.BarOffset - 1) * gp.Width) + index - 1;
+	end
+	return ((barID - 1) * NUM_ACTIONBAR_BUTTONS) + index;
+end
+
+function ActionBarAPI:GetSlotRange(barID)
+	local first = self:GetSlotID(barID, 1)
+	return first, first + self:GetBarWidth(barID) - 1;
+end
+
+function ActionBarAPI:GetGamepadPagedBar()
+	local gp = self.Gamepad;
+	return gp and gp.BarOffset + db('gamepadPagedBar');
+end
+
+function ActionBarAPI:GetGamepadPage()
+	local gp = self.Gamepad;
+	if not gp then return end;
+	local offset = GetBonusBarOffset()
+	if ( offset > 0 and offset <= gp.Stance.Count ) then
+		return gp.BarOffset + gp.Stance.Bar + offset - 1;
+	end
+	return self:GetGamepadPagedBar()
+end
+
+function ActionBarAPI:GetTransposedSlot(id)
+	if ( id <= NUM_ACTIONBAR_BUTTONS ) then
+		return id + ((db.Pager:GetCurrentPage() - 1) * NUM_ACTIONBAR_BUTTONS);
+	end
+	local barID, index = self:GetFormattedIDs(id)
+	if ( self.Gamepad and barID == self:GetGamepadPagedBar() ) then
+		return self:GetSlotID(self:GetGamepadPage(), index);
+	end
+	return id;
+end
+
+function ActionBarAPI:GetExportableBars()
+	local bars = {};
+	for barID = 1, 10 do bars[#bars + 1] = barID end;
+	local gp = self.Gamepad;
+	if gp then
+		for k = 1, gp.Bars do bars[#bars + 1] = gp.BarOffset + k end;
+	end
+	return bars;
+end
+
+function ActionBarAPI:IsExportableBar(barID)
+	return ( barID >= 1 and barID <= 10 ) or self:IsGamepadBar(barID);
+end
+
+function ActionBarAPI:GetGamepadBinding(binding)
+	local gp = self.Gamepad;
+	local slot = gp and self.Binding[binding];
+	if not slot or self:IsGamepadSlot(slot) then return end;
+	local barID, index = self:GetFormattedIDs(slot)
+	local pair = self.KeyboardToGamepad[barID];
+	local gamepadBar = pair and pair[math.ceil(index / gp.Width)];
+	if gamepadBar then
+		return gp.Format:format(gamepadBar, ((index - 1) % gp.Width) + 1);
+	end
+end
+
 function ActionBarAPI:GetFormattedIDs(id, transpose)
+	if self:IsGamepadSlot(id) then
+		local gp = self.Gamepad;
+		local index = id - gp.First;
+		local barID = gp.BarOffset + math.floor(index / gp.Width) + 1;
+		if transpose and ( barID == self:GetGamepadPagedBar() ) then
+			barID = self:GetGamepadPage()
+		end
+		return barID, (index % gp.Width) + 1;
+	end
 	local barID = math.ceil(id / NUM_ACTIONBAR_BUTTONS)
 	local modID = id % NUM_ACTIONBAR_BUTTONS
 	if ( barID == 1 ) and transpose then
@@ -63,6 +168,18 @@ function ActionBarAPI:GetFormattedIDs(id, transpose)
 	end
 	return barID, (modID == 0 and NUM_ACTIONBAR_BUTTONS) or modID
 end
+
+ActionBarAPI.KeyboardToGamepad = {
+	[1]  = { 1,  2  };
+	[2]  = { 3,  4  };
+	[3]  = { 5,  6  };
+	[4]  = { 7,  8  };
+	[5]  = { 9,  10 };
+	[6]  = { 16, 17 };
+	[13] = { 18, 19 };
+	[14] = { 20, 21 };
+	[15] = { 22     };
+};
 
 function ActionBarAPI:GetMappedValue(id, map)
 	local barID, btnID = self:GetFormattedIDs(id)
@@ -205,6 +322,10 @@ do
 	end
 
 	CPAPI.Proxy(ActionBarAPI.Lookup.Stances, function(_, bonusBarIndex)
+		if ActionBarAPI:IsGamepadStanceBar(bonusBarIndex) then
+			local gp = ActionBarAPI.Gamepad;
+			bonusBarIndex = NUM_ACTIONBAR_PAGES + (bonusBarIndex - gp.BarOffset - gp.Stance.Bar + 1);
+		end
 		bonusBarIndex = bonusBarIndex == 0 and GetBonusBarIndex() or bonusBarIndex;
 		local key = MakeStanceCacheKey(bonusBarIndex, CPAPI.GetSpecialization())
 		local spellID = db.Shared:GetData(0, key)
@@ -249,13 +370,61 @@ ActionBarAPI.Names = {
 	-- Individual pages
 	Pages = {
 		[02] = 'Page 2';
-		[07] = 'Form 1';
-		[08] = 'Form 2';
-		[09] = 'Form 3';
-		[10] = 'Form 4';
+		[07] = { 'Form %d', 1 };
+		[08] = { 'Form %d', 2 };
+		[09] = { 'Form %d', 3 };
+		[10] = { 'Form %d', 4 };
 		[11] = 'Dragon';
 	};
 }
+
+ActionBarAPI.KeyboardPrimary = ActionBarAPI.Pages[1];
+ActionBarAPI.GamepadPrimary  = ActionBarAPI.Pages[1];
+
+function ActionBarAPI:GetPrimarySet(barID)
+	return self:IsGamepadBar(barID) and self.GamepadPrimary or self.KeyboardPrimary;
+end
+
+function ActionBarAPI:GetPrimaryName(barID)
+	return self.Names[self:GetPrimarySet(barID)];
+end
+
+function ActionBarAPI:GetPrimaryGroupID(barID)
+	return tIndexOf(self.Pages, self:GetPrimarySet(barID)) or 1;
+end
+
+if ActionBarAPI.Gamepad then
+	local gp, Pages, Names = ActionBarAPI.Gamepad, ActionBarAPI.Pages, ActionBarAPI.Names;
+	local function Bars(from, to)
+		local bars = {};
+		for k = from, to do bars[#bars + 1] = gp.BarOffset + k end;
+		return bars;
+	end
+	local keyboard = db.Locale('Keyboard');
+	for _, set in ipairs(Pages) do
+		Names[set] = ('%s: %s'):format(keyboard, Names[set]);
+	end
+	local sets = {
+		CPAPI.Callable(Bars(1, gp.Stance.Bar - 1), CPAPI.Static(true));
+		CPAPI.Callable(Bars(gp.Stance.Bar, gp.Stance.Bar + gp.Stance.Count - 1), function()
+			return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars')
+		end);
+		CPAPI.Callable(Bars(gp.Stance.Bar + gp.Stance.Count, gp.Bars), CPAPI.Static(true));
+	};
+	for i, set in ipairs(sets) do
+		tinsert(Pages, i, set)
+	end
+	ActionBarAPI.GamepadPrimary = sets[1];
+	Names[sets[1]] = PRIMARY;
+	Names[sets[2]] = BINDING_HEADER_MULTIACTIONBAR;
+	Names[sets[3]] = BINDING_HEADER_MULTIACTIONBAR;
+	for k = 1, gp.Bars do
+		Names.Pages[gp.BarOffset + k] = { 'Gamepad Bar %d', k };
+	end
+	for n = 1, gp.Stance.Count do
+		Names.Pages[gp.BarOffset + gp.Stance.Bar + n - 1] = { 'Form %d', n };
+	end
+end
 
 CPAPI.Proxy(ActionBarAPI.Names, function(self, id)
 	-- Check for stance name first
@@ -263,11 +432,12 @@ CPAPI.Proxy(ActionBarAPI.Names, function(self, id)
 	if data then return data.name end;
 	-- Check for defined page name
 	data = self.Pages[id];
+	if ( type(data) == 'table' ) then return db.Locale(unpack(data)) end;
 	if data then return db.Locale(data) end;
-	-- Arbitrary page name
-	local displayID = 0;
+	-- Arbitrary page name, numbered within the bar's own slot set
+	local displayID, isGamepad = 0, ActionBarAPI:IsGamepadBar(id);
 	for _, pages in ipairs(ActionBarAPI.Pages) do
-		if pages() then
+		if ( pages() and ActionBarAPI:IsGamepadBar(pages[1]) == isGamepad ) then
 			for _, page in ipairs(pages) do
 				displayID = displayID + 1;
 				if (page == id) then

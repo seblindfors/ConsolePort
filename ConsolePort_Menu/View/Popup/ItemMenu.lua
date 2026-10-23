@@ -77,6 +77,7 @@ function ItemMenu:SetCommands()
 	end
 
 	if self:IsUsableItem() or self:IsEquippableItem() then
+		self:AddCommand(L'Place on action bar', 'MapActionBar')
 		self:AddUtilityRingCommand()
 	end
 
@@ -296,6 +297,12 @@ end
 function ItemMenu:Pickup()
 	CPAPI.PickupContainerItem(self:GetBagAndSlot())
 	self:Hide()
+end
+
+function ItemMenu:MapActionBar()
+	local itemID, bagID, slotID = self:GetItemID(), self:GetBagAndSlot();
+	self:Hide()
+	env.ShowActionPlacer('item', nil, itemID, bagID, slotID)
 end
 
 function ItemMenu:Inspect()

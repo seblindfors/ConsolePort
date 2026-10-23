@@ -22,6 +22,10 @@ L.NAME_RING_UTILITY           = 'Utility Ring';
 L.NAME_UI_CURSOR_TOGGLE       = 'Toggle Interface Cursor';
 L.NAME_QUICK_MENU             = 'Quick Menu';
 L.NAME_TOOLBAR                = 'Toggle Toolbar';
+L.NAME_INTERACT               = 'Interact';
+L.NAME_INSPECT                = 'Inspect';
+L.NAME_TARGET_FRIENDLY        = 'Target Friendly (Hold)';
+L.NAME_TARGET_HOSTILE         = 'Target Hostile (Hold)';
 ---------------------------------------------------------------
 -- Formats
 ---------------------------------------------------------------
@@ -32,16 +36,23 @@ L.FORMAT_RING_NUMERICAL       = 'Ring |cFF00FFFF%s|r';
 ---------------------------------------------------------------
 L.DESC_KEY_BUTTON1 = [[
 	Used to toggle free cursor, allowing you to use your camera stick as a mouse pointer.
-]];
-L.DISC_KEY_BUTTON1 = [[
-	While one of your buttons is set to emulate left click, this binding cannot be changed.
+	A plain button bound here also left clicks the interface while the cursor is active.
 ]];
 L.DESC_KEY_BUTTON2 = [[
 	Used to toggle center cursor, allowing you to interact with objects and characters
 	in the game world, at a center-fixed mouse position.
+	A plain button bound here also right clicks the interface while the cursor is active.
 ]];
-L.DISC_KEY_BUTTON2 = [[
-	While one of your buttons is set to emulate right click, this binding cannot be changed.
+L.PROMPT_MOUSE_BINDING_PLAIN = [[
+	%s is bound to %s: it clicks the world, and acts as %s on the interface while the cursor is active.
+]];
+L.PROMPT_MOUSE_BINDING_CHORD = [[
+	%s is bound to %s: it clicks the world. Acting as %s on the interface needs a plain button, so that has been turned off.
+
+	To pick a button for the interface, see %s > %s > %s.
+]];
+L.PROMPT_MOUSE_EMULATION = [[
+	%s acts as %s on the interface while the cursor is active, and is now bound to %s to click the world too.
 ]];
 L.DESC_INTERACTTARGET = [[
 	Allows you to interact with NPCs and objects in the game world.
@@ -201,6 +212,25 @@ L.DESC_RING_MENU = [[
 L.DESC_TOOLBAR = [[
 	Opens the action bar toolbar, which holds the micro menu,
 	bag slots and shortcuts.
+]];
+L.DESC_INTERACT = [[
+	Interacts with the soft target, attacks the enemy target, or
+	loots. Hold to toggle auto loot. Uses the game's own Interact
+	button.
+]];
+L.DESC_INSPECT = [[
+	Opens the target's unit menu, with raid markers while a
+	targeting button is held. Uses the game's own Inspect button.
+]];
+L.DESC_TARGET_FRIENDLY = [[
+	Hold to aim at friendly units with the reticle. Releasing
+	without a selection targets the nearest friend, when the game
+	option for it is on.
+]];
+L.DESC_TARGET_HOSTILE = [[
+	Hold to aim at hostile units with the reticle. Releasing
+	without a selection targets the nearest enemy, when the game
+	option for it is on.
 ]];
 L.DESC_QUICK_MENU = [[
 	A quick access menu that gathers common actions performed

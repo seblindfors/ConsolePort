@@ -28,7 +28,7 @@ end
 function Slot:OnNewBindings()
 	for state in pairs(self.states) do
 		local page = tonumber(state) or 1;
-		local actionID = ( ( page - 1 ) * NUM_ACTIONBAR_BUTTONS ) + self.id;
+		local actionID = db.Actionbar:GetSlotID(page, self.id);
 		self:SetState(state, self:SetActionBinding(state, actionID))
 	end
 end

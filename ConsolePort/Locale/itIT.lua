@@ -269,11 +269,13 @@ L.DESC_JUMP = [[
 ]]; -- en:4c032315
 L.DESC_KEY_BUTTON1 = [[
 	Usato per alternare il cursore libero, permettendoti di usare lo stick della telecamera come un puntatore del mouse.
-]]; -- en:fd3d111a
+	Un pulsante singolo assegnato qui esegue anche clic sinistri sull'interfaccia mentre il cursore è attivo.
+]]; -- en:e0d6e796
 L.DESC_KEY_BUTTON2 = [[
 	Usato per alternare il cursore centrato, permettendoti di interagire con oggetti e personaggi
 	del mondo di gioco, in una posizione fissa al centro del mouse.
-]]; -- en:2f5c87e4
+	Un pulsante singolo assegnato qui esegue anche clic destri sull'interfaccia mentre il cursore è attivo.
+]]; -- en:2c3e0f5e
 L.DESC_QUICK_MENU = [[
 	Un menù ad accesso rapido che raccoglie le azioni comuni eseguite
 	durante il gioco, come tirare il dado per il bottino di gruppo, annullare
@@ -434,12 +436,6 @@ L.DEVICE_DESC_XBOX = [[
 
 	Consigliato anche per Steam Input, coerentemente con il controller Xbox 360 che emula.
 ]]; -- en:654501d3
-L.DISC_KEY_BUTTON1 = [[
-	Mentre uno dei tuoi pulsanti emula il click sinistro, questa scorciatoia non può essere modificata.
-]]; -- en:e811ebc6
-L.DISC_KEY_BUTTON2 = [[
-	Mentre uno dei tuoi pulsanti emula il click destro, questa scorciatoia non può essere modificata.
-]]; -- en:b85c78b2
 L.EXPORT_DATA_TEXT = [[
 
 |cFFFFFF00Esporta|r
@@ -1532,3 +1528,40 @@ Quando impostato al massimo, non guardare mai la direzione del tuo stick di movi
 L['While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.'] = [[Mentre è disabilitato, sono disabilitati anche il timeout del cursore e l'alternanza tra cursore libero e fisso al centro.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Il tuo dispositivo %s ha gestione separata per le connessioni Bluetooth e cablate.
 Quale stai usando?]];
+
+L.NAME_INTERACT = 'Interagisci'; -- en:53deafc6
+L.NAME_INSPECT = 'Ispeziona'; -- en:18ca87af
+L.NAME_TARGET_FRIENDLY = 'Bersaglio alleato (tieni premuto)'; -- en:02e85141
+L.NAME_TARGET_HOSTILE = 'Bersaglio ostile (tieni premuto)'; -- en:bc8d3927
+L.DESC_INTERACT = 'Interagisce con il bersaglio morbido, attacca il bersaglio nemico o saccheggia. Tieni premuto per attivare o disattivare il saccheggio automatico. Usa il pulsante Interagisci del gioco.'; -- en:3b3e14ba
+L.DESC_INSPECT = "Apre il menu dell'unità del bersaglio, con i segnalini incursione finché è premuto un pulsante di bersaglio. Usa il pulsante Ispeziona del gioco."; -- en:0290b557
+L.DESC_TARGET_FRIENDLY = "Tieni premuto per mirare alle unità alleate con il reticolo. Rilasciare senza una selezione prende di mira l'alleato più vicino, se l'opzione del gioco è attiva."; -- en:a07c46a4
+L.DESC_TARGET_HOSTILE = "Tieni premuto per mirare alle unità ostili con il reticolo. Rilasciare senza una selezione prende di mira il nemico più vicino, se l'opzione del gioco è attiva."; -- en:0772559e
+L.PROMPT_MOUSE_BINDING_PLAIN = "%s è assegnato a %s: fa clic nel mondo e agisce come %s sull'interfaccia mentre il cursore è attivo."; -- en:fd73841a
+L.PROMPT_MOUSE_BINDING_CHORD = [[
+	%s è assegnato a %s: fa clic nel mondo. Agire come %s sull'interfaccia richiede un pulsante singolo, quindi è stato disattivato.
+
+	Per scegliere un pulsante per l'interfaccia, vedi %s > %s > %s.
+]]; -- en:6bd55d64
+L.PROMPT_MOUSE_EMULATION = "%s agisce come %s sull'interfaccia mentre il cursore è attivo, ed è ora assegnato anche a %s per fare clic nel mondo."; -- en:24ae4e58
+L['Choose'] = 'Scegli';
+L['Insert'] = 'Inserisci';
+L['left click'] = 'clic sinistro';
+L['right click'] = 'clic destro';
+L['empty'] = 'vuota';
+L['Select a slot to place this action.'] = 'Seleziona uno slot in cui mettere questa azione.';
+L['Select a slot to bind %s and place this action.'] = 'Seleziona uno slot per assegnare %s e mettere questa azione.';
+L['Open'] = 'Apertura';
+L['Notch'] = 'Tacca';
+L['Hover'] = 'Passaggio del mouse';
+L['Paged Gamepad Bar'] = 'Barra gamepad a pagine';
+L['Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.'] = 'Barra gamepad che passa alla barra di posizione o forma, come fa la barra delle azioni principale con la tastiera.';
+L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = 'Tacca: fai clic sulla tacca o premi la scorciatoia e il menu resta aperto. Passaggio del mouse: il menu scorre fuori mentre il mouse è sulla barra degli strumenti e si chiude poco dopo che se ne va, a dimensione originale.';
+L['Scale of the toolbar menu when opened by the notch.'] = 'Scala del menu della barra degli strumenti quando viene aperto dalla tacca.';
+L['The micro menu with shortcuts and bag slots, opened by a notch or by mouse over.'] = 'Il micro menu con scorciatoie e slot delle borse, aperto da una tacca o al passaggio del mouse.';
+L['Gamepad Bar %d'] = 'Barra gamepad %d';
+L['Gamepad Bar %d Button %d'] = 'Barra gamepad %d pulsante %d';
+L['Form %d'] = 'Forma %d';
+L['A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.'] = 'Un modificatore ottiene una barra propria, che non si combina con nulla. Con Tocca per bloccare: tocca due volte per passarci fino al tocco successivo. Senza: tocca e poi tieni premuto per usarla finché è premuto.';
+L['Could not identify the macro in action slot %d; it will be left out of the export.'] = "Impossibile identificare la macro nello slot azione %d; verrà esclusa dall'esportazione.";
+L['%s is off by default and has been switched off. Turn it on under Settings > Modules.'] = '%s è disattivato per impostazione predefinita ed è stato disattivato. Attivalo in Impostazioni > Moduli.';

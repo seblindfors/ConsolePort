@@ -86,8 +86,12 @@ function Cursor:OnClick()
 	self:SetEnabled(not self:IsShown())
 end
 
+function Cursor:IsOnDemand()
+	return db('UIshowOnDemand') or CPAPI.IsNativeNavigationActive();
+end
+
 function Cursor:OnStackChanged(hasFrames)
-	if db('UIshowOnDemand') or not IsGamePadFreelookEnabled() then
+	if self:IsOnDemand() or not IsGamePadFreelookEnabled() then
 		return
 	end
 	return self:SetEnabled(hasFrames)
@@ -186,7 +190,7 @@ function Cursor:SetCurrentNode(node, assertNotMouse, forceEnable)
 	local isGamepadActive = IsGamePadFreelookEnabled()
 
 	-- Prerequisites
-	if db('UIshowOnDemand') and not self:IsShown() then return end;
+	if self:IsOnDemand() and not self:IsShown() then return end;
 	if not isGamepadActive and not forceEnable then return end;
 
 	local object = node and Node.ScanLocal(node)[1]

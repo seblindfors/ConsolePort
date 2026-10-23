@@ -96,7 +96,7 @@ function LootFrame:OnHide()
 end
 
 function LootFrame:OnDataLoaded()
-	if db('useCustomLootFrame') then
+	if ( db('useCustomLootFrame') and not CPAPI.IsNativeNavigationActive() ) then
 		CPAPI.DisableFrame(_G.LootFrame, true)
 		CPAPI.RegisterFrameForEvents(self, self.Events)
 	else

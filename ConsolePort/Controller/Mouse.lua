@@ -367,6 +367,7 @@ end
 -- Handler on/off
 ---------------------------------------------------------------
 function Mouse:SetEnabled(enabled)
+	self.enabled = enabled;
 	self:EnableGamePadButton(enabled)
 	if enabled then
 		db:SetCVar('GamePadCursorAutoEnable', 0)
@@ -374,15 +375,21 @@ function Mouse:SetEnabled(enabled)
 		db:SetCVar('GamePadCursorCenteredEmulation', 0)
 	end
 	(enabled and FrameUtil.RegisterFrameForEvents or FrameUtil.UnregisterFrameForEvents)(self, self.Events);
+	self:SetScript('OnUpdate', enabled and self.OnUpdate or nil)
+	self:OnVariableChanged()
 end
 
 function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
-	self:OnVariableChanged()
 	return CPAPI.BurnAfterReading;
 end
 
 function Mouse:OnVariableChanged()
+	if not self.enabled then
+		self:UnregisterEvent('MODIFIER_STATE_CHANGED')
+		self:UnregisterEvent('CURRENT_SPELL_CAST_CHANGED')
+		return;
+	end
 	local modTapModifier = db('doubleTapModifier')
 	if not modTapModifier:match('none') then
 		self:RegisterEvent('MODIFIER_STATE_CHANGED')

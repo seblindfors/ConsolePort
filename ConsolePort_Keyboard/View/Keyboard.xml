@@ -139,6 +139,16 @@
 						</MaskTexture>
 					</Layer>
 				</Layers>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Hints" inherits="GameFontNormalSmall" justifyH="CENTER" hidden="true">
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" x="8" y="8"/>
+								<Anchor point="BOTTOMRIGHT" x="-8" y="8"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
 				<Frames>
 					<Frame parentKey="Mime" clipChildren="true">
 						<Size y="20"/>
