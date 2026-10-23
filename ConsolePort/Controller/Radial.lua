@@ -171,6 +171,31 @@ function Dispatcher.Disable() -- callback
 	Dispatcher:EnableGamePadStick(false)
 end
 
+-- A stick that drove something outside the rings, held off the
+-- camera after release the way a closed ring holds it: until it
+-- returns to the deadzone or the clear focus timeout passes.
+do local Holder = { OnInput = nop };
+	function Holder:IsDominantStick() return false end
+
+	function Radial:ReleaseStick(type)
+		local consumed, state = {}, db.Gamepad:GetState();
+		for _, stick in ipairs(self:GetStickStruct(type)) do
+			consumed[RAW_STICK[stick] or stick] = true;
+		end
+		Holder.sticks = consumed;
+		Dispatcher:SetFocus(Holder)
+		if state and state.sticks then
+			for id, name in db:For('Gamepad/Index/Stick/ID') do
+				local stick = state.sticks[id];
+				if ( stick and consumed[name] ) then
+					Dispatcher.tracker[name] = stick.len;
+				end
+			end
+		end
+		Dispatcher:ClearFocus(Holder)
+	end
+end
+
 CPAPI.Start(Dispatcher)
 Dispatcher:SetFrameStrata('BACKGROUND')
 Dispatcher:SetPropagateKeyboardInput(true)

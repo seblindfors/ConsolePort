@@ -20,6 +20,7 @@ local function CreateTargetButton(name, filter, tabTarget, tabCvar)
 		if ( not targetAlreadySelected and GetCVarBool(tabCvar) ) then
 			tabTarget(false)
 		end
+		db.Radial:ReleaseStick('Camera')
 	end)
 	return button;
 end
