@@ -75,30 +75,30 @@ function Modules:GetCharacter()
 end
 
 function Modules:IsEnabled(entry)
-	local state = CPAPI.GetAddOnEnableState(entry.addon, self:GetCharacter())
+	local state = C_AddOns.GetAddOnEnableState(entry.addon, self:GetCharacter())
 	return state ~= nil and state > 0;
 end
 
 function Modules:IsInstalled(entry)
-	return (select(4, CPAPI.GetAddOnInfo(entry.addon))) ~= nil;
+	return (select(4, C_AddOns.GetAddOnInfo(entry.addon))) ~= nil;
 end
 
 function Modules:IsLoaded(entry)
-	return CPAPI.IsAddOnLoaded(entry.addon)
+	return C_AddOns.IsAddOnLoaded(entry.addon)
 end
 
 function Modules:SetEnabled(entry, enabled)
 	if enabled then
-		CPAPI.EnableAddOn(entry.addon, self:GetCharacter())
+		C_AddOns.EnableAddOn(entry.addon, self:GetCharacter())
 	else
-		CPAPI.DisableAddOn(entry.addon, self:GetCharacter())
+		C_AddOns.DisableAddOn(entry.addon, self:GetCharacter())
 	end
 	self:OnEnableChanged(entry, not not enabled)
 end
 
 function Modules:Load(entry)
 	if self:IsLoaded(entry) then return true end;
-	local loaded, reason = CPAPI.LoadAddOn(entry.addon)
+	local loaded, reason = C_AddOns.LoadAddOn(entry.addon)
 	if not loaded then
 		CPAPI.Log('Failed to load %s. Reason: %s\nPlease check your installation.',
 			(entry.addon:gsub('_', ' ')), _G['ADDON_'..tostring(reason)])
@@ -206,10 +206,10 @@ function Modules:RestoreSavedSelection()
 			-- off case, which dropped the module for anyone who had ever unticked
 			-- it in the addon list, and cleared the variable that said otherwise.
 			if ( ( saved == nil ) and default or not not saved ) then
-				CPAPI.EnableAddOn(entry.addon)
+				C_AddOns.EnableAddOn(entry.addon)
 				restored[id] = true;
 			elseif ( saved ~= nil ) then
-				CPAPI.DisableAddOn(entry.addon)
+				C_AddOns.DisableAddOn(entry.addon)
 			end
 		end
 	end
@@ -234,7 +234,7 @@ function Modules:DisableDefaultOffModules(restored)
 	for id, deprecated in pairs(self.Deprecated) do
 		local entry, default = self:GetEntry(id), deprecated[2];
 		if ( entry and not default and not restored[id] and self:IsEnabled(entry) ) then
-			CPAPI.DisableAddOn(entry.addon, character)
+			C_AddOns.DisableAddOn(entry.addon, character)
 			CPAPI.Log('%s is off by default and has been switched off. Turn it on under Settings > Modules.', (self:GetInfo(entry)))
 		end
 	end

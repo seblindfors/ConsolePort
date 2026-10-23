@@ -244,7 +244,7 @@ function BindingCatcher:OnBindingCaught(button, data)
 	if self:TryComposeLayer(button) then return end;
 
 	local bindingID = data.bindingID;
-	local context   = CPAPI.GetBindingContextForAction(bindingID)
+	local context   = C_KeyBindings.GetBindingContextForAction(bindingID)
 	local keyChord, reason = self:GetKeyChord(button)
 	if not keyChord then
 		CPAPI.Log(BindingCatcher.Reasons[reason] or BindingCatcher.Reasons.unknown)

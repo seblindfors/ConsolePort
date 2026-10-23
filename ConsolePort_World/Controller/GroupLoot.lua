@@ -229,7 +229,7 @@ function LootRow:UpdateState()
 		return self:Hide()
 	end
 
-	local isRollMethod = IsInGroup() and RollLootMethods[CPAPI.GetLootMethod()];
+	local isRollMethod = IsInGroup() and RollLootMethods[C_PartyInfo.GetLootMethod()];
 	if isRollMethod then
 		local condition = '[group] true; nil';
 		RegisterStateDriver(self, 'grouploot', condition)

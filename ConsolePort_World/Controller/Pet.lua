@@ -381,7 +381,7 @@ function PetRow:ToggleEditRow(slotID)
 	editRow.slotID = slotID;
 
 	-- Query pet spellbook
-	local numPetSpells = CPAPI.HasPetSpells()
+	local numPetSpells = C_SpellBook.HasPetSpells()
 	if not numPetSpells then
 		return self:HideEditRow()
 	end

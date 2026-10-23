@@ -35,7 +35,7 @@ local ActionMap = db:Register('ActionMap', {
 	end;
 	-----------------------------------------------------------
 	mount = function(mountID)
-		local spellID = select(2, CPAPI.GetMountInfoByID(mountID));
+		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
 		local spellName = spellID and CPAPI.GetSpellInfo(spellID).name;
 		if spellName then
 			return ActionMap.spellID(spellName)
@@ -49,7 +49,7 @@ local ActionMap = db:Register('ActionMap', {
 	end;
 	---------------------------------------------------------------
 	companion = function(companionID, companionType)
-		if ( companionType == 'MOUNT' and CPAPI.GetMountInfoByID(companionID) ) then
+		if ( companionType == 'MOUNT' and C_MountJournal.GetMountInfoByID(companionID) ) then
 			return ActionMap.mount(companionID)
 		end
 		local _, spellName = GetCompanionInfo(companionType, companionID)
@@ -61,6 +61,6 @@ local ActionMap = db:Register('ActionMap', {
 	spellID = function(spellID) return {
 		type  = 'spell';
 		spell = spellID;
-		link  = CPAPI.GetSpellLink(spellID)
+		link  = C_Spell.GetSpellLink(spellID)
 	} end;
 });

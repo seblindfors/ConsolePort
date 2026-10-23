@@ -17,11 +17,9 @@ end
 
 function CPAPI.GetSpecialization()
 	-- returns specializationID on retail
-	if GetSpecialization then
-		local currentSpecialization = GetSpecialization()
-		if currentSpecialization then
-			return GetSpecializationInfo(currentSpecialization)
-		end
+	local currentSpecialization = C_SpecializationInfo.GetSpecialization()
+	if currentSpecialization then
+		return C_SpecializationInfo.GetSpecializationInfo(currentSpecialization)
 	end
 	-- returns classID on classic
 	return GetClassID()
@@ -29,8 +27,9 @@ end
 
 function CPAPI.GetCharacterMetadata()
 	-- returns specID, specName on retail
-	if GetSpecializationInfo and GetSpecialization then
-		return GetSpecializationInfo(GetSpecialization())
+	local currentSpecialization = C_SpecializationInfo.GetSpecialization()
+	if currentSpecialization then
+		return C_SpecializationInfo.GetSpecializationInfo(currentSpecialization)
 	end
 	-- returns classID, localized class token on classic
 	return GetClassID(), GetClassInfo()
@@ -58,10 +57,10 @@ end
 function CPAPI.GetContainerTotalSlots()
 	local totalFree, totalSlots, freeSlots, bagFamily = 0, 0;
 	for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-		freeSlots, bagFamily = CPAPI.GetContainerNumFreeSlots(i)
+		freeSlots, bagFamily = C_Container.GetContainerNumFreeSlots(i)
 		if ( bagFamily == 0 ) then
 			totalFree  = totalFree + freeSlots;
-			totalSlots = totalSlots + CPAPI.GetContainerNumSlots(i)
+			totalSlots = totalSlots + C_Container.GetContainerNumSlots(i)
 		end
 	end
 	return totalFree, totalSlots;
@@ -110,7 +109,7 @@ do
 	end
 
 	local function TrySetBinding(keyChord, bindingID, saveAfter, context)
-		context = context or (bindingID and CPAPI.GetBindingContextForAction(bindingID))
+		context = context or (bindingID and C_KeyBindings.GetBindingContextForAction(bindingID))
 		if SetBinding(keyChord, bindingID, context) then
 			return saveAfter;
 		end
@@ -129,7 +128,7 @@ do
 	end
 
 	function CPAPI.ClearBindingsForID(bindingID, saveAfter)
-		local context = CPAPI.GetBindingContextForAction(bindingID)
+		local context = C_KeyBindings.GetBindingContextForAction(bindingID)
 		for _, binding in ipairs(db.Gamepad:GetBindingKey(bindingID, true)) do
 			TrySetBinding(binding, nil, false, context)
 		end
@@ -290,31 +289,10 @@ local function nopz() return 0  end;
 local function nopt() return {} end;
 
 -- Namespace wrappers
-CPAPI.ContainerIDToInventoryID       = C_Container     and C_Container.ContainerIDToInventoryID          or ContainerIDToInventoryID;
-CPAPI.DisableAddOn                   = C_AddOns        and C_AddOns.DisableAddOn                         or DisableAddOn;
-CPAPI.EnableAddOn                    = C_AddOns        and C_AddOns.EnableAddOn                          or EnableAddOn;
 CPAPI.GetActiveZoneAbilities         = C_ZoneAbility   and C_ZoneAbility.GetActiveAbilities              or nopt;
-CPAPI.GetAddOnEnableState            = C_AddOns        and C_AddOns.GetAddOnEnableState                  or GetAddOnEnableState;
-CPAPI.GetAddOnInfo                   = C_AddOns        and C_AddOns.GetAddOnInfo                         or GetAddOnInfo;
-CPAPI.GetBindingContextForAction     = C_KeyBindings   and C_KeyBindings.GetBindingContextForAction      or nop;
 CPAPI.GetBonusBarIndexForSlot        = C_ActionBar     and C_ActionBar.GetBonusBarIndexForSlot           or nop;
-CPAPI.GetCollectedDragonridingMounts = C_MountJournal  and C_MountJournal.GetCollectedDragonridingMounts or nopt;
-CPAPI.GetContainerItemID             = C_Container     and C_Container.GetContainerItemID                or GetContainerItemID;
-CPAPI.GetContainerNumFreeSlots       = C_Container     and C_Container.GetContainerNumFreeSlots          or GetContainerNumFreeSlots;
-CPAPI.GetContainerNumSlots           = C_Container     and C_Container.GetContainerNumSlots              or GetContainerNumSlots;
-CPAPI.GetFactionParagonInfo          = C_Reputation    and C_Reputation.GetFactionParagonInfo            or nop;
-CPAPI.GetFriendshipReputation        = C_GossipInfo    and C_GossipInfo.GetFriendshipReputation          or GetFriendshipReputation or nopt;
-CPAPI.GetFriendshipReputationRanks   = C_GossipInfo    and C_GossipInfo.GetFriendshipReputationRanks     or nop;
-CPAPI.GetItemCount                   = C_Item          and C_Item.GetItemCount                           or GetItemCount;
-CPAPI.GetItemLink                    = C_Item          and C_Item.GetItemLink                            or nop;
-CPAPI.GetItemNumSockets              = C_Item          and C_Item.GetItemNumSockets                      or nopz;
-CPAPI.GetItemQuality                 = C_Item          and C_Item.GetItemQuality                         or nop;
-CPAPI.GetItemSpell                   = C_Item          and C_Item.GetItemSpell                           or GetItemSpell;
-CPAPI.GetLootMethod                  = C_PartyInfo     and C_PartyInfo.GetLootMethod                     or GetLootMethod;
+CPAPI.GetInventorySlotInfo           = C_PaperDollInfo and C_PaperDollInfo.GetInventorySlotInfo           or GetInventorySlotInfo;
 CPAPI.GetMajorFactionData            = C_MajorFactions and C_MajorFactions.GetMajorFactionData           or nop;
-CPAPI.GetMountFromItem               = C_MountJournal  and C_MountJournal.GetMountFromItem               or nop;
-CPAPI.GetMountFromSpell              = C_MountJournal  and C_MountJournal.GetMountFromSpell              or nop;
-CPAPI.GetMountInfoByID               = C_MountJournal  and C_MountJournal.GetMountInfoByID               or nop;
 CPAPI.GetNumQuestWatches             = C_QuestLog      and C_QuestLog.GetNumQuestWatches                 or nopz;
 CPAPI.GetNumSpellTabs                = C_SpellBook     and C_SpellBook.GetNumSpellBookSkillLines         or GetNumSpellTabs;
 CPAPI.GetQuestLogIndexForQuestID     = C_QuestLog      and C_QuestLog.GetLogIndexForQuestID              or nop;
@@ -323,39 +301,14 @@ CPAPI.GetSpellBookItemLink           = C_SpellBook     and C_SpellBook.GetSpellB
 CPAPI.GetSpellBookItemName           = C_SpellBook     and C_SpellBook.GetSpellBookItemName              or GetSpellBookItemName;
 CPAPI.GetSpellBookItemTexture        = C_SpellBook     and C_SpellBook.GetSpellBookItemTexture           or GetSpellBookItemTexture;
 CPAPI.GetSpellBookItemType           = C_SpellBook     and C_SpellBook.GetSpellBookItemType              or GetSpellBookItemInfo;
-CPAPI.GetSpellLink                   = C_Spell         and C_Spell.GetSpellLink                          or GetSpellLink;
-CPAPI.GetSpellName                   = C_Spell         and C_Spell.GetSpellName                          or GetSpellName;
-CPAPI.GetSpellSubtext                = C_Spell         and C_Spell.GetSpellSubtext                       or GetSpellSubtext;
-CPAPI.GetSpellTexture                = C_Spell         and C_Spell.GetSpellTexture                       or GetSpellTexture;
-CPAPI.HasPetSpells                   = C_SpellBook     and C_SpellBook.HasPetSpells                      or HasPetSpells;
-CPAPI.IsAccountWideReputation        = C_Reputation    and C_Reputation.IsAccountWideReputation          or nop;
-CPAPI.IsAddOnLoaded                  = C_AddOns        and C_AddOns.IsAddOnLoaded                        or IsAddOnLoaded;
 CPAPI.IsDressableItemByID            = C_Item          and C_Item.IsDressableItemByID                    or nop;
-CPAPI.IsEquippableItem               = C_Item          and C_Item.IsEquippableItem                       or IsEquippableItem;
-CPAPI.IsEquippedItem                 = C_Item          and C_Item.IsEquippedItem                         or IsEquippedItem;
-CPAPI.IsFactionParagon               = C_Reputation    and C_Reputation.IsFactionParagonForCurrentPlayer or nop;
-CPAPI.IsMajorFaction                 = C_Reputation    and C_Reputation.IsMajorFaction                   or nop;
-CPAPI.IsPassiveSpell                 = C_Spell         and C_Spell.IsSpellPassive                        or IsPassiveSpell;
 CPAPI.IsPlayerAtEffectiveMaxLevel    = GameRulesUtil   and GameRulesUtil.IsPlayerAtEffectiveMaxLevel     or IsPlayerAtEffectiveMaxLevel;
 CPAPI.IsSpellBookItemPassive         = C_SpellBook     and C_SpellBook.IsSpellBookItemPassive            or IsPassiveSpell;
-CPAPI.IsSpellHarmful                 = C_Spell         and C_Spell.IsSpellHarmful                        or IsHarmfulSpell;
-CPAPI.IsSpellHelpful                 = C_Spell         and C_Spell.IsSpellHelpful                        or IsHelpfulSpell;
-CPAPI.IsUsableItem                   = C_Item          and C_Item.IsUsableItem                           or IsUsableItem;
 CPAPI.LeaveParty                     = C_PartyInfo     and C_PartyInfo.LeaveParty                        or LeaveParty;
-CPAPI.LoadAddOn                      = C_AddOns        and C_AddOns.LoadAddOn                            or LoadAddOn;
-CPAPI.PickupContainerItem            = C_Container     and C_Container.PickupContainerItem               or PickupContainerItem;
-CPAPI.PickupItem                     = C_Item          and C_Item.PickupItem                             or PickupItem;
-CPAPI.PickupSpell                    = C_Spell         and C_Spell.PickupSpell                           or PickupSpell;
 CPAPI.PickupSpellBookItem            = C_SpellBook     and C_SpellBook.PickupSpellBookItem               or PickupSpellBookItem;
-CPAPI.SocketContainerItem            = C_Container     and C_Container.SocketContainerItem               or SocketContainerItem;
-CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
-CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
 -- Fallthroughs
-CPAPI.ClearCursor                    = ClearCursor        or nop;
-CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
 CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
 CPAPI.IsSecret                       = issecretvalue      or nop;
-CPAPI.IsSpellOverlayed               = IsSpellOverlayed   or nop;
 CPAPI.IsXPUserDisabled               = IsXPUserDisabled   or nop;
 CPAPI.PlayerHasToy                   = PlayerHasToy       or nop;
 CPAPI.Scrub                          = scrubsecretvalues  or function(...)return...end;
@@ -383,34 +336,13 @@ end
 
 -- Complex wrappers
 CPAPI.GetContainerItemInfo = function(...)
-	if C_Container and C_Container.GetContainerItemInfo then
-		return C_Container.GetContainerItemInfo(...) or {};
-	end
-	if GetContainerItemInfo then
-		local icon, itemCount, locked, quality, readable, lootable, itemLink,
-			isFiltered, noValue, itemID, isBound = GetContainerItemInfo(...)
-		return {
-			--[[ ContainerItemInfo ]]
-			--[[ boolean          ]] hasLoot = lootable;
-			--[[ boolean          ]] hasNoValue = noValue;
-			--[[ itemLink         ]] hyperlink = itemLink;
-			--[[ FileID           ]] iconFileID = icon;
-			--[[ boolean          ]] isBound = isBound;
-			--[[ boolean          ]] isFiltered = isFiltered;
-			--[[ boolean          ]] isLocked = locked;
-			--[[ boolean          ]] isReadable = readable;
-			--[[ number           ]] itemID = itemID;
-			--[[ Enum.ItemQuality ]] quality = quality;
-			--[[ number           ]] stackCount = itemCount;
-		};
-	end
-	return {};
+	return C_Container.GetContainerItemInfo(...) or {};
 end
 
 CPAPI.GetItemInfo = function(...)
 	local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType,
 	itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType,
-	expacID, setID, isCraftingReagent = (GetItemInfo or C_Item.GetItemInfo)(...)
+	expacID, setID, isCraftingReagent = C_Item.GetItemInfo(...)
 
 	return {
 		--[[ ItemInfo ]]
@@ -435,38 +367,20 @@ CPAPI.GetItemInfo = function(...)
 end
 
 CPAPI.GetItemInfoInstant = function(...)
-	local GetItemInfoInstant = C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant;
-	if GetItemInfoInstant then
-		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
-		return {
-			--[[ ItemInfo ]]
-			--[[ number           ]] itemID = itemID;
-			--[[ ItemType         ]] itemType = itemType;
-			--[[ ItemType         ]] itemSubType = itemSubType;
-			--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
-			--[[ FileID           ]] icon = icon;
-			--[[ ItemType         ]] classID = classID;
-			--[[ ItemType         ]] subclassID = subclassID;
-		};
-	end
-	return {};
+	local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = C_Item.GetItemInfoInstant(...)
+	return {
+		--[[ ItemInfo ]]
+		--[[ number           ]] itemID = itemID;
+		--[[ ItemType         ]] itemType = itemType;
+		--[[ ItemType         ]] itemSubType = itemSubType;
+		--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
+		--[[ FileID           ]] icon = icon;
+		--[[ ItemType         ]] classID = classID;
+		--[[ ItemType         ]] subclassID = subclassID;
+	};
 end
 
 CPAPI.GetSpellInfo = function(...)
-	if GetSpellInfo then
-		local name, rank, icon, castTime, minRange, maxRange, spellID, originalIcon = GetSpellInfo(...)
-		return {
-			--[[ SpellInfo ]]
-			--[[ string           ]] name = name;
-			--[[ string           ]] rank = rank;
-			--[[ FileID           ]] iconID = icon;
-			--[[ number           ]] castTime = castTime;
-			--[[ number           ]] minRange = minRange;
-			--[[ number           ]] maxRange = maxRange;
-			--[[ number           ]] spellID = spellID;
-			--[[ FileID           ]] originalIconID = originalIcon;
-		};
-	end
 	return C_Spell.GetSpellInfo(...) or {};
 end
 
@@ -506,24 +420,6 @@ CPAPI.GetSpellBookItemInfo = function(...)
 		}
 	end
 	return C_SpellBook.GetSpellBookItemInfo(...) or {};
-end
-
-CPAPI.GetWatchedFactionData = function(...)
-	if C_Reputation and C_Reputation.GetWatchedFactionData then
-		return C_Reputation.GetWatchedFactionData(...)
-	end
-	if GetWatchedFactionInfo then
-		local name, standingID, min, max, value, factionID = GetWatchedFactionInfo(...)
-		return {
-			--[[ FactionData ]]
-			--[[ string           ]] name = name;
-			--[[ number           ]] reaction = standingID;
-			--[[ number           ]] currentReactionThreshold = min;
-			--[[ number           ]] nextReactionThreshold = max;
-			--[[ number           ]] currentStanding = value;
-			--[[ number           ]] factionID = factionID;
-		};
-	end
 end
 
 CPAPI.CanPlayerDisenchantItem = function(itemID)

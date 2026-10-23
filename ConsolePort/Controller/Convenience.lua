@@ -183,11 +183,11 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 
 Handler.SellJunkHelper = function(item)
 	local isUnlimited  = Handler.autoSellUnlimited;
-	local isJunkItem   = CPAPI.GetItemQuality(item) == Enum.ItemQuality.Poor;
-	local isEquippable = CPAPI.IsEquippableItem(CPAPI.GetItemLink(item))
+	local isJunkItem   = C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor;
+	local isEquippable = C_Item.IsEquippableItem(C_Item.GetItemLink(item))
 
 	if isJunkItem and (isUnlimited or not isEquippable) then
-		CPAPI.UseContainerItem(item:GetBagAndSlot())
+		C_Container.UseContainerItem(item:GetBagAndSlot())
 	end
 end
 

@@ -121,7 +121,7 @@ do  local IsWidget, GetID, GetParent, GetScript =
 
 	function Hooks:GetBagLocationFromNode(node)
 		return IsWidget(node) and TryIdentifyContainerBag(node) and
-			CPAPI.ContainerIDToInventoryID(node:GetID());
+			C_Container.ContainerIDToInventoryID(node:GetID());
 	end
 end
 
@@ -265,9 +265,9 @@ do -- Tooltip hooking
 			if itemLocation then
 				if CPAPI.IsMerchantAvailable then
 					Hooks:SetSellItemPrompt(self, itemLocation)
-				elseif itemID and CPAPI.IsEquippableItem(itemID) then
+				elseif itemID and C_Item.IsEquippableItem(itemID) then
 					Hooks:SetUseItemPrompt(self, EQUIPSET_EQUIP or USE)
-				elseif itemID and CPAPI.IsUsableItem(itemID) then
+				elseif itemID and C_Item.IsUsableItem(itemID) then
 					Hooks:SetUseItemPrompt(self, USE)
 				end
 				return Hooks:SetPendingItemMenu(self, itemLocation)
@@ -279,13 +279,13 @@ do -- Tooltip hooking
 			end
 
 			if not link then return end;
-			local numOwned     = CPAPI.GetItemCount(link)
-			local isEquipped   = CPAPI.IsEquippedItem(link)
-			local isEquippable = CPAPI.IsEquippableItem(link)
+			local numOwned     = C_Item.GetItemCount(link)
+			local isEquipped   = C_Item.IsEquippedItem(link)
+			local isEquippable = C_Item.IsEquippableItem(link)
 			local isDressable  = CPAPI.IsDressableItemByID(link)
-			local isMount      = itemID and CPAPI.GetMountFromItem(itemID)
+			local isMount      = itemID and C_MountJournal.GetMountFromItem(itemID)
 
-			if ( CPAPI.GetItemSpell(link) and numOwned > 0 ) then
+			if ( C_Item.GetItemSpell(link) and numOwned > 0 ) then
 				Hooks:SetPendingActionToUtilityRing(self, owner, {
 					type = 'item';
 					item = link;
@@ -305,12 +305,12 @@ do -- Tooltip hooking
 			if Hooks:GetSpecialClickHandler(owner) then return end;
 
 			local name, spellID = self:GetSpell()
-			if spellID and not CPAPI.IsPassiveSpell(spellID) then
+			if spellID and not C_Spell.IsSpellPassive(spellID) then
 				local isKnown = IsSpellKnownOrOverridesKnown(spellID) or IsPlayerSpell(spellID)
 				if not isKnown then
-					local mountID = CPAPI.GetMountFromSpell(spellID)
+					local mountID = C_MountJournal.GetMountFromSpell(spellID)
 					if mountID then
-						isKnown = (select(11, CPAPI.GetMountInfoByID(mountID)))
+						isKnown = (select(11, C_MountJournal.GetMountInfoByID(mountID)))
 					end
 				end
 				if isKnown then
@@ -323,8 +323,8 @@ do -- Tooltip hooking
 	local function OnTooltipSetMount(self, info)
 		local owner = self:GetOwner()
 		if Hooks:IsPromptProcessingValid(owner) then
-			local spellID = select(2, CPAPI.GetMountInfoByID(info.id))
-			local isKnown = select(11, CPAPI.GetMountInfoByID(info.id))
+			local spellID = select(2, C_MountJournal.GetMountInfoByID(info.id))
+			local isKnown = select(11, C_MountJournal.GetMountInfoByID(info.id))
 			if isKnown and spellID then
 				Hooks:SetPendingSpellMenu(self, spellID)
 			end

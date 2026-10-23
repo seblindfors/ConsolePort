@@ -692,7 +692,7 @@ do -- Emote list
 	end
 
 	function EmoteButtonBase:OnClick(contextData)
-		DoEmote(self.emote, UnitIsPlayer(contextData.unit) and contextData.unit or nil);
+		C_ChatInfo.PerformEmote(self.emote, UnitIsPlayer(contextData.unit) and contextData.unit or nil);
 	end
 
 	function UnitMenu.Emotes:GetText()

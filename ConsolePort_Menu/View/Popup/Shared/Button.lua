@@ -72,6 +72,6 @@ end
 -- Action placement, owned by the config addon
 ---------------------------------------------------------------
 function env.ShowActionPlacer(kind, keyChord, ...)
-	if not CPAPI.LoadAddOn(CPAPI.ConfigAddOn) then return end;
+	if not C_AddOns.LoadAddOn(CPAPI.ConfigAddOn) then return end;
 	return ConsolePortConfig:GetEnvironment():ShowActionPlacer(kind, keyChord, ...)
 end

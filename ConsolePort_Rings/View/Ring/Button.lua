@@ -74,7 +74,7 @@ function Button:UpdateLocal()
 	RunNextFrame(function()
 		env:TriggerEvent('OnButtonUpdated', self)
 		local spellId = self:GetSpellId()
-		if spellId and CPAPI.IsSpellOverlayed(spellId) then
+		if spellId and C_SpellActivationOverlay.IsSpellOverlayed(spellId) then
 			self:ShowOverlayGlow()
 		else
 			self:HideOverlayGlow()

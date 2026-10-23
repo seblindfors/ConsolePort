@@ -139,7 +139,7 @@ function CPAPI.DataHandler(handler)
 end
 
 function CPAPI.CreateConfigFrame(arg1, ...)
-	assert(CPAPI.LoadAddOn(CPAPI.ConfigAddOn), 'Config addon could not be loaded.')
+	assert(C_AddOns.LoadAddOn(CPAPI.ConfigAddOn), 'Config addon could not be loaded.')
 	local env = ConsolePortConfig:GetEnvironment();
 	if ( type(arg1) == 'table' ) then
 		return Mixin(CreateFrame(...), arg1), env;

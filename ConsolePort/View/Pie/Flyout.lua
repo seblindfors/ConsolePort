@@ -293,7 +293,7 @@ end
 
 function FlyoutButtonMixin:OnDragStart()
 	if (self.spellID) and not InCombatLockdown() then
-		CPAPI.PickupSpell(self.spellID);
+		C_Spell.PickupSpell(self.spellID);
 		self:RegisterEvent('CURSOR_CHANGED')
 	end
 end
@@ -323,7 +323,7 @@ do  local SpellFlyoutButtonMixin = SpellFlyoutButtonMixin or SpellFlyoutPopupBut
 		SpellFlyoutButton_UpdateUsable(self);
 		SpellFlyoutButton_UpdateState(self);
 
-		self.icon:SetTexture(CPAPI.GetSpellTexture(self.overrideSpellID))
+		self.icon:SetTexture(C_Spell.GetSpellTexture(self.overrideSpellID))
 		self:GetNormalTexture():SetDesaturated(self.offSpec)
 		self.Name:SetText(self.spellName)
 		self:SetEnabled(not self.offSpec)

@@ -610,7 +610,7 @@ function GamepadAPI:GetBindingsTemplate()
 end
 
 function GamepadAPI:GetBindingKey(binding, asTable)
-	local context = CPAPI.GetBindingContextForAction(binding)
+	local context = C_KeyBindings.GetBindingContextForAction(binding)
 	local keys = tFilter({GetBindingKey(binding, true, context)}, IsBindingForGamePad, true)
 	if asTable then return keys end;
 	return unpack(keys)
