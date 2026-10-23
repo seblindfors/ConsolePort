@@ -269,10 +269,12 @@ L.DESC_JUMP = [[
 ]]; -- en:4c032315
 L.DESC_KEY_BUTTON1 = [[
 	Wird verwendet, um den freien Cursor umzuschalten, mit dem du deinen Kamera-Stick als Mauszeiger benutzen kannst.
-]]; -- en:fd3d111a
+	Eine einzelne hier belegte Taste führt außerdem Linksklicks in der Oberfläche aus, solange der Cursor aktiv ist.
+]]; -- en:e0d6e796
 L.DESC_KEY_BUTTON2 = [[
 	Wird verwendet, um den zentrierten Cursor umzuschalten, mit dem du an einer festen Mittelposition mit Objekten und Charakteren in der Spielwelt interagieren kannst.
-]]; -- en:2f5c87e4
+	Eine einzelne hier belegte Taste führt außerdem Rechtsklicks in der Oberfläche aus, solange der Cursor aktiv ist.
+]]; -- en:2c3e0f5e
 L.DESC_QUICK_MENU = [[
 	Ein Schnellzugriffsmenü, das gängige Aktionen während des Spiels
 	zusammenfasst, wie z. B. das Würfeln auf Gruppenbeute, das Abbrechen
@@ -430,12 +432,6 @@ L.DEVICE_DESC_XBOX = [[
 
 	Auch für Steam Input empfohlen, da konsistent mit dem Xbox-360-Controller, den es emuliert.
 ]]; -- en:654501d3
-L.DISC_KEY_BUTTON1 = [[
-	Solange eine deiner Tasten Linksklick emuliert, kann diese Belegung nicht geändert werden.
-]]; -- en:e811ebc6
-L.DISC_KEY_BUTTON2 = [[
-	Solange eine deiner Tasten Rechtsklick emuliert, kann diese Belegung nicht geändert werden.
-]]; -- en:b85c78b2
 L.EXPORT_DATA_TEXT = [[
 
 |cFFFFFF00Exportieren|r
@@ -1528,3 +1524,40 @@ L['When set to zero, always face your movement stick direction.\nWhen set to max
 Auf Max gesetzt, drehst du dich nie in deine Bewegungs-Stick-Richtung.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Dein %s-Gerät hat separate Behandlung für Bluetooth und kabelgebundene Verbindung.
 Welche verwendest du?]];
+
+L.NAME_INTERACT = 'Interagieren'; -- en:53deafc6
+L.NAME_INSPECT = 'Betrachten'; -- en:18ca87af
+L.NAME_TARGET_FRIENDLY = 'Freundliches Ziel (Halten)'; -- en:02e85141
+L.NAME_TARGET_HOSTILE = 'Feindliches Ziel (Halten)'; -- en:bc8d3927
+L.DESC_INTERACT = 'Interagiert mit dem weichen Ziel, greift das feindliche Ziel an oder plündert. Halten, um automatisches Plündern umzuschalten. Nutzt die Interagieren-Taste des Spiels.'; -- en:3b3e14ba
+L.DESC_INSPECT = 'Öffnet das Einheitenmenü des Ziels, mit Schlachtzugssymbolen, solange eine Zielerfassungstaste gehalten wird. Nutzt die Betrachten-Taste des Spiels.'; -- en:0290b557
+L.DESC_TARGET_FRIENDLY = 'Halten, um mit dem Fadenkreuz auf freundliche Einheiten zu zielen. Loslassen ohne Auswahl wählt den nächsten Verbündeten, wenn die Spieloption dafür aktiv ist.'; -- en:a07c46a4
+L.DESC_TARGET_HOSTILE = 'Halten, um mit dem Fadenkreuz auf feindliche Einheiten zu zielen. Loslassen ohne Auswahl wählt den nächsten Feind, wenn die Spieloption dafür aktiv ist.'; -- en:0772559e
+L.PROMPT_MOUSE_BINDING_PLAIN = '%s ist mit %s belegt: Es klickt in die Spielwelt und dient als %s in der Oberfläche, solange der Cursor aktiv ist.'; -- en:fd73841a
+L.PROMPT_MOUSE_BINDING_CHORD = [[
+	%s ist mit %s belegt: Es klickt in die Spielwelt. Als %s in der Oberfläche zu dienen erfordert eine einzelne Taste, daher wurde das abgeschaltet.
+
+	Um eine Taste für die Oberfläche zu wählen, siehe %s > %s > %s.
+]]; -- en:6bd55d64
+L.PROMPT_MOUSE_EMULATION = '%s dient als %s in der Oberfläche, solange der Cursor aktiv ist, und ist jetzt auch mit %s belegt, um in die Spielwelt zu klicken.'; -- en:24ae4e58
+L['Choose'] = 'Auswählen';
+L['Insert'] = 'Einfügen';
+L['left click'] = 'Linksklick';
+L['right click'] = 'Rechtsklick';
+L['empty'] = 'leer';
+L['Select a slot to place this action.'] = 'Wähle einen Platz, um diese Aktion zu platzieren.';
+L['Select a slot to bind %s and place this action.'] = 'Wähle einen Platz, um %s zu belegen und diese Aktion zu platzieren.';
+L['Open'] = 'Öffnen';
+L['Notch'] = 'Kerbe';
+L['Hover'] = 'Mauszeiger';
+L['Paged Gamepad Bar'] = 'Gamepad-Leiste mit Seitenwechsel';
+L['Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.'] = 'Gamepad-Leiste, die zur Haltungs- oder Gestaltleiste wechselt, so wie es die Hauptaktionsleiste bei der Tastatur tut.';
+L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = 'Kerbe: Klicke auf die Kerbe oder drücke die Belegung, und das Menü bleibt offen. Mauszeiger: Das Menü fährt aus, solange die Maus über der Werkzeugleiste ist, und schließt kurz nachdem sie sie verlässt, in Originalgröße.';
+L['Scale of the toolbar menu when opened by the notch.'] = 'Skalierung des Werkzeugleisten-Menüs, wenn es über die Kerbe geöffnet wird.';
+L['The micro menu with shortcuts and bag slots, opened by a notch or by mouse over.'] = 'Das Mikromenü mit Verknüpfungen und Taschenplätzen, geöffnet über eine Kerbe oder per Mauszeiger.';
+L['Gamepad Bar %d'] = 'Gamepad-Leiste %d';
+L['Gamepad Bar %d Button %d'] = 'Gamepad-Leiste %d Taste %d';
+L['Form %d'] = 'Gestalt %d';
+L['A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.'] = 'Ein Modifikator erhält eine eigene Leiste, die sich mit nichts kombiniert. Mit Tippen zum Einrasten: doppelt tippen, um bis zum nächsten Tippen dorthin zu wechseln. Ohne: tippen und dann halten, um sie zu nutzen, solange gehalten wird.';
+L['Could not identify the macro in action slot %d; it will be left out of the export.'] = 'Das Makro in Aktionsplatz %d konnte nicht identifiziert werden; es wird aus dem Export ausgelassen.';
+L['%s is off by default and has been switched off. Turn it on under Settings > Modules.'] = '%s ist standardmäßig aus und wurde abgeschaltet. Schalte es unter Einstellungen > Module ein.';

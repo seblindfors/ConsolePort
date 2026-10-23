@@ -117,9 +117,8 @@ function env:GetCollections(currentSetID, isSharedSet)
 				local stanceBarName = stanceBarInfo and stanceBarInfo.name;
 
 				local items = {};
-				local pageOffset = (barID - 1) * NUM_ACTIONBAR_BUTTONS;
-				for i = 1, NUM_ACTIONBAR_BUTTONS do
-					tinsert(items, pageOffset + i);
+				for i = 1, db.Actionbar:GetBarWidth(barID) do
+					tinsert(items, db.Actionbar:GetSlotID(barID, i));
 				end
 				local barConfig = CPAPI.Proxy({
 					name     = stanceBarName or db.Actionbar.Names[barID];

@@ -108,7 +108,7 @@ local AliasMap = {
 local AliasMapExport = db.table.merge({
 	path = {
 		[P'_BarLoadout/(%d+)/?(%d*)'] = function(pageID, buttonID)
-			local actionID = tonumber(buttonID) and (tonumber(pageID) - 1) * NUM_ACTIONBAR_BUTTONS + tonumber(buttonID);
+			local actionID = tonumber(buttonID) and db.Actionbar:GetSlotID(tonumber(pageID), tonumber(buttonID));
 			if actionID then
 				return ('|cFF00FFFF%s|r: %s'):format(buttonID,
 					env.BindingInfo:GetActionInfo(actionID) or ('|cFF757575%s|r'):format(NONE))
@@ -268,10 +268,10 @@ local Aggregators = {
 	ConsolePort_BarPresets = function() return ConsolePort_BarPresets end;
 	ConsolePort_BarLoadout = function()
 		local actions = {};
-		for page = 1, 10 do
+		for _, page in ipairs(db.Actionbar:GetExportableBars()) do
 			actions[page] = {};
-			for slot = 1, NUM_ACTIONBAR_BUTTONS do
-				local actionID = ((page - 1) * NUM_ACTIONBAR_BUTTONS) + slot;
+			for slot = 1, db.Actionbar:GetBarWidth(page) do
+				local actionID = db.Actionbar:GetSlotID(page, slot);
 				local actionInfo = {GetActionInfo(actionID)}
 				if ( actionInfo[1] == 'macro' ) then
 					actionInfo = GetMacroActionInfo(actionID, actionInfo[2], actionInfo[3])
@@ -341,7 +341,8 @@ local Evaluators = {
 	{'ConsolePort_BarLoadout', function(actions)
 		for page, set in pairs(actions) do
 			for slot, actionInfo in pairs(set) do
-				local actionID = ((page - 1) * NUM_ACTIONBAR_BUTTONS) + slot;
+				if not db.Actionbar:IsExportableBar(page) then break end;
+				local actionID = db.Actionbar:GetSlotID(page, slot);
 
 				local pickup = ActionPickupHandlers[actionInfo[1]];
 				if pickup then

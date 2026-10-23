@@ -111,10 +111,64 @@ function env.UIHandler:HideBlizzard()
 	end
 
 	---------------------------------------------------------------
+	-- Native gamepad bar
+	if CPAPI.IsCamelotVersion then
+		env.UIHandler:HideGamepadBar()
+	end
+
+	---------------------------------------------------------------
 	-- Misc
 	if CPAPI.IsAddOnLoaded('Blizzard_NewPlayerExperience') then
 		NPE_LoadUI()
 	elseif _G.NPE_LoadUI ~= nil then
 		hooksecurefunc('NPE_LoadUI', NPE_LoadUI)
 	end
+end
+---------------------------------------------------------------
+-- Native gamepad bar (Forever)
+---------------------------------------------------------------
+-- Blizzard shows the frame again on interface style changes and
+-- when its binding editor closes; its button bindings still fire
+-- the hidden buttons, so those keys are cleared too.
+local GAMEPAD_BAR_BINDINGS = {
+	'GAMEPADACTIONBUTTON1', 'GAMEPADACTIONBUTTON2', 'GAMEPADACTIONBUTTON3', 'GAMEPADACTIONBUTTON4',
+	'GAMEPADACTIONBUTTON5', 'GAMEPADACTIONBUTTON6', 'GAMEPADACTIONBUTTON7', 'GAMEPADACTIONBUTTON8',
+	'GAMEPADLEFTMOD', 'GAMEPADRIGHTMOD',
+};
+
+local hideGamepadBar;
+function hideGamepadBar()
+	local frame = GamepadMainActionBarFrame;
+	if not frame then return end;
+	if InCombatLockdown() then
+		return env.db:RunSafe(hideGamepadBar);
+	end
+	Frame.Hide(frame)
+end
+
+function env.UIHandler:HideGamepadBar()
+	if not GamepadMainActionBarFrame then return end;
+	hideGamepadBar()
+	if not self.gamepadBarHooked then
+		self.gamepadBarHooked = true;
+		hooksecurefunc(GamepadMainActionBarFrame, 'Show', hideGamepadBar)
+	end
+end
+
+function env.UIHandler:ClearGamepadBarBindings()
+	local cleared = false;
+	for _, binding in ipairs(GAMEPAD_BAR_BINDINGS) do
+		for _, key in ipairs({GetBindingKey(binding)}) do
+			SetBinding(key, nil)
+			cleared = true;
+		end
+	end
+	if cleared then
+		CPAPI.SaveBindings(GetCurrentBindingSet())
+	end
+end
+
+if CPAPI.IsCamelotVersion then
+	env.db:RegisterSafeCallback('OnDataLoaded', env.UIHandler.ClearGamepadBarBindings, env.UIHandler)
+	env.db:RegisterSafeCallback('Gamepad/Active', env.UIHandler.ClearGamepadBarBindings, env.UIHandler)
 end

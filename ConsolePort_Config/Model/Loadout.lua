@@ -240,8 +240,7 @@ function LoadoutMixin:GetBindingInfo(binding, skipActionInfo, skipTranspose, ove
 		-- swap the info for current bar if offset
 		local page = db.Pager:GetCurrentPage()
 		if not skipTranspose then
-			actionID = actionID <= NUM_ACTIONBAR_BUTTONS and
-				actionID + ((page - 1) * 12) or actionID;
+			actionID = db.Actionbar:GetTransposedSlot(actionID);
 		end
 
 		local texture = GetActionTexture(actionID)

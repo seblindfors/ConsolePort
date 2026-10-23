@@ -173,6 +173,10 @@ function Config:OnLoad()
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:RegisterCallback('OnBindingClicked', self.OnBindingClicked, self)
 	env:RegisterCallback('OnBindingConflict', self.OnBindingConflict, self)
+	env:RegisterCallback('OnBindingEdited', self.OnMouseBindingChanged, self)
+	for key, cvar in pairs(db.Gamepad.Mouse.Cvars) do
+		db:RegisterCallback(cvar, self.OnMouseEmulationChanged, self, key)
+	end
 	env:RegisterCallback('OnActionSlotEdit', self.OnActionSlotEdit, self)
 	env:RegisterCallback('OnBindingIconClicked', self.OnBindingIconClicked, self)
 	env:RegisterCallback('OnBindingPresetAddClicked', self.OnBindingPresetAddClicked, self)
@@ -346,9 +350,55 @@ function Config:OnBindingConflict(keyChord, bindingID, curAction)
 		button1  = YES;
 		button2  = NO;
 		OnAccept = function()
-			env:RunSafe(env.SetBinding, env, keyChord, bindingID)
+			env:RunSafe(env.EditBinding, env, keyChord, bindingID)
 		end;
 	})
+end
+
+local MOUSE_CLICK_NAMES = {
+	LeftClick  = L'left click';
+	RightClick = L'right click';
+};
+local MOUSE_SETTING_NAMES = {
+	LeftClick  = KEY_BUTTON1;
+	RightClick = KEY_BUTTON2;
+};
+
+local function GetMouseKeyForBinding(bindingID)
+	for key, binding in pairs(db.Gamepad.Mouse.Binding) do
+		if ( binding == bindingID ) then
+			return key;
+		end
+	end
+end
+
+local function ShowMousePrompt(text)
+	CPAPI.Next(CPAPI.Popup, 'ConsolePort_Mouse_Emulation', {
+		text    = CPAPI.FormatLongText(text);
+		button1 = OKAY;
+		timeout = 0;
+		whileDead = 1;
+	})
+end
+
+function Config:OnMouseBindingChanged(keyChord, bindingID)
+	local key = bindingID and GetMouseKeyForBinding(bindingID)
+	if not key then return end;
+	local slug  = db.Hotkeys:GetButtonSlugForChord(keyChord, false, true)
+	local name  = BLUE_FONT_COLOR:WrapTextInColorCode(env:GetBindingName(bindingID))
+	local click = MOUSE_CLICK_NAMES[key];
+	if ( keyChord:match('^PAD') and not keyChord:find('-', 1, true) ) then
+		return ShowMousePrompt(L(L.PROMPT_MOUSE_BINDING_PLAIN, slug, name, click))
+	end
+	ShowMousePrompt(L(L.PROMPT_MOUSE_BINDING_CHORD, slug, name, click,
+		KEY_BINDINGS_MAC, SETTINGS, MOUSE_SETTING_NAMES[key]))
+end
+
+function Config:OnMouseEmulationChanged(key, value)
+	if db.Gamepad:IsMirroringMouse() or not value or value == 'none' then return end;
+	local slug = db.Hotkeys:GetButtonSlugForChord(value, false, true)
+	local name = BLUE_FONT_COLOR:WrapTextInColorCode(env:GetBindingName(db.Gamepad.Mouse.Binding[key]))
+	ShowMousePrompt(L(L.PROMPT_MOUSE_EMULATION, slug, MOUSE_CLICK_NAMES[key], name))
 end
 
 function Config:OnBindingIconClicked(bindingID, isClearEvent, element, callback)

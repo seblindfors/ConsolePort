@@ -34,7 +34,7 @@ function Interact:OnDataLoaded()
 	db.Layers:ReleaseAll(self)
 	UnregisterStateDriver(self, 'override')
 
-	if IsBindingForGamePad(button) then
+	if ( IsBindingForGamePad(button) and not CPAPI.IsCamelotVersion ) then
 		RegisterStateDriver(self, 'override', condition)
 		self:Execute([[self:RunAttribute('OnBindingsChanged')]])
 	end

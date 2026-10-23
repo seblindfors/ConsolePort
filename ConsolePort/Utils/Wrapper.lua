@@ -70,11 +70,7 @@ end
 ---------------------------------------------------------------
 -- Binding wrappers
 ---------------------------------------------------------------
-do local FORBIDDEN_TO_CLEAR_BINDINGS = {
-		TURNORACTION = true;
-		CAMERAORSELECTORMOVE = true;
-	};
-
+do
 	---------------------------------------------------------------
 	-- @brief Save bindings to the active set, if there is one
 	-- @param setID : binding set to save to, or the active set
@@ -133,9 +129,6 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 	end
 
 	function CPAPI.ClearBindingsForID(bindingID, saveAfter)
-		if FORBIDDEN_TO_CLEAR_BINDINGS[bindingID] then
-			return false;
-		end
 		local context = CPAPI.GetBindingContextForAction(bindingID)
 		for _, binding in ipairs(db.Gamepad:GetBindingKey(bindingID, true)) do
 			TrySetBinding(binding, nil, false, context)

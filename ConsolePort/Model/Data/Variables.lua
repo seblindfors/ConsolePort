@@ -214,7 +214,7 @@ db:Register('Variables', CPAPI.Callable({
 	--------------------------------------------------------------------------------------------------------
 	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse
 	--------------------------------------------------------------------------------------------------------
-	mouseHandlingEnabled = _{Bool(true);
+	mouseHandlingEnabled = _{Bool(not CPAPI.IsCamelotVersion);
 		name = 'Enable Mouse Handling';
 		desc = 'Enable custom mouse handling, automating cursor toggling and timeout while using left and right mouse button emulation.';
 		note = 'While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.';
@@ -362,24 +362,6 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_('Modules', SETTING_GROUP_SYSTEM);
-	--------------------------------------------------------------------------------------------------------
-	layersTapLatch = _{Bool(false);
-		name = 'Tap to Latch';
-		desc = 'Tapping a modifier latches it until tapped again. Holding always overrides.';
-		advd = true;
-	};
-	layersDoubleBar = _{Bool(false);
-		name = 'Doubled Bar';
-		desc = 'A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.';
-		advd = true;
-	};
-	layersOrdered = _{Bool(false);
-		name = 'Modifier Order';
-		desc = 'Pressing Ctrl then Shift is a different layer from Shift then Ctrl.';
-		advd = true;
-	};
-	--------------------------------------------------------------------------------------------------------
 	_('Interface Cursor', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	UIWrapDisable = _{Bool(false);
@@ -454,16 +436,41 @@ db:Register('Variables', CPAPI.Callable({
 	bindingOverlapEnable = _{Bool(false);
 		name = 'Allow Binding Overlap';
 		desc = 'Allow binding multiple combos to the same binding.';
-		advd = true;
+		list = SETTINGS;
 	};
 	bindingAllowSticks = _{Bool(false);
 		name = 'Allow Radial Bindings';
 		desc = 'Allow binding discrete radial stick inputs.';
-		advd = true;
+		list = SETTINGS;
 	};
 	bindingCatchTime = _{Range(5, 1, 1, 10);
 		name = 'Binding Catch Timeframe';
 		desc = 'Timeframe to catch a binding in the configuration, in seconds.';
+		advd = true;
+	};
+	layersTapLatch = _{Bool(false);
+		name = 'Tap to Latch';
+		desc = 'Tapping a modifier latches it until tapped again. Holding always overrides.';
+		list = 'Modifiers';
+		advd = true;
+	};
+	layersDoubleBar = _{Bool(false);
+		name = 'Doubled Bar';
+		desc = 'A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.';
+		list = 'Modifiers';
+		advd = true;
+	};
+	layersOrdered = _{Bool(false);
+		name = 'Modifier Order';
+		desc = 'Pressing Ctrl then Shift is a different layer from Shift then Ctrl.';
+		list = 'Modifiers';
+		advd = true;
+	};
+	gamepadPagedBar = _{Range(1, 1, 1, 10);
+		name = 'Paged Gamepad Bar';
+		desc = 'Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.';
+		hide = not CPAPI.IsCamelotVersion;
+		list = 'Modifiers';
 		advd = true;
 	};
 	bindingAutomaticBackup = _{Bool(true);

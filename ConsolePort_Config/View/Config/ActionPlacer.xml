@@ -1,0 +1,31 @@
+<Ui>
+	<Script file="ActionPlacer.lua"/>
+
+	<Frame name="CPActionPlacer" virtual="true" inherits="CPPopupPortraitFrameTemplate"
+		hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="DIALOG">
+		<Size x="888" y="560"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<KeyValues>
+			<KeyValue key="nameOffsetY" value="-16" type="number"/>
+		</KeyValues>
+		<Frames>
+			<Frame parentKey="Tabs" inherits="CPTabGroupTemplate" scale="1.1">
+				<Anchors>
+					<Anchor point="TOP" y="-50"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="List" inherits="CPConfigScrollBox, CPScrollFrameArtTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="16" y="-98"/>
+					<Anchor point="BOTTOMRIGHT" x="-24" y="36"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnMouseDown method="StartMoving"/>
+			<OnMouseUp method="StopMovingOrSizing"/>
+		</Scripts>
+	</Frame>
+</Ui>

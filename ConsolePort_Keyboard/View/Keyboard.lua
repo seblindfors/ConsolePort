@@ -88,7 +88,55 @@ function Keyboard:SetState(state)
 	for widget in self:EnumerateActive() do
 		widget:SetState(state)
 	end
+	self:UpdateModifierGlyphs()
 end
+
+local MODIFIER_GLYPHS = { {'SHIFT', 0x1}, {'CTRL', 0x2}, {'ALT', 0x4} };
+local MODIFIER_GLYPH_SIZE, MODIFIER_GLYPH_GAP = 20, 4;
+
+function Keyboard:UpdateModifierGlyphs()
+	local device = db('Gamepad/Active')
+	local glyphs = self.ModifierGlyphs;
+	if not glyphs then
+		local holder = CreateFrame('Frame', nil, self)
+		holder:SetPoint('BOTTOM', self, 'TOP', 0, 72)
+		holder:SetSize(1, MODIFIER_GLYPH_SIZE)
+		holder:SetFrameLevel(self:GetFrameLevel() + 20)
+		glyphs = { holder = holder };
+		self.ModifierGlyphs = glyphs;
+	end
+	local holder = glyphs.holder;
+	local bits, shown = (self.state or 1) - 1, {};
+	for i, modifier in ipairs(MODIFIER_GLYPHS) do
+		local glyph = glyphs[i];
+		if not glyph then
+			glyph = holder:CreateTexture(nil, 'OVERLAY')
+			glyph:SetSize(MODIFIER_GLYPH_SIZE, MODIFIER_GLYPH_SIZE)
+			glyphs[i] = glyph;
+		end
+		local button = device and db.Gamepad.Index.Modifier.Key[modifier[1]];
+		if button then
+			local icon, isAtlas = device:GetIconForButton(button, 32)
+			CPAPI.SetTextureOrAtlas(glyph, {icon, isAtlas})
+			glyph:SetAlpha(bit.band(bits, modifier[2]) > 0 and 1 or 0.3)
+			glyph:Show()
+			shown[#shown + 1] = glyph;
+		else
+			glyph:Hide()
+		end
+	end
+	local stride = MODIFIER_GLYPH_SIZE + MODIFIER_GLYPH_GAP;
+	for i, glyph in ipairs(shown) do
+		glyph:ClearAllPoints()
+		glyph:SetPoint('CENTER', holder, 'CENTER', (i - (#shown + 1) / 2) * stride, 0)
+	end
+end
+
+db:RegisterCallbacks(Keyboard.UpdateModifierGlyphs, Keyboard,
+	'Gamepad/Active',
+	'OnIconsChanged',
+	'OnModifierChanged'
+);
 
 ---------------------------------------------------------------
 -- Input scripts
@@ -381,6 +429,8 @@ function Keyboard:OnVariableChanged()
 	end
 	self.Controls:SetData(controls)
 	self.Controls:SetState(1)
+	self.WordSuggester:UpdateHints()
+	self:UpdateModifierGlyphs()
 	-- update dictionary settings
 	env.DictMatchPattern  = db('keyboardDictPattern');
 	env.DictMatchAlphabet = db('keyboardDictAlphabet');

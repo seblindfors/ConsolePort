@@ -139,6 +139,10 @@ function TempAbility:OnHide()
 end
 
 function TempAbility:OnDataLoaded()
+	if CPAPI.IsCamelotVersion then
+		self:UnregisterAllEvents()
+		return CPAPI.BurnAfterReading;
+	end
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('Button', 'CPWorldButtonTemplate', Ability)
 	self:SetScript('OnHide', self.OnHide)

@@ -1,7 +1,8 @@
 local Suggester, _, env = ConsolePortKeyboard.WordSuggester, ...;
 local widgetPool, suggestions = CreateFramePool('Frame', Suggester, 'CPKeyboardWordButton'), {};
 ---------------------------------------------------------------
-local MAX_DISPLAY_ENTRIES, WIDGET_HEIGHT = 8, 20;
+local MAX_DISPLAY_ENTRIES, WIDGET_HEIGHT, HINT_HEIGHT = 8, 20, 16;
+local L, db = env.L, env.db;
 ---------------------------------------------------------------
 -- Auto correct handling
 ---------------------------------------------------------------
@@ -24,7 +25,8 @@ local function OnSuggestionsUpdatedCallback(result, iterator)
 	end
 
 	local mimeHeight = self.Mime:GetHeight();
-	self:SetHeight(Clamp((#widgets + 1) * WIDGET_HEIGHT + mimeHeight, 100, 200))
+	self:SetHeight(Clamp((#widgets + 1) * WIDGET_HEIGHT + mimeHeight + HINT_HEIGHT, 100, 220))
+	self.Hints:SetShown(#widgets > 0)
 	local prev = self.Mime;
 	for row, widget in ipairs(widgets) do
 		widget:SetPoint('TOP', prev, 'BOTTOM', 0, row == 1 and -8 or 0)
@@ -69,6 +71,19 @@ end
 function Suggester:GetSuggestion()
 	return self.selectedWord;
 end
+
+function Suggester:UpdateHints()
+	local device = db('Gamepad/Active')
+	if not device then return self.Hints:SetText('') end;
+	local function slug(varID)
+		return device:GetHotkeyStringForButton(db(varID)) or '';
+	end
+	self.Hints:SetText(('%s%s %s   %s %s'):format(
+		slug('keyboardPrevWordButton'), slug('keyboardNextWordButton'), L'Choose',
+		slug('keyboardAutoCorrButton'), L'Insert'))
+end
+
+db:RegisterCallback('OnIconsChanged', Suggester.UpdateHints, Suggester)
 
 function Suggester:OnUpdate()
 	self.Caret:Show()

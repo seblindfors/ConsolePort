@@ -49,11 +49,17 @@ do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}
 	---------------------------------------------------------------
 	-- Visibility tracking
 	---------------------------------------------------------------
+	local function isNativelyNavigated(widget)
+		return CPAPI.IsNativeNavigationActive()
+			and SmartNavigation and SmartNavigation:GetActiveFrame() == widget;
+	end
+
 	local function checkVisible(widget)
 		visible[widget] = (
 			not IsAnchoringRestricted(widget)
 			and GetPoint(widget)
 			and IsVisible(widget)
+			and not isNativelyNavigated(widget)
 		) or nil;
 	end
 
