@@ -370,10 +370,10 @@ ActionBarAPI.Names = {
 	-- Individual pages
 	Pages = {
 		[02] = 'Page 2';
-		[07] = 'Form 1';
-		[08] = 'Form 2';
-		[09] = 'Form 3';
-		[10] = 'Form 4';
+		[07] = { 'Form %d', 1 };
+		[08] = { 'Form %d', 2 };
+		[09] = { 'Form %d', 3 };
+		[10] = { 'Form %d', 4 };
 		[11] = 'Dragon';
 	};
 }
@@ -419,10 +419,10 @@ if ActionBarAPI.Gamepad then
 	Names[sets[2]] = BINDING_HEADER_MULTIACTIONBAR;
 	Names[sets[3]] = BINDING_HEADER_MULTIACTIONBAR;
 	for k = 1, gp.Bars do
-		Names.Pages[gp.BarOffset + k] = ('Gamepad Bar %d'):format(k);
+		Names.Pages[gp.BarOffset + k] = { 'Gamepad Bar %d', k };
 	end
 	for n = 1, gp.Stance.Count do
-		Names.Pages[gp.BarOffset + gp.Stance.Bar + n - 1] = ('Form %d'):format(n);
+		Names.Pages[gp.BarOffset + gp.Stance.Bar + n - 1] = { 'Form %d', n };
 	end
 end
 
@@ -432,6 +432,7 @@ CPAPI.Proxy(ActionBarAPI.Names, function(self, id)
 	if data then return data.name end;
 	-- Check for defined page name
 	data = self.Pages[id];
+	if ( type(data) == 'table' ) then return db.Locale(unpack(data)) end;
 	if data then return db.Locale(data) end;
 	-- Arbitrary page name, numbered within the bar's own slot set
 	local displayID, isGamepad = 0, ActionBarAPI:IsGamepadBar(id);

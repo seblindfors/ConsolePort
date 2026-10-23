@@ -44,15 +44,15 @@ L.DESC_KEY_BUTTON2 = [[
 	A plain button bound here also right clicks the interface while the cursor is active.
 ]];
 L.PROMPT_MOUSE_BINDING_PLAIN = [[
-	%s is bound to %s: it clicks the world, and %ss the interface while the cursor is active.
+	%s is bound to %s: it clicks the world, and acts as %s on the interface while the cursor is active.
 ]];
 L.PROMPT_MOUSE_BINDING_CHORD = [[
-	%s is bound to %s: it clicks the world. Interface %ss need a plain button, so that has been turned off.
+	%s is bound to %s: it clicks the world. Acting as %s on the interface needs a plain button, so that has been turned off.
 
 	To pick a button for the interface, see %s > %s > %s.
 ]];
 L.PROMPT_MOUSE_EMULATION = [[
-	%s %ss the interface while the cursor is active, and is now bound to %s to click the world too.
+	%s acts as %s on the interface while the cursor is active, and is now bound to %s to click the world too.
 ]];
 L.DESC_INTERACTTARGET = [[
 	Allows you to interact with NPCs and objects in the game world.

@@ -264,10 +264,12 @@ L.DESC_JUMP = [[
 ]]; -- en:4c032315
 L.DESC_KEY_BUTTON1 = [[
 	用于开启/关闭自由光标模式，在该模式下你可以使用摄像机杆(一般为右摇杆)移动鼠标指针
-]]; -- en:fd3d111a
+	绑定到此处的单个按钮在光标激活时也会在界面上执行左键点击。
+]]; -- en:e0d6e796
 L.DESC_KEY_BUTTON2 = [[
 	用于切换居中光标模式，允许你在游戏世界的中心固定鼠标位置与对象和角色互动。
-]]; -- en:2f5c87e4
+	绑定到此处的单个按钮在光标激活时也会在界面上执行右键点击。
+]]; -- en:2c3e0f5e
 L.DESC_QUICK_MENU = [[
 	一个快捷菜单，集中游戏中常用的操作，
 	例如对组队战利品进行掷骰、取消增益效果
@@ -418,12 +420,6 @@ L.DEVICE_DESC_XBOX = [[
 
 	也推荐用于 Steam Input，与其模拟的 Xbox 360 控制器一致。
 ]]; -- en:654501d3
-L.DISC_KEY_BUTTON1 = [[
-	当你的一个按钮设置为模拟左键点击时，此快捷键无法更改。
-]]; -- en:e811ebc6
-L.DISC_KEY_BUTTON2 = [[
-	当你的一个按钮设置为模拟右键点击时，此快捷键无法更改。
-]]; -- en:b85c78b2
 L.EXPORT_DATA_TEXT = [[
 
 |cFFFFFF00导出|r
@@ -1516,3 +1512,40 @@ L['When set to zero, always face your movement stick direction.\nWhen set to max
 设置为最大时，永远不要面向你的移动摇杆方向。]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[你的 %s 设备对蓝牙和有线连接有单独的处理方式。
 你正在使用哪一种？]];
+
+L.NAME_INTERACT = '互动'; -- en:53deafc6
+L.NAME_INSPECT = '观察'; -- en:18ca87af
+L.NAME_TARGET_FRIENDLY = '选择友方目标（按住）'; -- en:02e85141
+L.NAME_TARGET_HOSTILE = '选择敌方目标（按住）'; -- en:bc8d3927
+L.DESC_INTERACT = '与软目标互动、攻击敌方目标或拾取。按住可切换自动拾取。使用游戏自带的互动按钮。'; -- en:3b3e14ba
+L.DESC_INSPECT = '打开目标的单位菜单，按住选择目标按钮时显示团队标记。使用游戏自带的观察按钮。'; -- en:0290b557
+L.DESC_TARGET_FRIENDLY = '按住以用准星瞄准友方单位。未选择就松开时，若游戏选项已开启，则选择最近的友方。'; -- en:a07c46a4
+L.DESC_TARGET_HOSTILE = '按住以用准星瞄准敌方单位。未选择就松开时，若游戏选项已开启，则选择最近的敌方。'; -- en:0772559e
+L.PROMPT_MOUSE_BINDING_PLAIN = '%s 已绑定到 %s：它点击游戏世界，并在光标激活时作为界面上的%s。'; -- en:fd73841a
+L.PROMPT_MOUSE_BINDING_CHORD = [[
+	%s 已绑定到 %s：它点击游戏世界。作为界面上的%s需要单个按钮，因此该功能已关闭。
+
+	要为界面选择按钮，请查看 %s > %s > %s。
+]]; -- en:6bd55d64
+L.PROMPT_MOUSE_EMULATION = '%s 在光标激活时作为界面上的%s，现在也已绑定到 %s 以点击游戏世界。'; -- en:24ae4e58
+L['Choose'] = '选择';
+L['Insert'] = '插入';
+L['left click'] = '左键点击';
+L['right click'] = '右键点击';
+L['empty'] = '空';
+L['Select a slot to place this action.'] = '选择一个插槽来放置此动作。';
+L['Select a slot to bind %s and place this action.'] = '选择一个插槽来绑定 %s 并放置此动作。';
+L['Open'] = '打开方式';
+L['Notch'] = '凹口';
+L['Hover'] = '悬停';
+L['Paged Gamepad Bar'] = '翻页手柄动作条';
+L['Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.'] = '切换到姿态或形态动作条的手柄动作条，与键盘的主动作条行为相同。';
+L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = '凹口：点击凹口或按下快捷键，菜单保持打开。悬停：鼠标位于工具栏上方时菜单滑出，离开后不久以原始大小关闭。';
+L['Scale of the toolbar menu when opened by the notch.'] = '通过凹口打开时工具栏菜单的缩放。';
+L['The micro menu with shortcuts and bag slots, opened by a notch or by mouse over.'] = '带有快捷方式和背包插槽的微型菜单，通过凹口或鼠标悬停打开。';
+L['Gamepad Bar %d'] = '手柄动作条 %d';
+L['Gamepad Bar %d Button %d'] = '手柄动作条 %d 按钮 %d';
+L['Form %d'] = '形态 %d';
+L['A modifier gets its own bar, which combines with nothing. With Tap to Latch, double tap to swap to it until tapped again. Without, tap then hold to use it while held.'] = '修饰键会获得专属动作条，不与任何键组合。开启点按锁定时：双击切换到该动作条，直到再次点按。关闭时：点按后按住即可在按住期间使用。';
+L['Could not identify the macro in action slot %d; it will be left out of the export.'] = '无法识别动作插槽 %d 中的宏，它将不会被导出。';
+L['%s is off by default and has been switched off. Turn it on under Settings > Modules.'] = '%s 默认关闭，已被停用。请在设置 > 模块中开启。';
