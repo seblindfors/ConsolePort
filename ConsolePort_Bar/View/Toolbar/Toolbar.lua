@@ -48,6 +48,7 @@ local BAG_BUTTONS = {
 	'CharacterReagentBag0Slot';
 	'KeyRingButton';
 };
+local KEYRING_ASPECT = 33 / 45;
 local SWAPPABLE_BAG_SLOTS = {
 	CharacterBag0Slot        = false;
 	CharacterBag1Slot        = false;
@@ -397,8 +398,26 @@ end
 
 function Grid:OnBagsBarLayout()
 	if self.bags and self.bags.enabled and self:Owns(self.BagButtons) then
+		for button in pairs(self.BagButtons) do
+			self:FitBagButton(button)
+		end
 		CPAPI.Next(self.Layout, self)
 	end
+end
+
+function Grid:FitBagButton(button)
+	local width, height = BAG_BUTTON_SIZE, BAG_BUTTON_SIZE;
+	if ( button == KeyRingButton ) then
+		width = Round(BAG_BUTTON_SIZE * KEYRING_ASPECT);
+	end
+	button:SetSize(width, height)
+	if not CPAPI.IsCamelotVersion or not button.UpdateTextures then return end;
+	button.normalAndPushedTextureWidth  = width;
+	button.normalAndPushedTextureHeight = height;
+	for _, texture in ipairs({button:GetNormalTexture(), button:GetPushedTexture(), button:GetHighlightTexture()}) do
+		texture:SetRotation(0)
+	end
+	button:UpdateTextures()
 end
 
 function Grid:RefreshMicroButtons()
@@ -514,7 +533,7 @@ function Grid:MoveBagButtonsNow()
 			button:SetParent(self)
 			button:ClearAllPoints()
 		end
-		button:SetSize(BAG_BUTTON_SIZE, BAG_BUTTON_SIZE)
+		self:FitBagButton(button)
 		button.layoutIndex = index;
 		if not self.ownedBags[button] then
 			self.ownedBags[button] = true;
