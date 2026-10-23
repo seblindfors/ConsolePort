@@ -435,7 +435,7 @@ function Hooknode:OnInventoryButtonModifiedClick()
 	}, self)
 
 	local isArtifact = GetInventoryItemQuality('player', self:GetID()) == Enum.ItemQuality.Artifact;
-	local isSocketUI = GetSocketItemInfo();
+	local isSocketUI = C_ItemSocketInfo.GetSocketItemInfo();
 
 	if not isSocketUI and not isArtifact then
 		WrappedExecute(HandleModifiedItemClick, {
