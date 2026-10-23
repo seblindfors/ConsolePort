@@ -13,6 +13,16 @@ local Buttons = {};
 
 local function GetStanceDriver(index)
 	local parts = {};
+	for _, override in ipairs({
+		{ 'vehicleui',   GetVehicleBarIndex };
+		{ 'overridebar', GetOverrideBarIndex };
+		{ 'shapeshift',  GetTempShapeshiftBarIndex };
+	}) do
+		local page = override[2] and override[2]();
+		if page then
+			parts[#parts + 1] = ('[%s] %d'):format(override[1], ((page - 1) * NUM_ACTIONBAR_BUTTONS) + index);
+		end
+	end
 	for n = 1, gp.Stance.Count do
 		local stanceBar = gp.BarOffset + gp.Stance.Bar + n - 1;
 		parts[#parts + 1] = ('[bonusbar:%d] %d'):format(n, ActionBarAPI:GetSlotID(stanceBar, index));

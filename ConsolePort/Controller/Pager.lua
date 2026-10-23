@@ -151,11 +151,13 @@ Pager.Env = {
 				local bonus = page - %d
 				if bonus >= 1 and bonus <= %d then
 					return %d + ( ( bonus - 1 ) * %d ) + ( id - gpFirst )
+				elseif bonus > %d then
+					return ( ( page - 1 ) * btns ) + ( id - gpFirst ) + 1
 				end
 			end
 			return id
 		end
-	]]):format(NUM_ACTIONBAR_BUTTONS, GAMEPAD_WIDTH, NUM_ACTIONBAR_PAGES, GAMEPAD_FORMS, GAMEPAD_STANCE, GAMEPAD_WIDTH);
+	]]):format(NUM_ACTIONBAR_BUTTONS, GAMEPAD_WIDTH, NUM_ACTIONBAR_PAGES, GAMEPAD_FORMS, GAMEPAD_STANCE, GAMEPAD_WIDTH, GAMEPAD_FORMS);
 	GetActionInfo = [[
 		local id = self::GetActionID(...)
 		if id then

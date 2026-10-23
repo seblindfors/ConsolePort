@@ -49,6 +49,8 @@ local SlotButton = Mixin({
 					local bonus = actionPage - numPages;
 					if ( bonus >= 1 and bonus <= gpForms ) then
 						action = gpStanceFirst + ((bonus - 1) * gpWidth) + (gamepadBarActionID - 1)
+					elseif ( bonus > gpForms ) then
+						action = ((actionPage - 1) * numBarButtons) + gamepadBarActionID
 					end
 					self:CallMethod('ButtonContentsChanged', state, type, action)
 				end
