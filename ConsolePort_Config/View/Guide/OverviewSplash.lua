@@ -50,7 +50,7 @@ function Binding:GetBinding()
 end
 
 function Binding:SetBinding(bindingID)
-	return env:SetBinding(self:GetKeyChord(), bindingID)
+	return env:EditBinding(self:GetKeyChord(), bindingID)
 end
 
 function Binding:GetModifier()

@@ -12,6 +12,14 @@ function env:SetBinding(keyChord, bindingID, skipSave)
 	end
 end
 
+-- A single binding changed by the user, as opposed to a preset or import.
+function env:EditBinding(keyChord, bindingID)
+	if self:SetBinding(keyChord, bindingID) then
+		self:TriggerEvent('OnBindingEdited', keyChord, bindingID)
+		return true;
+	end
+end
+
 -- Glyphs rather than prefixes: 'CTRL-SHIFT-' names nothing visible.
 -- @param buttons : button IDs to draw
 function env:GetButtonGlyphs(buttons, separator)

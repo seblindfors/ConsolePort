@@ -266,7 +266,7 @@ function BindingCatcher:OnBindingCaught(button, data)
 		return true; -- return true anyway to close the catcher.
 	end
 
-	return env:SetBinding(keyChord, bindingID)
+	return env:EditBinding(keyChord, bindingID)
 end
 
 function BindingCatcher:ClearBindingsForID(bindingID)

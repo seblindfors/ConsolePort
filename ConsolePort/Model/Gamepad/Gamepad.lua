@@ -236,9 +236,49 @@ end
 ---------------------------------------------------------------
 -- Callbacks
 ---------------------------------------------------------------
+local function IsPlainButton(key)
+	return key and key:match('^PAD') and not key:find('-', 1, true);
+end
+
+function GamepadAPI:GetPlainButtonForBinding(binding)
+	for _, key in ipairs(self:GetBindingKey(binding, true)) do
+		if IsPlainButton(key) then
+			return key;
+		end
+	end
+end
+
+-- The binding leads; the emulation cvar follows a plain button bound
+-- to it, or clears when only chords are bound.
+function GamepadAPI:MirrorMouseEmulation()
+	for key, cvar in pairs(self.Mouse.Cvars) do
+		local plain = self:GetPlainButtonForBinding(self.Mouse.Binding[key]) or 'none';
+		if ( db:GetCVar(cvar) ~= plain ) then
+			self.mirroringMouse = true;
+			db:SetCVar(cvar, plain)
+			self.mirroringMouse = nil;
+		end
+	end
+end
+
+function GamepadAPI:IsMirroringMouse()
+	return self.mirroringMouse;
+end
+
 for key, cvar in pairs(GamepadAPI.Mouse.Cvars) do
 	db:RegisterSafeCallback(cvar, function(self, binding, value)
-		CPAPI.SetBinding(value, binding, true)
+		if self.mirroringMouse then return end;
+		if IsPlainButton(value) then
+			if not tContains(self:GetBindingKey(binding, true), value) then
+				CPAPI.SetBinding(value, binding, true)
+			end
+			return;
+		end
+		for _, bound in ipairs(self:GetBindingKey(binding, true)) do
+			if IsPlainButton(bound) then
+				CPAPI.SetBinding(bound, nil, true)
+			end
+		end
 	end, GamepadAPI, GamepadAPI.Mouse.Binding[key])
 end
 
@@ -279,6 +319,7 @@ db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
 end, GamepadAPI)
 
 db:RegisterSafeCallback('OnNewBindings', function(self)
+	self:MirrorMouseEmulation()
 	local allowSticks = db('bindingAllowSticks')
 	if not self.stickCvarApplied then
 		self:UnregisterEvent('GAME_PAD_CONFIGS_CHANGED')

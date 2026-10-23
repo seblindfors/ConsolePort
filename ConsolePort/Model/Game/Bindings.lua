@@ -176,20 +176,10 @@ Bindings.Primary = {
 	{	binding = Bindings.Proxied.LeftMouseButton;
 		name    = KEY_BUTTON1;
 		desc    = L.DESC_KEY_BUTTON1;
-		readonly = function()
-			if GetCVar('GamePadCursorLeftClick') ~= 'none' then
-				return L.DISC_KEY_BUTTON1;
-			end
-		end;
 	};
 	{	binding = Bindings.Proxied.RightMouseButton;
 		name    = KEY_BUTTON2;
 		desc    = L.DESC_KEY_BUTTON2;
-		readonly = function()
-			if GetCVar('GamePadCursorRightClick') ~= 'none' then
-				return L.DISC_KEY_BUTTON2;
-			end
-		end;
 	};
 	---------------------------------------------------------------
 	-- Targeting
