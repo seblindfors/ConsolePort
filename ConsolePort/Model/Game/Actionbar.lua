@@ -350,7 +350,7 @@ ActionBarAPI.Pages = {
 	CPAPI.Callable({01, 06, 05, 03, 04}, CPAPI.Static(true));
 	CPAPI.Callable(ActionBarAPI.PageExt, CPAPI.Static(true));
 	CPAPI.Callable({07, 08, 09, 10    }, function() return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars') end);
-	CPAPI.Callable({11                }, function() return not not next(CPAPI.GetCollectedDragonridingMounts()) end);
+	CPAPI.Callable({11                }, function() return not not next(C_MountJournal.GetCollectedDragonridingMounts()) end);
 	CPAPI.Callable({02                }, function()
 		return db('bindingShowExtraBars')
 			or db.Gamepad:GetBindingKey('CLICK ConsolePortPager:2')

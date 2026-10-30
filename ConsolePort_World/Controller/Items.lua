@@ -91,8 +91,8 @@ local BUTTON_GAP    = BUTTON_STRIDE - BUTTON_SIZE;
 
 function ItemManager:OnLoad()
 	function self.InventoryIterator(item)
-		local itemID = CPAPI.GetContainerItemID(item:GetBagAndSlot())
-		if CPAPI.IsUsableItem(itemID) then
+		local itemID = C_Container.GetContainerItemID(item:GetBagAndSlot())
+		if C_Item.IsUsableItem(itemID) then
 			tinsert(self.query, Mixin(item, CPAPI.GetItemInfoInstant(itemID)))
 		end
 	end;

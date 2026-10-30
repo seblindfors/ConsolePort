@@ -300,7 +300,7 @@ end
 ---------------------------------------------------------------
 env:RegisterSafeCallback('OnConfigToggle', function()
 	if not env.Config then
-		CPAPI.LoadAddOn('ConsolePort_Config');
+		C_AddOns.LoadAddOn('ConsolePort_Config');
 		env.Config, env.SharedConfig.Env = CPAPI.CreateConfigFrame(Config, 'Frame', 'ConsolePortActionBarConfig', UIParent, 'CPActionBarConfig')
 		if ( env.Config:GetNumPoints() == 0 ) then
 			env.Config:SetPoint('LEFT', (UIParent:GetWidth() - env.Config:GetWidth()) * 0.25, 0)

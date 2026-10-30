@@ -54,8 +54,8 @@ end
 local function GetReplacementBags(forReagentSlot)
 	local bags = {};
 	for bagID = BACKPACK_CONTAINER, NUM_EQUIPPED do
-		for slotIndex = 1, CPAPI.GetContainerNumSlots(bagID) do
-			local itemID = CPAPI.GetContainerItemID(bagID, slotIndex)
+		for slotIndex = 1, C_Container.GetContainerNumSlots(bagID) do
+			local itemID = C_Container.GetContainerItemID(bagID, slotIndex)
 			if itemID then
 				local isReplacement, icon = IsReplacementBag(itemID, forReagentSlot)
 				if isReplacement then
@@ -182,7 +182,7 @@ end
 function CPBagFlyout:Equip(bagID, slotIndex)
 	if InCombatLockdown() then return end;
 	ClearCursor()
-	CPAPI.PickupContainerItem(bagID, slotIndex)
+	C_Container.PickupContainerItem(bagID, slotIndex)
 	if CursorHasItem() then
 		PutItemInBag(self.slot:GetID())
 	end

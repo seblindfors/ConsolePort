@@ -370,7 +370,7 @@ function Stack:OnDataLoaded()
 
 	-- Activate all existing frames in the registry
 	for addon in pairs(self.Registry) do
-		if CPAPI.IsAddOnLoaded(addon) then
+		if C_AddOns.IsAddOnLoaded(addon) then
 			self:LoadAddonFrames(addon)
 		end
 	end

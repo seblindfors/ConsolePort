@@ -76,7 +76,7 @@ ConsolePort:RegisterConfigCallback(function(_, configEnv)
 
 	local Settings = configEnv:GetPanelByID(SETTINGS_PANEL_ID)
 	Settings:AddProvider(function(AddSetting, GetSortIndex)
-		local IsHelpful = CPAPI.IsSpellHelpful;
+		local IsHelpful = C_Spell.IsSpellHelpful;
 		if not ( db.TargetRing and IsHelpful ) then return end;
 		local main, head = BINDING_HEADER_TARGETING, 'Target Ring';
 

@@ -409,7 +409,7 @@ Mixin(CPAPI.EventHandler(Cursor, {
 local Fade, Flash = db.Alpha.Fader, db.Alpha.Flash;
 local PORTRAIT_TEXTURE_SIZE = 46;
 
-do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHelpful;
+do 	local IsSpellHarmful, IsSpellHelpful = C_Spell.IsSpellHarmful, C_Spell.IsSpellHelpful;
 	local UnitClass, UnitHealth, UnitHealthMax = UnitClass, UnitHealth, UnitHealthMax;
 	local GetClassColorObj, PlaySound, SOUNDKIT = GetClassColorObj, PlaySound, SOUNDKIT;
 	local WARNING_LOW_HEALTH = ChatTypeInfo.YELL;

@@ -44,9 +44,9 @@ local function ProcessVarUpdate(var, ...)
 end
 
 local function ToggleConfig()
-	if not CPAPI.IsAddOnLoaded(CPAPI.ConfigAddOn) then
-		CPAPI.EnableAddOn(CPAPI.ConfigAddOn, db.Modules:GetCharacter())
-		CPAPI.LoadAddOn(CPAPI.ConfigAddOn)
+	if not C_AddOns.IsAddOnLoaded(CPAPI.ConfigAddOn) then
+		C_AddOns.EnableAddOn(CPAPI.ConfigAddOn, db.Modules:GetCharacter())
+		C_AddOns.LoadAddOn(CPAPI.ConfigAddOn)
 	end
 	local config = ConsolePortConfig:Load()
 	config:SetShown(not config:IsShown())
@@ -121,10 +121,10 @@ SLASH_FUNCTIONS = {
 		function(action, frame, owner)
 			if not owner then owner = CPAPI.CursorAddOn end;
 			if action and frame then
-				local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
-				if loadable or CPAPI.IsAddOnLoaded(owner) then
-					CPAPI.EnableAddOn(CPAPI.CursorAddOn, db.Modules:GetCharacter())
-					CPAPI.LoadAddOn(CPAPI.CursorAddOn)
+				local loadable, reason = select(4, C_AddOns.GetAddOnInfo(owner))
+				if loadable or C_AddOns.IsAddOnLoaded(owner) then
+					C_AddOns.EnableAddOn(CPAPI.CursorAddOn, db.Modules:GetCharacter())
+					C_AddOns.LoadAddOn(CPAPI.CursorAddOn)
 					return EventUtil.ContinueOnAddOnLoaded(CPAPI.CursorAddOn, function()
 						if ( action == 'add' ) then
 							if db.Stack:SetFrame(frame, true, owner) then
@@ -288,7 +288,7 @@ SLASH_FUNCTIONS = {
 				whileDead = 1;
 				showAlert = 1;
 				OnAccept = function()
-					CPAPI.DisableAddOn('ConsolePort')
+					C_AddOns.DisableAddOn('ConsolePort')
 					SetCVar('GamePadEnable', 0)
 					ClearPadBindings()
 					Uninstall()

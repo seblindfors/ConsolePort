@@ -25,7 +25,7 @@ local INV_EQ_LOCATIONS = {
 	INVTYPE_BAG            = {'BAG0SLOT', 'BAG1SLOT', 'BAG2SLOT', 'BAG3SLOT', CPAPI.IsModernVersion and Enum.BagIndex.ReagentBag};
 }; for _, slots in pairs(INV_EQ_LOCATIONS) do
 	for i, slot in ipairs(slots) do if slot then
-		slots[i] = tonumber(slot) and C_Container.ContainerIDToInventoryID(slot) or GetInventorySlotInfo(slot);
+		slots[i] = tonumber(slot) and C_Container.ContainerIDToInventoryID(slot) or CPAPI.GetInventorySlotInfo(slot);
 	end end
 end
 ---------------------------------------------------------------
@@ -233,7 +233,7 @@ end
 -- API
 ---------------------------------------------------------------
 function ItemMenu:GetSpellID()
-	return CPAPI.GetItemSpell(self:GetItemID())
+	return C_Item.GetItemSpell(self:GetItemID())
 end
 
 function ItemMenu:GetLink()
@@ -261,7 +261,7 @@ function ItemMenu:HasNoValue()
 end
 
 function ItemMenu:HasSockets()
-	return CPAPI.GetItemNumSockets(self:GetItemID()) > 0;
+	return C_Item.GetItemNumSockets(self:GetItemID()) > 0;
 end
 
 function ItemMenu:IsSplittableItem()
@@ -269,7 +269,7 @@ function ItemMenu:IsSplittableItem()
 end
 
 function ItemMenu:IsEquippableItem()
-	return CPAPI.IsEquippableItem(self:GetItemID())
+	return C_Item.IsEquippableItem(self:GetItemID())
 end
 
 function ItemMenu:IsUsableItem()
@@ -295,7 +295,7 @@ end
 -- Commands
 ---------------------------------------------------------------
 function ItemMenu:Pickup()
-	CPAPI.PickupContainerItem(self:GetBagAndSlot())
+	C_Container.PickupContainerItem(self:GetBagAndSlot())
 	self:Hide()
 end
 
@@ -324,7 +324,7 @@ function ItemMenu:Disenchant()
 end
 
 function ItemMenu:Delete()
-	CPAPI.PickupContainerItem(self:GetBagAndSlot())
+	C_Container.PickupContainerItem(self:GetBagAndSlot())
 	local link, quality, hasSpellID = self:GetLink(), self:GetQuality(), self:GetSpellID();
 	local returnToNode = self.returnToNode;
 	self:Hide()
@@ -344,7 +344,7 @@ end
 
 function ItemMenu:Equip(slot)
 	if self:IsEquippableItem() then
-		CPAPI.PickupContainerItem(self:GetBagAndSlot())
+		C_Container.PickupContainerItem(self:GetBagAndSlot())
 		EquipCursorItem(slot or self:GetInventoryType())
 	end
 	self:Hide()
@@ -353,13 +353,13 @@ end
 function ItemMenu:Sell()
 	-- confirm to ensure item isn't used
 	if self:IsSellableItem() then
-		CPAPI.UseContainerItem(self:GetBagAndSlot())
+		C_Container.UseContainerItem(self:GetBagAndSlot())
 	end
 	self:Hide()
 end
 
 function ItemMenu:Trade()
-	CPAPI.PickupContainerItem(self:GetBagAndSlot())
+	C_Container.PickupContainerItem(self:GetBagAndSlot())
 	InitiateTrade('target')
 	self:Hide()
 end
@@ -370,12 +370,12 @@ end
 
 function ItemMenu:SplitStack(count)
 	local bagID, slotID = self:GetBagAndSlot()
-	CPAPI.SplitContainerItem(bagID, slotID, count)
+	C_Container.SplitContainerItem(bagID, slotID, count)
 	self:Hide()
 end
 
 function ItemMenu:ShowSocket()
-	CPAPI.SocketContainerItem(self:GetBagAndSlot())
+	C_Container.SocketContainerItem(self:GetBagAndSlot())
 	self:Hide()
 end
 
@@ -411,7 +411,7 @@ function ItemMenu:OnHide()
 end
 
 function ItemMenu:ClearPickup()
-	CPAPI.ClearCursor()
+	ClearCursor()
 end
 
 function ItemMenu:PLAYER_REGEN_DISABLED()

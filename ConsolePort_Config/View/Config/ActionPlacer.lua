@@ -25,9 +25,9 @@ function Payloads.spell(spellID)
 	return {
 		kind     = 'spell';
 		id       = spellID;
-		name     = CPAPI.GetSpellName(spellID);
-		icon     = CPAPI.GetSpellTexture(spellID);
-		pickup   = GenerateClosure(CPAPI.PickupSpell, spellID);
+		name     = C_Spell.GetSpellName(spellID);
+		icon     = C_Spell.GetSpellTexture(spellID);
+		pickup   = GenerateClosure(C_Spell.PickupSpell, spellID);
 		isMapped = function(actionID)
 			return onBars[actionID] or IsActionOfKind(actionID, 'spell', spellID);
 		end;
@@ -41,8 +41,8 @@ function Payloads.item(itemID, bagID, slotID)
 		id       = itemID;
 		name     = info.itemName;
 		icon     = info.itemTexture or (C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(itemID));
-		pickup   = bagID and GenerateClosure(CPAPI.PickupContainerItem, bagID, slotID)
-			or GenerateClosure(CPAPI.PickupItem, itemID);
+		pickup   = bagID and GenerateClosure(C_Container.PickupContainerItem, bagID, slotID)
+			or GenerateClosure(C_Item.PickupItem, itemID);
 		isMapped = function(actionID)
 			return IsActionOfKind(actionID, 'item', itemID);
 		end;

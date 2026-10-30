@@ -123,8 +123,8 @@ local AliasMapExport = db.table.merge({
 ---@todo Move this to game model.
 ---------------------------------------------------------------
 local ActionPickupHandlers = {
-	spell = function(id) return CPAPI.PickupSpell(id) end;
-	item = function(id) return CPAPI.PickupItem(id) end;
+	spell = function(id) return C_Spell.PickupSpell(id) end;
+	item = function(id) return C_Item.PickupItem(id) end;
 	summonpet    = C_PetJournal and C_PetJournal.PickupPet;
 	equipmentset = function(id)
 		local setID = C_EquipmentSet.GetEquipmentSetID(id)

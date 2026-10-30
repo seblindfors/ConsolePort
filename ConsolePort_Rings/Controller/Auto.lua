@@ -137,7 +137,7 @@ function Auto:ToggleZoneAbilities()
 		if not C_ActionBar.FindSpellActionButtons(spellID) then
 			local wasAdded = self:AssignAction(SecureHandlerMap.spellID(spellID))
 			if wasAdded then
-				self:AnnounceAddition((CPAPI.GetSpellLink(spellID)))
+				self:AnnounceAddition((C_Spell.GetSpellLink(spellID)))
 			end
 		else
 			local index, set = self:SearchActionByAttribute(DEFAULT_SET, 'spell', spellID)

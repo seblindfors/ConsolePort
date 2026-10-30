@@ -104,7 +104,7 @@ env.LinkMap = {
 			local bookType = ...;
 			return CPAPI.GetSpellBookItemLink(spell, bookType)
 		end
-		return CPAPI.GetSpellLink(spell)
+		return C_Spell.GetSpellLink(spell)
 	end;
 	item = function(...)
 		return select(2, ...)
@@ -199,7 +199,7 @@ env.ActionValidationMap = {
 			spell = link;
 		end
 		local info = CPAPI.GetSpellInfo(spell)
-		if not info.spellID and not CPAPI.GetSpellLink(spell) then
+		if not info.spellID and not C_Spell.GetSpellLink(spell) then
 			-- NOTE: if the spellID is not found, the spell is invalid,
 			-- at least for the current character.
 			return CPAPI.Log('Invalid spell removed from %s:\nID: %s\nLink: %s',

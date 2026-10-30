@@ -373,30 +373,30 @@ function CPReputationBarMixin:UpdateCurrentText()
 end
 
 function CPReputationBarMixin:ShouldBeVisible()
-	local watchedFactionData = CPAPI.GetWatchedFactionData()
+	local watchedFactionData = C_Reputation.GetWatchedFactionData()
 	return watchedFactionData and watchedFactionData.factionID ~= 0;
 end
 
 function CPReputationBarMixin:GetMaxLevel()
-	local watchedFactionData = CPAPI.GetWatchedFactionData()
+	local watchedFactionData = C_Reputation.GetWatchedFactionData()
 	if not watchedFactionData or watchedFactionData.factionID == 0 then
 		return nil;
 	end
 
 	local factionID = watchedFactionData.factionID;
-	if CPAPI.IsFactionParagon(factionID) then
+	if C_Reputation.IsFactionParagonForCurrentPlayer(factionID) then
 		return nil;
 	end
 
-	if CPAPI.IsMajorFaction(factionID) then
+	if C_Reputation.IsMajorFaction(factionID) then
 		local renownLevelsInfo = CPAPI.GetRenownLevels(factionID)
 		return renownLevelsInfo[#renownLevelsInfo].level;
 	end
 
-	local reputationInfo = CPAPI.GetFriendshipReputation(factionID)
+	local reputationInfo = C_GossipInfo.GetFriendshipReputation(factionID)
 	local friendshipID = reputationInfo.friendshipFactionID;
 	if friendshipID and friendshipID > 0 then
-		local repRankInfo = CPAPI.GetFriendshipReputationRanks(factionID)
+		local repRankInfo = C_GossipInfo.GetFriendshipReputationRanks(factionID)
 		return repRankInfo.maxLevel;
 	end
 
@@ -404,7 +404,7 @@ function CPReputationBarMixin:GetMaxLevel()
 end
 
 function CPReputationBarMixin:Update()
-	local watchedFactionData = CPAPI.GetWatchedFactionData()
+	local watchedFactionData = C_Reputation.GetWatchedFactionData()
 	if not watchedFactionData or watchedFactionData.factionID == 0 then
 		return;
 	end
@@ -415,7 +415,7 @@ function CPReputationBarMixin:Update()
 	local factionID = watchedFactionData.factionID;
 	local isShowingNewFaction = self.factionID ~= factionID;
 	if isShowingNewFaction then
-		local reputationInfo = CPAPI.GetFriendshipReputation(factionID)
+		local reputationInfo = C_GossipInfo.GetFriendshipReputation(factionID)
 		self.factionID = factionID;
 		self.friendshipID = reputationInfo.friendshipFactionID;
 	end
@@ -425,8 +425,8 @@ function CPReputationBarMixin:Update()
 	local maxLevel = self:GetMaxLevel()
 
 	local minBar, maxBar, value = watchedFactionData.currentReactionThreshold, watchedFactionData.nextReactionThreshold, watchedFactionData.currentStanding;
-	if CPAPI.IsFactionParagon(factionID) then
-		local currentValue, threshold, _, hasRewardPending = CPAPI.GetFactionParagonInfo(factionID)
+	if C_Reputation.IsFactionParagonForCurrentPlayer(factionID) then
+		local currentValue, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
 		minBar, maxBar  = 0, threshold;
 		if currentValue and threshold then
 			value = currentValue % threshold;
@@ -435,17 +435,17 @@ function CPReputationBarMixin:Update()
 		if hasRewardPending then
 			value = value + threshold;
 		end
-		if CPAPI.IsMajorFaction(factionID) then
+		if C_Reputation.IsMajorFaction(factionID) then
 			overrideUseBlueBar = true;
 		end
-	elseif CPAPI.IsMajorFaction(factionID) then
+	elseif C_Reputation.IsMajorFaction(factionID) then
 		local majorFactionData = CPAPI.GetMajorFactionData(factionID)
 		minBar, maxBar = 0, majorFactionData.renownLevelThreshold;
 		level = majorFactionData.renownLevel;
 		overrideUseBlueBar = true;
 	elseif self.friendshipID and self.friendshipID > 0 then
-		local repInfo = CPAPI.GetFriendshipReputation(factionID)
-		local repRankInfo = CPAPI.GetFriendshipReputationRanks(factionID)
+		local repInfo = C_GossipInfo.GetFriendshipReputation(factionID)
+		local repRankInfo = C_GossipInfo.GetFriendshipReputationRanks(factionID)
 		level = repRankInfo.currentLevel;
 		if repInfo.nextThreshold then
 			minBar, maxBar, value = repInfo.reactionThreshold, repInfo.nextThreshold, repInfo.standing;
@@ -472,7 +472,7 @@ function CPReputationBarMixin:Update()
 	self:SetBarValues(value, minBar, maxBar, level, maxLevel)
 
 	local name = watchedFactionData.name;
-	local needsAccountWideLabel = CPAPI.IsAccountWideReputation(factionID)
+	local needsAccountWideLabel = C_Reputation.IsAccountWideReputation(factionID)
 	if needsAccountWideLabel then
 		name = name .. " " .. REPUTATION_STATUS_BAR_LABEL_ACCOUNT_WIDE;
 	end

@@ -320,7 +320,7 @@ LoadoutInfo.Collectors = {
 							flyoutNames[flyoutID] = name;
 							for f = 1, numFlyoutSlots do
 								local _, overrideSpellID, isKnown = GetFlyoutSlotInfo(typeID, f)
-								if isKnown and not CPAPI.IsPassiveSpell(overrideSpellID) then
+								if isKnown and not C_Spell.IsSpellPassive(overrideSpellID) then
 									flyout[#flyout+1] = overrideSpellID;
 								end
 							end
@@ -341,7 +341,7 @@ LoadoutInfo.Collectors = {
 	-----------------------------------------------------------
 	PetSpells = function(BOOKTYPE_PET, SKILLTYPE_PET)
 	-----------------------------------------------------------
-		local pet, numPetSpells = {}, CPAPI.HasPetSpells()
+		local pet, numPetSpells = {}, C_SpellBook.HasPetSpells()
 		if numPetSpells then
 			for i=1, numPetSpells do
 				local skillType, _, spellID = CPAPI.GetSpellBookItemType(i, BOOKTYPE_PET)
@@ -357,9 +357,9 @@ LoadoutInfo.Collectors = {
 	-----------------------------------------------------------
 		local items, omit = {}, {};
 		for bag=0, NUM_BAG_SLOTS do
-			for slot=1, CPAPI.GetContainerNumSlots(bag) do
+			for slot=1, C_Container.GetContainerNumSlots(bag) do
 				local itemID = CPAPI.GetContainerItemInfo(bag, slot).itemID;
-				if itemID and CPAPI.IsUsableItem(itemID) and not omit[itemID] then
+				if itemID and C_Item.IsUsableItem(itemID) and not omit[itemID] then
 					items[#items + 1] = {bag, slot}
 					omit[itemID] = true;
 				end
@@ -471,10 +471,10 @@ function LoadoutInfo:RefreshCollections(flatten)
 				AddCollection(flyout, {
 					name    = name;
 					match   = C_ActionBar.FindSpellActionButtons;
-					pickup  = CPAPI.PickupSpell;
+					pickup  = C_Spell.PickupSpell;
 					tooltip = GameTooltip.SetSpellByID;
-					texture = CPAPI.GetSpellTexture;
-					title   = CPAPI.GetSpellName;
+					texture = C_Spell.GetSpellTexture;
+					title   = C_Spell.GetSpellName;
 					map     = function(map, id) return map.spellID(id) end;
 					header  = ABILITIES;
 				})
@@ -503,7 +503,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 		if IsDataValid(items) then
 			AddCollection(items, {
 				name    = BAG_NAME_BACKPACK or INVENTORY_TOOLTIP;
-				pickup  = CPAPI.PickupContainerItem;
+				pickup  = C_Container.PickupContainerItem;
 				tooltip = GameTooltip.SetBagItem;
 				texture = function(...) return CPAPI.GetContainerItemInfo(...).iconFileID end;
 				title   = function(...) return CPAPI.GetContainerItemInfo(...).hyperlink end;
@@ -539,7 +539,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 
 				AddCollection(mounts, {
 					name    = MOUNTS;
-					pickup  = function(id) return CPAPI.PickupSpell(getMountSpellID(id)) end;
+					pickup  = function(id) return C_Spell.PickupSpell(getMountSpellID(id)) end;
 					tooltip = function(self, id) GameTooltip.SetSpellByID(self, getMountSpellID(id)) end;
 					texture = function(id) return (select(4, GetCompanionInfo(COMPANION_MOUNT, id))) end;
 					title   = function(id) return (select(2, GetCompanionInfo(COMPANION_MOUNT, id))) end;
