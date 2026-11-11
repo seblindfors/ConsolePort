@@ -186,6 +186,11 @@ function FlyoutCooldown:OnLoad()
 	-- Flyout cluster buttons should have smaller CD font
 	local file, height, flags = self.text:GetFont()
 	self.text:SetFont(file, height * 0.75, flags)
+	if ( CPAPI.IsModernVersion and self.SetCooldownFromDurationObject ) then
+		hooksecurefunc(self, 'SetCooldownFromDurationObject', function(cooldown, duration)
+			cooldown:GetParent():OnDurationCooldownSet(cooldown, duration)
+		end)
+	end
 end
 
 function FlyoutCooldown:SetDrawBling(enabled, force)
@@ -218,6 +223,7 @@ end
 
 ---------------------------------------------------------------
 local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, alpha = 0, shown = 0};
+local FLYOUT_COOLDOWN_THRESHOLD = 2;
 ---------------------------------------------------------------
 do  -- Alpha update closures
 	FlyoutButton.AlphaState = CPAPI.CreateFlagClosures({
@@ -313,14 +319,42 @@ end
 
 function FlyoutButton:OnCooldownSet(cooldown, _, duration)
 	local onCooldown = (cooldown and duration and duration > 0);
-	local fadeInForCD = onCooldown and duration > 2;
+	local fadeInForCD = onCooldown and duration > FLYOUT_COOLDOWN_THRESHOLD;
 	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
 	if hotkey1 then hotkey1:SetShown(not onCooldown) end;
 	if hotkey2 then hotkey2:SetShown(not onCooldown) end;
 	self:UpdateAlpha(self.AlphaState.OnCooldown, fadeInForCD)
 end
 
+local function cancelCooldownReveal(button)
+	if button.cooldownRevealTimer then
+		button.cooldownRevealTimer:Cancel()
+		button.cooldownRevealTimer = nil;
+	end
+end
+
+local function setCooldownReveal(button, show)
+	local flag = button.AlphaState.OnCooldown;
+	if flag(button.alpha, show) ~= button.alpha then
+		button:UpdateAlpha(flag, show)
+	end
+end
+
+function FlyoutButton:OnDurationCooldownSet(cooldown, duration)
+	if not duration:HasSecretValues() then
+		cancelCooldownReveal(self)
+		return setCooldownReveal(self, duration:GetTotalDuration() > FLYOUT_COOLDOWN_THRESHOLD);
+	end
+	-- Wait out the global cooldown when the duration cannot be compared in Lua.
+	if not self.cooldownRevealTimer then
+		self.cooldownRevealTimer = C_Timer.NewTimer(FLYOUT_COOLDOWN_THRESHOLD, function()
+			if cooldown:IsShown() then setCooldownReveal(self, true) end;
+		end);
+	end
+end
+
 function FlyoutButton:OnCooldownClear()
+	cancelCooldownReveal(self)
 	self:ToggleHotkeys(self.showFlyoutIcons)
 	self:UpdateAlpha(self.AlphaState.OnCooldown, false)
 end
