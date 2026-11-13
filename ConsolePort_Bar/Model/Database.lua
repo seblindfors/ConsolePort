@@ -46,7 +46,21 @@ env.Const.PageDescription =  {
 ---------------------------------------------------------------
 do -- Variables
 ---------------------------------------------------------------
+local L          = env.L;
 local classColor = CreateColor(CPAPI.NormalizeColor(CPAPI.GetClassColor()));
+local WATCH_TEXT_VISIBILITY_ORDER = {hover = 1; always = 2; hidden = 3};
+local WATCH_TEXT_VISIBILITY_OPTIONS = {
+	hover  = L'Hover - Default';
+	always = L'Always Show';
+	hidden = L'Hidden';
+};
+local WATCH_TEXT_FORMAT_ORDER = {progress = 1; percent = 2; both = 3; remaining = 4};
+local WATCH_TEXT_FORMAT_OPTIONS = {
+	progress  = L'Current/Max';
+	percent   = L'Percent';
+	both      = L'Numbers + Pct';
+	remaining = L'Remaining';
+};
 
 env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------
@@ -262,7 +276,7 @@ env:Register('Variables', CPAPI.Callable({
 	enableXPBar = _{Data.Bool(true);
 		name = 'Enable Watch Bars';
 		desc = 'Show the watch bars at the bottom of the toolbar.';
-		note = 'Watch bars include XP, reputation, honor, artifact power, and azerite.';
+		note = L'Watch bars include XP, reputation, honor, artifact power, azerite, and house favor where available.';
 	};
 	tintEnable = _{Data.Bool(true);
 		name = 'Enable Tint';
@@ -272,6 +286,34 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Fade Watch Bars';
 		desc = 'Fade out the watch bars when not mousing over the toolbar.';
 		deps = { enableXPBar = true };
+	};
+	watchTopTextVisibility = _{
+		Data.Map('hover', WATCH_TEXT_VISIBILITY_OPTIONS);
+		name = L'Top Bar Text Visibility';
+		desc = L'Choose when to show text on the top watch bar.';
+		deps = { enableXPBar = true };
+		optionSort = function(_, a, b) return WATCH_TEXT_VISIBILITY_ORDER[a] < WATCH_TEXT_VISIBILITY_ORDER[b] end;
+	};
+	watchTopTextFormat = _{
+		Data.Map('progress', WATCH_TEXT_FORMAT_OPTIONS);
+		name = L'Top Bar Text Format';
+		desc = L'Choose what the top watch bar text displays.';
+		deps = { enableXPBar = true };
+		optionSort = function(_, a, b) return WATCH_TEXT_FORMAT_ORDER[a] < WATCH_TEXT_FORMAT_ORDER[b] end;
+	};
+	watchBottomTextVisibility = _{
+		Data.Map('hover', WATCH_TEXT_VISIBILITY_OPTIONS);
+		name = L'Bottom Bar Text Visibility';
+		desc = L'Choose when to show text on the bottom or only watch bar.';
+		deps = { enableXPBar = true };
+		optionSort = function(_, a, b) return WATCH_TEXT_VISIBILITY_ORDER[a] < WATCH_TEXT_VISIBILITY_ORDER[b] end;
+	};
+	watchBottomTextFormat = _{
+		Data.Map('progress', WATCH_TEXT_FORMAT_OPTIONS);
+		name = L'Bottom Bar Text Format';
+		desc = L'Choose what the bottom or only watch bar text displays.';
+		deps = { enableXPBar = true };
+		optionSort = function(_, a, b) return WATCH_TEXT_FORMAT_ORDER[a] < WATCH_TEXT_FORMAT_ORDER[b] end;
 	};
 	xpBarColor = _{Data.Color(classColor);
 		name = 'XP Bar Color';
