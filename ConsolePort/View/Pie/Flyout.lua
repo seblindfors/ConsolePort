@@ -375,15 +375,18 @@ local function ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
 	self:UpdatePieSlices(true, #active)
 end
 
-if CPAPI.IsModernVersion then -- signature: (self, flyoutButton, flyoutID, isActionBar, specID, showFullTooltip, reason)
-	hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, _, flyoutID, isActionBar, specID, _, reason)
-		ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
-	end)
-else -- signature: (self, flyoutID, parent, direction, distance, isActionBar, specID, showFullTooltip, reason)
-	hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActionBar, specID, _, reason)
-		ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
-	end)
-end
+hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, buttonOrID, ...)
+	-- MoP also uses the button-first signature.
+	if type(buttonOrID) == 'number' then
+		local _, _, _, isActionBar, specID, _, reason = ...;
+		ToggleSpellFlyout(flyout, buttonOrID, isActionBar, specID, reason)
+	else
+		local flyoutID, isActionBar, specID, _, reason = ...;
+		if type(flyoutID) == 'number' then
+			ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
+		end
+	end
+end)
 
 do local LAB, hookedLAB = LibStub('LibActionButton-1.0'), false;
 	LAB:RegisterCallback('OnFlyoutButtonCreated', function(_, button)
