@@ -344,7 +344,7 @@ do Lib.Skin.UtilityRingButton = function(self)
 		obj:ClearAllPoints()
 		obj:Show()
 		if (self:GetAttribute('type') == 'action' and self:GetAttribute('action') == CPAPI.ExtraActionButtonID) then
-			local skin, hasBarSkin = CPAPI.GetOverrideBarSkin(), true;
+			local skin, hasBarSkin = C_ActionBar.GetOverrideBarSkin(), true;
 			if not skin then
 				skin, hasBarSkin = [[Interface\ExtraButton\stormwhite-extrabutto]], false;
 			end
