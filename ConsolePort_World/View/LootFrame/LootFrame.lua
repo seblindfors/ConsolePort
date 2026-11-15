@@ -14,29 +14,19 @@ local LootFrame = Mixin(CPAPI.EventHandler(ConsolePortLootFrame, {
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
-function LootFrame:LOOT_READY()
-	if GetNumLootItems() < 1 then
-		return CloseLoot()
+function LootFrame:LOOT_SLOT_CLEARED(slot)
+	if self:IsShown() then
+		self:UpdateItems(false, slot)
 	end
-	self:UpdateItems(true)
-end
-
-function LootFrame:LOOT_SLOT_CLEARED()
-	-- HACK: using CloseLoot here crashes the game (9.0.2.36839),
-	-- therefore, just check active buttons and return if the
-	-- container only has 1 item.
-	if ( self:GetNumActive() == 1 ) then
-		return
-	end
-	self:UpdateItems(false)
 end
 
 function LootFrame:LOOT_SLOT_CHANGED()
-	if GetNumLootItems() < 1 then
-		return CloseLoot()
+	if self:IsShown() then
+		self:UpdateItems(false)
 	end
-	self:UpdateItems(false)
 end
+
+LootFrame.LOOT_READY = LootFrame.LOOT_SLOT_CHANGED;
 
 function LootFrame:LOOT_OPENED(autoLoot, isFromItem)
 	if autoLoot then
@@ -45,7 +35,11 @@ function LootFrame:LOOT_OPENED(autoLoot, isFromItem)
 	if isFromItem then
 		PlaySound(SOUNDKIT.UI_CONTAINER_ITEM_OPEN)
 	end
-	self:Show()
+	if self:UpdateItems(true) then
+		self:Show()
+	else
+		CloseLoot()
+	end
 end
 
 function LootFrame:LOOT_CLOSED()
@@ -80,7 +74,12 @@ function LootFrame:OnShow()
 	self.Header.HeaderOpenAnim:Stop()
 	self.Header.HeaderOpenAnim:Play()
 
-	if ConsolePort:IsCursorActive() then
+	if InCombatLockdown() then
+		-- Keep the loot controls until this panel closes, even after combat ends.
+		self.openedInCombat = true;
+		ConsolePort:SetCursorObstructor(self, true)
+		self:SetHints()
+	elseif ConsolePort:IsCursorActive() then
 		ConsolePort:AddInterfaceCursorFrame(self)
 		ConsolePort:SetCursorNode(self:GetFocusWidget())
 	else
@@ -93,6 +92,10 @@ function LootFrame:OnHide()
 	self.Header.HeaderOpenAnim:Finish()
 	self:ClearHints()
 	ConsolePort:RemoveInterfaceCursorFrame(self)
+	if self.openedInCombat then
+		self.openedInCombat = nil;
+		ConsolePort:SetCursorObstructor(self, false)
+	end
 end
 
 function LootFrame:OnDataLoaded()
@@ -100,6 +103,7 @@ function LootFrame:OnDataLoaded()
 		CPAPI.DisableFrame(_G.LootFrame, true)
 		CPAPI.RegisterFrameForEvents(self, self.Events)
 	else
+		self:Hide()
 		CPAPI.EnableFrame(_G.LootFrame, self.Events)
 		self:UnregisterAllEvents()
 	end
@@ -149,7 +153,7 @@ function LootFrame:OnGamePadButtonDown(button)
 	elseif (button == 'PADDUP') then
 		self:UpdateFocus(self.focusIndex - 1)
 	elseif (self.CloseOnButton[button]) then
-		CloseLoot()
+		self:Close()
 	end
 end
 
@@ -171,12 +175,12 @@ db:RegisterCallback('Settings/useCustomLootFrame', LootFrame.OnDataLoaded, LootF
 ---------------------------------------------------------------
 -- Content handling
 ---------------------------------------------------------------
-function LootFrame:UpdateItems(fadeOnShow)
+function LootFrame:UpdateItems(fadeOnShow, clearedSlot)
 	self:ReleaseAll()
 
 	local count, prev = 1;
 	for i = 1, GetNumLootItems() do
-		if LootSlotHasItem(i) then
+		if i ~= clearedSlot and LootSlotHasItem(i) then
 			local button, newObj = self:TryAcquireRegistered(count)
 			if newObj then
 				button:OnLoad()
@@ -201,12 +205,18 @@ function LootFrame:UpdateItems(fadeOnShow)
 
 	local numActive = self:GetNumActive()
 	if ( numActive < 1 ) then
-		CloseLoot()
-		return self:Hide()
+		self:Hide()
+		return false;
 	end
 
 	self:AdjustHeight(numActive * 52)
 	self:UpdateFocus(self.focusIndex)
+	return true;
+end
+
+function LootFrame:Close()
+	self:Hide()
+	CloseLoot()
 end
 
 function LootFrame:UpdateFocus(index)
