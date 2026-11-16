@@ -1,4 +1,18 @@
-local env, db = CPAPI.GetEnv(...)
+local env, db, _, L = CPAPI.GetEnv(...)
+local WATCH_TEXT_SLOTS = {
+	top = {visibility = 'watchTopTextVisibility'; format = 'watchTopTextFormat'};
+	bottom = {visibility = 'watchBottomTextVisibility'; format = 'watchBottomTextFormat'};
+};
+
+local function getWatchTextSlot(bar)
+	return bar.watchTextSlot or WATCH_TEXT_SLOTS.bottom;
+end
+
+local function getProgressPercent(value, maximum)
+	if maximum <= 0 then return 0 end;
+	return math.ceil(value * 100 / maximum);
+end
+
 ---------------------------------------------------------------
 CPStatusTrackingBarMixin = {};
 ---------------------------------------------------------------
@@ -44,8 +58,17 @@ function CPStatusTrackingBarMixin:SetBarColor(r, g, b)
 	self.StatusBar:SetAnimatedTextureColors(r, g, b)
 end
 
+local function shouldShowWatchBarText(visibility, isHovered)
+	if visibility == 'always' then
+		return true;
+	elseif visibility == 'hidden' then
+		return false;
+	end
+	return not not isHovered;
+end
+
 function CPStatusTrackingBarMixin:ShouldBarTextBeDisplayed()
-	return GetCVarBool('xpBarText') or self.textLocked or self:GetParent():IsTextLocked()
+	return shouldShowWatchBarText(env(getWatchTextSlot(self).visibility), self.textLocked);
 end
 
 function CPStatusTrackingBarMixin:SetTextLocked(locked)
@@ -60,14 +83,37 @@ function CPStatusTrackingBarMixin:UpdateTextVisibility()
 end
 
 ---------------------------------------------------------------
+-- Watch bar text
+---------------------------------------------------------------
+local WATCH_TEXT_FORMATTERS = {
+	progress = function(value, maximum)
+		return L('%s / %s', BreakUpLargeNumbers(value), BreakUpLargeNumbers(maximum));
+	end;
+	percent = function(_, _, progressPercent)
+		return L('%d%%', progressPercent);
+	end;
+	both = function(value, maximum, progressPercent)
+		return L('%s / %s (%d%%)', BreakUpLargeNumbers(value), BreakUpLargeNumbers(maximum), progressPercent);
+	end;
+	remaining = function(value, maximum)
+		local remaining = math.max(0, maximum - value);
+		return L('%s remaining', BreakUpLargeNumbers(remaining));
+	end;
+};
+
+local function formatWatchBarText(name, textFormat, value, maximum)
+	local formatter = WATCH_TEXT_FORMATTERS[textFormat] or WATCH_TEXT_FORMATTERS.progress;
+	local progressPercent = math.min(getProgressPercent(value, maximum), 100);
+	return L('%s: %s', name, formatter(value, maximum, progressPercent));
+end
+
+---------------------------------------------------------------
 CPExpBarMixin = CreateFromMixins(CPStatusTrackingBarMixin)
 ---------------------------------------------------------------
-local XP_STATUS_BAR_TEXT = 'XP: %d/%d';
-
 CPExpBarMixin.Events = {
 	'PLAYER_ENTERING_WORLD';
 	'PLAYER_XP_UPDATE';
-	'CVAR_UPDATE';
+	'UPDATE_EXHAUSTION';
 };
 
 function CPExpBarMixin:GetPriority()
@@ -114,24 +160,26 @@ function CPExpBarMixin:UpdateCurrentText()
 			currXP = UnitTrialXP('player')
 		end
 	end
-	self:SetBarText(XP_STATUS_BAR_TEXT:format(currXP, maxBar))
+	local text = formatWatchBarText(L'XP', env(getWatchTextSlot(self).format), currXP, maxBar);
+	local restedPercent = getProgressPercent(GetXPExhaustion() or 0, maxBar);
+	if restedPercent > 0 then
+		text = L('%s (+%d%%)', text, restedPercent);
+	end
+	self:SetBarText(text)
 end
 
 function CPExpBarMixin:OnLoad()
 	self.StatusBar:InitializeTextStatusBar()
 	self:Update()
 	CPAPI.RegisterFrameForEvents(self, self.Events)
-	self.priority = 3;
+	self.priority = 4;
 end
 
-function CPExpBarMixin:OnEvent(event, ...)
-	if( event == 'CVAR_UPDATE') then
-		local cvar = ...
-		if( cvar == 'XP_BAR_TEXT' ) then
-			self:UpdateTextVisibility()
-		end
-	elseif ( event == 'PLAYER_XP_UPDATE' or event == 'PLAYER_ENTERING_WORLD' ) then
+function CPExpBarMixin:OnEvent(event)
+	if ( event == 'PLAYER_XP_UPDATE' or event == 'PLAYER_ENTERING_WORLD' ) then
 		self:Update()
+	elseif ( event == 'UPDATE_EXHAUSTION' ) then
+		self:UpdateCurrentText()
 	end
 end
 
@@ -191,8 +239,7 @@ function CPExpBarMixin:OnValueChanged()
 end
 
 function CPExpBarMixin:UpdateTick()
-	self.ExhaustionTick:UpdateTickPosition()
-	self.ExhaustionTick:UpdateExhaustionColor()
+	self.ExhaustionTick:UpdateTick()
 end
 
 ---------------------------------------------------------------
@@ -222,7 +269,7 @@ function CPExhaustionTickMixin:ExhaustionToolTipText()
 
 	local currXP = UnitXP('player')
 	local nextXP = UnitXPMax('player')
-	local percentXP = math.ceil(currXP/nextXP*100)
+	local percentXP = math.min(getProgressPercent(currXP, nextXP), 100)
 	local XPText = format( XP_TEXT, BreakUpLargeNumbers(currXP), BreakUpLargeNumbers(nextXP), percentXP )
 	local tooltipText = XPText..format(EXHAUST_TOOLTIP1, exhaustionStateName, exhaustionStateMultiplier)
 	local append = nil
@@ -261,45 +308,33 @@ function CPExhaustionTickMixin:UpdateTickPosition()
 	local playerCurrXP = UnitXP('player')
 	local playerMaxXP = UnitXPMax('player')
 	local exhaustionThreshold = GetXPExhaustion()
-	local exhaustionStateID, exhaustionStateName, exhaustionStateMultiplier = GetRestState()
 	local parent = self:GetParent()
 
-	if ( exhaustionStateID and exhaustionStateID >= 3 ) then
-		self:SetPoint('CENTER', parent , 'RIGHT', 0, 0)
-	end
-
-	if ( not exhaustionThreshold ) then
+	if ( not exhaustionThreshold or exhaustionThreshold <= 0 or playerMaxXP <= 0
+		or CPAPI.IsPlayerAtEffectiveMaxLevel() or CPAPI.IsXPUserDisabled() ) then
 		self:Hide()
 		parent.ExhaustionLevelFillBar:Hide()
-	else
-		local exhaustionFillFraction = max(((playerCurrXP + exhaustionThreshold) / playerMaxXP), 0)
-		local exhaustionTickSet = max(exhaustionFillFraction * parent:GetWidth(), 0)
-		self:ClearAllPoints()
-
-		if ( exhaustionTickSet > parent:GetWidth() ) then
-			self:Hide()
-		else
-			self:Show()
-			self:SetPoint('CENTER', parent, 'LEFT', exhaustionTickSet, 0)
-		end
-
-		exhaustionFillFraction = Clamp(exhaustionFillFraction, 0, 1)
-
-		parent.ExhaustionLevelFillBar:Show()
-		parent.ExhaustionLevelFillBar:SetTexture(parent.StatusBar:GetStatusBarTexture():GetTexture())
-		parent.ExhaustionLevelFillBar:SetTexCoord(0, exhaustionFillFraction, 0, 1)
-
-		if (exhaustionFillFraction == 1) then
-			parent.ExhaustionLevelFillBar:SetPoint('TOPRIGHT', parent, 'TOPRIGHT', 0, 0)
-		else
-			parent.ExhaustionLevelFillBar:SetPoint('TOPRIGHT', parent, 'TOPLEFT', exhaustionTickSet, 0)
-		end
+		return;
 	end
 
-	-- Hide exhaustion tick if player is max level or XP is turned off
-	if ( CPAPI.IsPlayerAtEffectiveMaxLevel() or CPAPI.IsXPUserDisabled() ) then
+	local width = parent:GetWidth();
+	local exhaustionFillFraction = math.max((playerCurrXP + exhaustionThreshold) / playerMaxXP, 0);
+	local exhaustionTickSet = exhaustionFillFraction * width;
+	self:ClearAllPoints()
+
+	if exhaustionFillFraction > 1 then
 		self:Hide()
+	else
+		self:SetPoint('CENTER', parent, 'LEFT', exhaustionTickSet, 0)
+		self:Show()
 	end
+
+	local fill = parent.ExhaustionLevelFillBar;
+	local fillFraction = math.min(exhaustionFillFraction, 1);
+	fill:SetTexture(parent.StatusBar:GetStatusBarTexture():GetTexture())
+	fill:SetTexCoord(0, fillFraction, 0, 1)
+	fill:SetPoint('TOPRIGHT', parent, 'TOPLEFT', fillFraction * width, 0)
+	fill:Show()
 end
 
 function CPExhaustionTickMixin:UpdateExhaustionColor()
@@ -326,15 +361,16 @@ function CPExhaustionTickMixin:OnUpdate(elapsed)
 	end
 end
 
-CPExhaustionTickMixin.PLAYER_XP_UPDATE      = CPExhaustionTickMixin.UpdateTickPosition;
-CPExhaustionTickMixin.UPDATE_EXHAUSTION     = CPExhaustionTickMixin.UpdateTickPosition;
-CPExhaustionTickMixin.PLAYER_LEVEL_UP       = CPExhaustionTickMixin.UpdateTickPosition;
-CPExhaustionTickMixin.UPDATE_EXHAUSTION     = CPExhaustionTickMixin.UpdateExhaustionColor;
-
-function CPExhaustionTickMixin:PLAYER_ENTERING_WORLD()
+function CPExhaustionTickMixin:UpdateTick()
 	self:UpdateTickPosition()
 	self:UpdateExhaustionColor()
 end
+
+CPExhaustionTickMixin.PLAYER_XP_UPDATE      = CPExhaustionTickMixin.UpdateTickPosition;
+CPExhaustionTickMixin.PLAYER_LEVEL_UP       = CPExhaustionTickMixin.UpdateTickPosition;
+CPExhaustionTickMixin.PLAYER_ENTERING_WORLD = CPExhaustionTickMixin.UpdateTick;
+CPExhaustionTickMixin.UPDATE_EXHAUSTION     = CPExhaustionTickMixin.UpdateTick;
+CPExhaustionTickMixin.PLAYER_UPDATE_RESTING = CPExhaustionTickMixin.UpdateTick;
 
 function CPExhaustionTickMixin:OnEvent(event, ...)
 	if (IsRestrictedAccount()) then
@@ -358,18 +394,19 @@ end
 ---------------------------------------------------------------
 CPReputationBarMixin = CreateFromMixins(CPStatusTrackingBarMixin)
 ---------------------------------------------------------------
+local MAX_STANDARD_REPUTATION_REACTION = 8;
 
 function CPReputationBarMixin:GetPriority()
 	return self.priority
 end
 
 function CPReputationBarMixin:UpdateCurrentText()
-	local maxLevel = self:GetMaxLevel();
-	if maxLevel and self.StatusBar.level and self.StatusBar.level >= maxLevel then
+	if not self.name then return end;
+	if self.isCapped then
 		self:SetBarText(self.name)
-	else
-		self:SetBarText(self.name:format(self.value, self.max))
+		return;
 	end
+	self:SetBarText(formatWatchBarText(self.name, env(getWatchTextSlot(self).format), self.value, self.max))
 end
 
 function CPReputationBarMixin:ShouldBeVisible()
@@ -400,7 +437,7 @@ function CPReputationBarMixin:GetMaxLevel()
 		return repRankInfo.maxLevel;
 	end
 
-	return MAX_REPUTATION_REACTION;
+	return MAX_STANDARD_REPUTATION_REACTION;
 end
 
 function CPReputationBarMixin:Update()
@@ -409,7 +446,8 @@ function CPReputationBarMixin:Update()
 		return;
 	end
 
-	local colorIndex = watchedFactionData.reaction;
+	local reaction = watchedFactionData.reaction;
+	local colorIndex = reaction;
 	local overrideUseBlueBar = false;
 
 	local factionID = watchedFactionData.factionID;
@@ -420,33 +458,41 @@ function CPReputationBarMixin:Update()
 		self.friendshipID = reputationInfo.friendshipFactionID;
 	end
 
-	-- do something different for friendships
-	local level;
+	local level, rank;
 	local maxLevel = self:GetMaxLevel()
+	local isMajorFaction = C_Reputation.IsMajorFaction(factionID);
+	local majorFactionData = isMajorFaction and CPAPI.GetMajorFactionData(factionID);
+	if majorFactionData and majorFactionData.renownLevel then
+		rank = RENOWN_LEVEL_LABEL:format(majorFactionData.renownLevel);
+	end
 
 	local minBar, maxBar, value = watchedFactionData.currentReactionThreshold, watchedFactionData.nextReactionThreshold, watchedFactionData.currentStanding;
+	local paragonValue, paragonThreshold, _, hasRewardPending;
 	if C_Reputation.IsFactionParagonForCurrentPlayer(factionID) then
-		local currentValue, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
-		minBar, maxBar  = 0, threshold;
-		if currentValue and threshold then
-			value = currentValue % threshold;
-		end
+		paragonValue, paragonThreshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(factionID);
+	end
+	if ( paragonValue and paragonThreshold and paragonThreshold > 0 ) then
+		minBar, maxBar = 0, paragonThreshold;
+		value = paragonValue % paragonThreshold;
 		level = maxLevel;
 		if hasRewardPending then
-			value = value + threshold;
+			value = value + paragonThreshold;
 		end
-		if C_Reputation.IsMajorFaction(factionID) then
+		if isMajorFaction then
 			overrideUseBlueBar = true;
+		elseif self.friendshipID and self.friendshipID > 0 then
+			rank = C_GossipInfo.GetFriendshipReputation(factionID).reaction;
 		end
-	elseif C_Reputation.IsMajorFaction(factionID) then
-		local majorFactionData = CPAPI.GetMajorFactionData(factionID)
+	elseif majorFactionData then
 		minBar, maxBar = 0, majorFactionData.renownLevelThreshold;
+		value = majorFactionData.renownReputationEarned or value;
 		level = majorFactionData.renownLevel;
 		overrideUseBlueBar = true;
 	elseif self.friendshipID and self.friendshipID > 0 then
 		local repInfo = C_GossipInfo.GetFriendshipReputation(factionID)
 		local repRankInfo = C_GossipInfo.GetFriendshipReputationRanks(factionID)
 		level = repRankInfo.currentLevel;
+		rank = repInfo.reaction;
 		if repInfo.nextThreshold then
 			minBar, maxBar, value = repInfo.reactionThreshold, repInfo.nextThreshold, repInfo.standing;
 		else
@@ -455,7 +501,7 @@ function CPReputationBarMixin:Update()
 		end
 		colorIndex = 5; -- Friendships always use same
 	else
-		level = watchedFactionData.reaction;
+		level = reaction;
 	end
 
 	local isCapped = (level and maxLevel) and level >= maxLevel;
@@ -476,20 +522,21 @@ function CPReputationBarMixin:Update()
 	if needsAccountWideLabel then
 		name = name .. " " .. REPUTATION_STATUS_BAR_LABEL_ACCOUNT_WIDE;
 	end
-
-	if isCapped then
-		self:SetBarText(name)
-	else
-		name = name..' %d / %d';
-		self:SetBarText(name:format(value, maxBar))
+	if ( not rank and reaction and reaction >= 1 and reaction <= MAX_STANDARD_REPUTATION_REACTION ) then
+		rank = GetText('FACTION_STANDING_LABEL'..reaction, UnitSex('player'));
 	end
+	if rank and rank ~= '' then
+		name = L('%s (%s)', name, rank);
+	end
+
+	self.name     = name;
+	self.value    = value;
+	self.max      = maxBar;
+	self.isCapped = isCapped;
+	self:UpdateCurrentText()
 
 	local color = overrideUseBlueBar and BLUE_FONT_COLOR or FACTION_BAR_COLORS[colorIndex];
 	self:SetBarColor(color.r, color.g, color.b, 1)
-
-	self.name = name;
-	self.value = value;
-	self.max = maxBar;
 
 	-- When showing new faction, force status bar to update instantly
 	if isShowingNewFaction then
@@ -498,17 +545,7 @@ function CPReputationBarMixin:Update()
 end
 
 function CPReputationBarMixin:OnLoad()
-	self:RegisterEvent('CVAR_UPDATE')
 	self.priority = 1
-end
-
-function CPReputationBarMixin:OnEvent(event, ...)
-	if( event == 'CVAR_UPDATE') then
-		local cvar = ...
-		if( cvar == 'XP_BAR_TEXT' ) then
-			self:UpdateTextVisibility()
-		end
-	end
 end
 
 function CPReputationBarMixin:OnEnter()
@@ -539,6 +576,7 @@ local MAX_BARS_VISIBLE = 2;
 
 CPWatchBarContainerMixin.Events = {
 	'UPDATE_FACTION';
+	'MAJOR_FACTION_RENOWN_LEVEL_CHANGED';
 	'ENABLE_XP_GAIN';
 	'DISABLE_XP_GAIN';
 	'CVAR_UPDATE';
@@ -548,11 +586,17 @@ CPWatchBarContainerMixin.Events = {
 	'ZONE_CHANGED';
 	'ZONE_CHANGED_NEW_AREA';
 	'UNIT_INVENTORY_CHANGED';
+	'PLAYER_EQUIPMENT_CHANGED';
+	'PLAYER_MAX_LEVEL_UPDATE';
 	'ARTIFACT_XP_UPDATE';
+	'AZERITE_ITEM_EXPERIENCE_CHANGED';
+	'TRACKED_HOUSE_CHANGED';
 };
 
 function CPWatchBarContainerMixin:OnLoad()
 	self.bars = {};
+	env:RegisterCallbacks(self.UpdateBarVisibility, self, 'Settings/watchTopTextVisibility', 'Settings/watchBottomTextVisibility')
+	env:RegisterCallbacks(self.UpdateBarTexts, self, 'Settings/watchTopTextFormat', 'Settings/watchBottomTextFormat')
 
 	CPAPI.RegisterFrameForEvents(self, self.Events)
 	self:RegisterUnitEvent('UNIT_LEVEL', 'player')
@@ -563,14 +607,33 @@ function CPWatchBarContainerMixin:OnLoad()
 end
 
 function CPWatchBarContainerMixin:OnEvent(event)
-	if ( event == 'CVAR_UPDATE' ) then
-		self:UpdateBarVisibility()
+	if ( event == 'TRACKED_HOUSE_CHANGED' and self.houseFavorBar ) then
+		local bar = self.houseFavorBar;
+		bar.houseLevelFavor = nil;
+		bar:Hide() -- OnShow requests favor for the newly tracked house.
 	end
 	self:UpdateBarsShown()
 end
 
 function CPWatchBarContainerMixin:OnShow()
-	db.Alpha.Fader.Toggle(self, 0.2, not env('fadeXPBar'), true)
+	self.fadeShown = nil;
+	self:UpdateFade()
+end
+
+function CPWatchBarContainerMixin:UpdateFade()
+	local shown = not env('fadeXPBar');
+	if not shown then
+		for _, bar in self:Enumerate() do
+			if ( bar:IsShown() and bar:IsMouseOver() ) then
+				shown = true;
+				break;
+			end
+		end
+	end
+	if ( self.fadeShown ~= shown ) then
+		self.fadeShown = shown;
+		db.Alpha.Fader.Toggle(self, 0.2, shown, true)
+	end
 end
 
 function CPWatchBarContainerMixin:Enumerate()
@@ -600,8 +663,16 @@ end
 
 function CPWatchBarContainerMixin:UpdateBarVisibility()
 	for _, bar in self:Enumerate() do
-		if bar:ShouldBeVisible() then
+		if bar:IsShown() then
 			bar:UpdateTextVisibility()
+		end
+	end
+end
+
+function CPWatchBarContainerMixin:UpdateBarTexts()
+	for _, bar in self:Enumerate() do
+		if ( bar:IsShown() and bar.UpdateCurrentText ) then
+			bar:UpdateCurrentText()
 		end
 	end
 end
@@ -614,7 +685,7 @@ end
 
 function CPWatchBarContainerMixin:UpdateBarTicks()
 	for _, bar in self:Enumerate() do
-		if bar:ShouldBeVisible() then
+		if bar:IsShown() then
 			bar:UpdateTick()
 		end
 	end
@@ -649,18 +720,15 @@ function CPWatchBarContainerMixin:UpdateBarsShown()
 		end
 	end
 
-	table.sort(visibleBars, function(left, right) return left:GetPriority() < right:GetPriority() end)
+	table.sort(visibleBars, function(left, right) return left:GetPriority() > right:GetPriority() end)
 	self:LayoutBars(visibleBars)
 end
 
-function CPWatchBarContainerMixin:HideStatusBars()
+function CPWatchBarContainerMixin:HideBarBackdrops()
 	self.SingleBarSmall:Hide()
 	self.SingleBarLarge:Hide()
 	self.SingleBarSmallUpper:Hide()
 	self.SingleBarLargeUpper:Hide()
-	for _, bar in self:Enumerate() do
-		bar:Hide()
-	end
 end
 
 function CPWatchBarContainerMixin:SetInitialBarSize()
@@ -716,9 +784,11 @@ function CPWatchBarContainerMixin:SetSingleBarSize(bar, width)
 	bar:SetSize(progressWidth, textureHeight)
 end
 
-function CPWatchBarContainerMixin:LayoutBar(bar, barWidth, isTopBar, isDouble)
+function CPWatchBarContainerMixin:LayoutBar(bar, barWidth, isSecondary, isDouble)
+	local inverted = not not self.inverted;
+	local isTopSlot = isDouble and (isSecondary ~= inverted);
+	bar.watchTextSlot = isTopSlot and WATCH_TEXT_SLOTS.top or WATCH_TEXT_SLOTS.bottom;
 	bar:Update()
-	bar:Show()
 	bar:ClearAllPoints()
 
 	local normalTexture = self.inverted and XP_BAR_TEXTURE_INVERTED or XP_BAR_TEXTURE_NORMAL;
@@ -727,7 +797,7 @@ function CPWatchBarContainerMixin:LayoutBar(bar, barWidth, isTopBar, isDouble)
 	local offset = self.inverted and -18 or 18;
 
 	if ( isDouble ) then
-		if ( isTopBar ) then
+		if ( isSecondary ) then
 			bar:SetPoint(anchor, self:GetParent(), 0, offset)
 			bar.StatusBar.BarTexture:SetTexture(invertTexture)
 		else
@@ -740,17 +810,24 @@ function CPWatchBarContainerMixin:LayoutBar(bar, barWidth, isTopBar, isDouble)
 		bar.StatusBar.BarTexture:SetTexture(normalTexture)
 		self:SetSingleBarSize(bar, barWidth)
 	end
+	bar:Show()
+	bar:UpdateTextVisibility()
 end
 
-function CPWatchBarContainerMixin:SetMainBarColor(r, g, b)
-	if self.mainBar then
-		self.mainBar:SetBarColorRaw(r, g, b)
+function CPWatchBarContainerMixin:SetXPBarColor(r, g, b)
+	if self.experienceBar then
+		self.experienceBar:SetBarColor(r, g, b)
 	end
 end
 
 function CPWatchBarContainerMixin:LayoutBars(visBars)
 	local width = self:GetWidth()
-	self:HideStatusBars()
+	self:HideBarBackdrops()
+	for _, bar in self:Enumerate() do
+		if ( bar:IsShown() and bar ~= visBars[1] and bar ~= visBars[2] ) then
+			bar:Hide()
+		end
+	end
 
 	local SECONDARY, IS_DOUBLE = true, true;
 	if ( #visBars > 1 ) then
@@ -759,7 +836,6 @@ function CPWatchBarContainerMixin:LayoutBars(visBars)
 	elseif( #visBars == 1 ) then
 		self:LayoutBar(visBars[1], width, SECONDARY, not IS_DOUBLE)
 	end
-	self.mainBar = visBars and visBars[1];
 	self:UpdateBarTicks()
 end
 
@@ -777,85 +853,127 @@ function CPWatchBarContainerMixin:SetEndCapWidth(width)
 end
 
 do -- Bar setup
-	local function BarColorOverride(self)
-		if ( self:GetParent().mainBar == self ) then
-			self:SetBarColorRaw(env:GetColorRGB('xpBarColor'))
+	local function configureNativeWatchText(bar, name)
+		function bar:ShouldBarTextBeDisplayed()
+			return shouldShowWatchBarText(env(getWatchTextSlot(self).visibility), self:IsMouseOver());
+		end
+
+		bar:HookScript('OnUpdate', function(self)
+			if ( env(getWatchTextSlot(self).visibility) == 'hover'
+				and self.OverlayFrame.Text:IsShown() ~= self:ShouldBarTextBeDisplayed() ) then
+				self:UpdateTextVisibility()
+			end
+		end)
+
+		if not name then
+			-- Refresh Blizzard's label when ConsolePort reveals it.
+			if bar.UpdateOverlayFrameText then
+				hooksecurefunc(bar, 'UpdateTextVisibility', bar.UpdateOverlayFrameText)
+			end
+			return;
+		end
+
+		function bar:UpdateCurrentText()
+			if self.watchTextValue then
+				local text = formatWatchBarText(name, env(getWatchTextSlot(self).format), self.watchTextValue, self.watchTextMaximum);
+				CPStatusTrackingBarMixin.SetBarText(self, text)
+			end
+		end
+
+		hooksecurefunc(bar, 'SetBarValues', function(self, value, minimum, maximum)
+			if ( CPAPI.IsSecret(value) or CPAPI.IsSecret(minimum) or CPAPI.IsSecret(maximum)
+				or type(value) ~= 'number' or type(minimum) ~= 'number' or type(maximum) ~= 'number' ) then
+				self.watchTextValue = nil;
+				return;
+			end
+			self.watchTextValue = value - minimum;
+			self.watchTextMaximum = maximum - minimum;
+			self:UpdateCurrentText()
+		end)
+		hooksecurefunc(bar, 'SetBarText', bar.UpdateCurrentText)
+		if bar.UpdateOverlayFrameText then
+			hooksecurefunc(bar, 'UpdateOverlayFrameText', bar.UpdateCurrentText)
 		end
 	end
 
-	local function BarColorRaw(self, r, g, b, a)
-		self.StatusBar.BarTexture:SetVertexColor(r, g, b, a)
-	end
-
-	function CPWatchBarContainerMixin:AddBarFromTemplate(template, showPredicate, getPriority)
+	function CPWatchBarContainerMixin:AddBarFromTemplate(template, showPredicate, getPriority, textName)
 		local bar = CreateFrame('Frame', nil, self, template)
 		local statusBar = bar.StatusBar;
 		table.insert(self.bars, bar)
+		if template == 'CPExpStatusBarTemplate' then
+			self.experienceBar = bar;
+		elseif ( textName or template == 'HouseFavorBarTemplate' ) then
+			configureNativeWatchText(bar, textName and L(textName))
+		end
 
 		statusBar.Background:Hide()
 		statusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_NORMAL)
 		statusBar.BarTexture:SetSnapToPixelGrid(true)
 		statusBar.BarTexture:SetTexelSnappingBias(0)
 
-		bar.SetBarColorRaw  = bar.SetBarColor or BarColorRaw;
-		bar.ShouldBeVisible = bar.ShouldBeVisible or showPredicate or nop;
-		bar.GetPriority     = bar.GetPriority or getPriority;
-
-		bar:HookScript('OnEnter', function()
-			db.Alpha.FadeIn(self, 0.2, self:GetAlpha(), 1)
-		end)
-
-		bar:HookScript('OnLeave', function()
-			if env('fadeXPBar') then
-				db.Alpha.FadeOut(self, 0.2, self:GetAlpha(), 0)
-			end
-		end)
-
-		bar:HookScript('OnShow', BarColorOverride)
-		if bar.SetBarColor then
-			hooksecurefunc(bar, 'SetBarColor', BarColorOverride)
+		if not bar.CurrentXPTick then
+			bar.CurrentXPTick = CreateFrame('Button', nil, bar, 'CPWatchBarProgressTickTemplate')
+			bar.CurrentXPTick:SetPoint('CENTER', statusBar.BarTexture, 'RIGHT')
 		end
+		local tick = bar.CurrentXPTick;
+		local function updateProgressTick(self)
+			local value = self:GetValue();
+			local _, maximum = self:GetMinMaxValues();
+			if ( CPAPI.IsSecret(value) or CPAPI.IsSecret(maximum) ) then return end;
+			tick:SetShown(value < maximum)
+		end
+		statusBar:HookScript('OnValueChanged', updateProgressTick)
+		statusBar:HookScript('OnMinMaxChanged', updateProgressTick)
+		updateProgressTick(statusBar)
+
+		local overlay = bar.OverlayFrame;
+		overlay:SetFrameStrata(bar:GetFrameStrata())
+		overlay:SetFrameLevel(math.max(statusBar:GetFrameLevel(), tick:GetFrameLevel()) + 1)
+
+		bar.ShouldBeVisible = showPredicate or bar.ShouldBeVisible or nop;
+		bar.GetPriority     = getPriority or bar.GetPriority;
 
 		self:UpdateBarsShown()
 		return bar;
 	end
 end
 
-do -- Initialize bars
-	if CPAPI.IsModernVersion then
-		-- See FrameXML\StatusTrackingManager.lua
-		local BarsEnum = {
-			None       = -1;
-			Reputation =  1;
-			Honor      =  2;
-			Artifact   =  3;
-			Experience =  4;
-			Azerite    =  5;
-		};
-		local BarPriorities = {
-			[BarsEnum.Azerite]    = 0;
-			[BarsEnum.Reputation] = 1;
-			[BarsEnum.Honor]      = 2;
-			[BarsEnum.Artifact]   = 3;
-			[BarsEnum.Experience] = 4;
-		};
+local OPTIONAL_WATCH_BAR_TEMPLATES = {
+	{'Honor', 'HonorStatusBarTemplate', 'Honor'};
+	{'Artifact', 'ArtifactStatusBarTemplate', 'Artifact Power'};
+	{'Azerite', 'AzeriteBarTemplate', 'Azerite'};
+};
 
-		function CPWatchBarContainerMixin:Init()
-			local CanShowBar, GetBarPriority = StatusTrackingManagerMixin.CanShowBar, StatusTrackingManagerMixin.GetBarPriority;
-			local __ = function(f, ...) return GenerateClosure(f, nil, ...) end;
+function CPWatchBarContainerMixin:Init()
+	local manager = StatusTrackingManagerMixin;
+	local barIDs = StatusTrackingBarInfo and StatusTrackingBarInfo.BarsEnum;
+	if not ( manager and manager.CanShowBar and manager.GetBarPriority and barIDs ) then
+		self:AddBarFromTemplate('CPReputationStatusBarTemplate')
+		self:AddBarFromTemplate('CPExpStatusBarTemplate')
+		return;
+	end
 
-			self:AddBarFromTemplate('CPReputationStatusBarTemplate', __(CanShowBar, BarsEnum.Reputation), __(GetBarPriority, BarPriorities[BarsEnum.Reputation]) )
-			self:AddBarFromTemplate('HonorStatusBarTemplate',        __(CanShowBar, BarsEnum.Honor),      __(GetBarPriority, BarPriorities[BarsEnum.Honor])      )
-			self:AddBarFromTemplate('ArtifactStatusBarTemplate',     __(CanShowBar, BarsEnum.Artifact),   __(GetBarPriority, BarPriorities[BarsEnum.Artifact])   )
-			self:AddBarFromTemplate('AzeriteBarTemplate',            __(CanShowBar, BarsEnum.Azerite),    __(GetBarPriority, BarPriorities[BarsEnum.Azerite])    )
-			self:AddBarFromTemplate('CPExpStatusBarTemplate',        __(CanShowBar, BarsEnum.Experience), __(GetBarPriority, BarPriorities[BarsEnum.Experience]) )
+	local function addBar(template, barID, textName)
+		if not barID then return end;
+		return self:AddBarFromTemplate(template,
+			GenerateClosure(manager.CanShowBar, manager, barID),
+			GenerateClosure(manager.GetBarPriority, manager, barID), textName)
+	end
+
+	addBar('CPReputationStatusBarTemplate', barIDs.Reputation)
+	local hasTemplate = C_XMLUtil and C_XMLUtil.GetTemplateInfo or DoesTemplateExist;
+	if hasTemplate then
+		for _, entry in ipairs(OPTIONAL_WATCH_BAR_TEMPLATES) do
+			local barType, template, textName = unpack(entry);
+			if hasTemplate(template) then
+				addBar(template, barIDs[barType], textName)
+			end
 		end
-	else
-		function CPWatchBarContainerMixin:Init()
-			self:AddBarFromTemplate('CPReputationStatusBarTemplate')
-			self:AddBarFromTemplate('CPExpStatusBarTemplate')
+		if ( C_Housing and C_Housing.GetTrackedHouseGuid and hasTemplate('HouseFavorBarTemplate') ) then
+			self.houseFavorBar = addBar('HouseFavorBarTemplate', barIDs.HouseFavor);
 		end
 	end
+	addBar('CPExpStatusBarTemplate', barIDs.Experience)
 end
 
 

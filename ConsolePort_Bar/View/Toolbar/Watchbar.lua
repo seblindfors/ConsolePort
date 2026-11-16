@@ -9,10 +9,10 @@ function CPWatchbar:OnLoad()
 		'OnDataLoaded',
 		'Settings/enableXPBar',
 		'Settings/fadeXPBar',
-		'Settings/tintEnable',
-		'Settings/tintColor',
-		'Settings/xpBarColor'
+		'Settings/tintEnable'
 	);
+	env:RegisterCallback('Settings/tintColor', self.UpdateTintColor, self)
+	env:RegisterCallback('Settings/xpBarColor', self.UpdateXPBarColor, self)
 
 	db:RegisterCallback('OnHintsFocus', self.OnHints, self, 0)
 	db:RegisterCallback('OnHintsClear', self.OnHints, self, 1)
@@ -29,7 +29,8 @@ function CPWatchbar:OnSizeChanged()
 	self.XPBar:UpdateBarsShown()
 end
 
-function CPWatchbar:SetTintColor(r, g, b, a)
+function CPWatchbar:UpdateTintColor()
+	local r, g, b, a = env:GetColorRGBA('tintColor');
 	local orientation, minColor, maxColor = env:GetColorGradient(r, g, b, a, .25, self.inverted)
 	self.BG:SetGradient(orientation, minColor, maxColor)
 	self.DividerLine:SetVertexColor(r, g, b, a)
@@ -47,7 +48,7 @@ end
 function CPWatchbar:SetProps(props)
 	self:OnDataLoaded()
 	self:UpdateInversion(props)
-	self:SetTintColor(env:GetColorRGBA('tintColor'))
+	self:UpdateTintColor()
 	self:SetDynamicProps(props)
 	self:OnSizeChanged()
 	self:Show()
@@ -88,9 +89,19 @@ function CPWatchbar:ToggleXPBar(enabled)
 	if ( not self.XPBar ) then
 		if not enabled then return end;
 		self.XPBar = CreateFrame('Frame', nil, self, 'CPWatchBarContainer')
+		if self.props then
+			self:UpdateInversion(self.props)
+			self:OnSizeChanged()
+		end
 	end
 	self.XPBar:SetShown(enabled)
-	self.XPBar:SetMainBarColor(env:GetColorRGB('xpBarColor'))
+	self:UpdateXPBarColor()
+end
+
+function CPWatchbar:UpdateXPBarColor()
+	if self.XPBar then
+		self.XPBar:SetXPBarColor(env:GetColorRGB('xpBarColor'))
+	end
 end
 
 function CPWatchbar:ToggleXPBarFade(xpBarEnabled)

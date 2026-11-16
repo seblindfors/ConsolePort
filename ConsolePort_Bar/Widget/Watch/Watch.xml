@@ -1,7 +1,12 @@
 <Ui>
 	<Script file="Watch.lua"/>
 
-	<Frame name="CPStatusTrackingBarTemplate" frameStrata="MEDIUM" enableMouse="true" hidden="true" virtual="true">
+	<Button name="CPWatchBarProgressTickTemplate" enableMouse="false" virtual="true">
+		<Size x="32" y="40"/>
+		<NormalTexture parentKey="Normal" file="Interface\MainMenuBar\UI-ExhaustionTickNormal"/>
+	</Button>
+
+	<Frame name="CPStatusTrackingBarTemplate" frameStrata="LOW" fixedFrameStrata="true" enableMouse="true" hidden="true" virtual="true">
 		<Size x="804" y="11"/>
 		<Frames>
 			<StatusBar parentKey="StatusBar" drawLayer="BORDER" inherits="AnimatedStatusBarTemplate" mixin="CPTextStatusBarMixin">
@@ -29,7 +34,7 @@
 					</Layer>
 				</Layers>
 			</StatusBar>
-			<Frame parentKey="OverlayFrame" frameStrata="HIGH" setAllPoints="true">
+			<Frame parentKey="OverlayFrame" setAllPoints="true">
 				<Layers>
 					<Layer level="ARTWORK" textureSubLevel="5">
 						<FontString parentKey="Text" inherits="TextStatusBarText" hidden="true">
@@ -46,7 +51,6 @@
 	<Frame name="CPReputationStatusBarTemplate" inherits="CPStatusTrackingBarTemplate" mixin="CPReputationBarMixin" virtual="true">
 		<Scripts>
 			<OnLoad method="OnLoad"/>
-			<OnEvent method="OnEvent"/>
 			<OnShow method="OnShow"/>
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/> 
@@ -68,7 +72,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Button parentKey="ExhaustionTick" hidden="true" frameStrata="HIGH" mixin="CPExhaustionTickMixin">
+			<Button parentKey="ExhaustionTick" hidden="true" mixin="CPExhaustionTickMixin">
 				<Size x="32" y="40"/>
 				<Anchors>
 					<Anchor point="CENTER" relativeKey="$parent.ExhaustionLevelFillBar" relativePoint="RIGHT"/>
@@ -82,18 +86,10 @@
 				<NormalTexture parentKey="Normal" file="Interface\MainMenuBar\UI-ExhaustionTickNormal"/>
 				<HighlightTexture parentKey="Highlight" file="Interface\MainMenuBar\UI-ExhaustionTickHighlight" alphaMode="ADD"/>
 			</Button>
-			<Button parentKey="CurrentXPTick" frameStrata="HIGH">
-				<Size x="32" y="40"/>
+			<Button parentKey="CurrentXPTick" inherits="CPWatchBarProgressTickTemplate">
 				<Anchors>
 					<Anchor point="CENTER" relativeKey="$parent.StatusBar.BarTexture" relativePoint="RIGHT"/>
 				</Anchors>
-				<Scripts>
-					<OnEnter>
-						CPExhaustionTickMixin.ExhaustionToolTipText()
-					</OnEnter>
-				</Scripts>
-				<NormalTexture parentKey="Normal" file="Interface\MainMenuBar\UI-ExhaustionTickNormal"/>
-				<HighlightTexture parentKey="Highlight" file="Interface\MainMenuBar\UI-ExhaustionTickHighlight" alphaMode="ADD"/>
 			</Button>
 		</Frames>
 		<Scripts>
@@ -106,7 +102,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CPWatchBarContainer" frameStrata="LOW" mixin="CPWatchBarContainerMixin" virtual="true">
+	<Frame name="CPWatchBarContainer" frameStrata="LOW" fixedFrameStrata="true" mixin="CPWatchBarContainerMixin" virtual="true">
 		<Size x="800" y="16"/>
 		<Anchors>
 			<Anchor point="BOTTOM"/>
@@ -120,6 +116,7 @@
 			<OnLoad method="OnLoad"/>
 			<OnShow method="OnShow"/>
 			<OnEvent method="OnEvent"/>
+			<OnUpdate method="UpdateFade"/>
 		</Scripts>
 		<Layers>
 			<Layer level="BACKGROUND">
