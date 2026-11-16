@@ -355,7 +355,7 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Color of the sticky selection slice.';
 		advd = true;
 	};
-	radialAccentColor = _{Color(CPAPI.GetClassColorObject());
+	radialAccentColor = _{Color(CPAPI.GetClassAccentColor());
 		name = 'Accent Color';
 		list = COLORS;
 		desc = 'Color accent of radial menu items.';

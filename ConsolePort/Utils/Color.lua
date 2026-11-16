@@ -1,6 +1,8 @@
 ---------------------------------------------------------------
 -- Colors
 ---------------------------------------------------------------
+local ACCENT_LUMA_MIN, ACCENT_LUMA_MAX = 0.6, 0.85;
+
 CPAPI.WebColors = {
 	DEATHKNIGHT =  '05131c';
 	DEMONHUNTER =  '141c0d';
@@ -39,6 +41,11 @@ function CPAPI.GetClassColorObject(classFile)
 	end
 	local r, g, b = CPAPI.GetClassColor(classFile)
 	return CreateColor(r, g, b)
+end
+
+function CPAPI.GetClassAccentColor(classFile)
+	return CreateColor(CPAPI.ClampLuma(ACCENT_LUMA_MIN, ACCENT_LUMA_MAX,
+		CPAPI.NormalizeColor(CPAPI.GetClassColor(classFile))))
 end
 
 function CPAPI.GetPlayerName(classColored, unit) unit = unit or 'player';
@@ -123,6 +130,22 @@ function CPAPI.NormalizeColor(...)
 	local diff = (1 - high)
 	local r, g, b, a = ...
 	return r + diff, g + diff, b + diff, tonumber(a) and a or 1;
+end
+
+function CPAPI.GetLuma(r, g, b)
+	return 0.299 * r + 0.587 * g + 0.114 * b;
+end
+
+function CPAPI.ClampLuma(minLuma, maxLuma, r, g, b, a)
+	local luma = CPAPI.GetLuma(r, g, b)
+	if ( luma < minLuma ) then
+		local t = (minLuma - luma) / (1 - luma)
+		r, g, b = r + (1 - r) * t, g + (1 - g) * t, b + (1 - b) * t;
+	elseif ( luma > maxLuma ) then
+		local t = (luma - maxLuma) / luma
+		r, g, b = r * (1 - t), g * (1 - t), b * (1 - t);
+	end
+	return r, g, b, tonumber(a) and a or 1;
 end
 
 function CPAPI.GetMutedColor(factor, ...)

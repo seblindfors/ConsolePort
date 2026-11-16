@@ -5,7 +5,7 @@ local db = select(2, ...)
 CPGradientMixin = {};
 
 function CPGradientMixin:OnLoad()
-	self.VertexColor  = CPAPI.GetClassColorObject()
+	self.VertexColor  = CPAPI.GetClassAccentColor()
 	self.VertexValid  = CreateColor(1, .81, 0, 1)
 	self.VertexOrient = 'VERTICAL';
 end
