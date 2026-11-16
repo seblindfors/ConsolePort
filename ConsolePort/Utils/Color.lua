@@ -27,8 +27,14 @@ function CPAPI.GetClassColor(classFile)
 	return GetClassColor(classFile or CPAPI.GetClassFile())
 end
 
+function CPAPI.GetClassAccentColor(classFile)
+	return CreateColor(CPAPI.ClampLuma(ACCENT_LUMA_MIN, ACCENT_LUMA_MAX,
+		CPAPI.NormalizeColor(CPAPI.GetClassColor(classFile))))
+end
+
 function CPAPI.GetMutedClassColor(factor, asObject, classFile)
-	local r, g, b = CPAPI.GetMutedColor(factor, CPAPI.GetClassColor(classFile))
+	local r, g, b = CPAPI.GetClassAccentColor(classFile):GetRGB()
+	r, g, b = r * factor, g * factor, b * factor;
 	if asObject then
 		return CreateColor(r, g, b)
 	end
@@ -41,11 +47,6 @@ function CPAPI.GetClassColorObject(classFile)
 	end
 	local r, g, b = CPAPI.GetClassColor(classFile)
 	return CreateColor(r, g, b)
-end
-
-function CPAPI.GetClassAccentColor(classFile)
-	return CreateColor(CPAPI.ClampLuma(ACCENT_LUMA_MIN, ACCENT_LUMA_MAX,
-		CPAPI.NormalizeColor(CPAPI.GetClassColor(classFile))))
 end
 
 function CPAPI.GetPlayerName(classColored, unit) unit = unit or 'player';
