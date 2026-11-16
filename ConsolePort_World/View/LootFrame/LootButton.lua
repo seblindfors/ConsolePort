@@ -4,6 +4,22 @@ env.LootButtonMixin = CreateFromMixins(CPActionButtonMixin);
 local LOOT_SLOT_ITEM = LOOT_SLOT_ITEM or Enum.LootSlotType and Enum.LootSlotType.Item;
 local LOOT_SLOT_CURRENCY = LOOT_SLOT_CURRENCY or Enum.LootSlotType and Enum.LootSlotType.Currency;
 
+local sharedBackdrop;
+local function RestoreSharedBackdrop()
+	if sharedBackdrop then
+		local backdrop = sharedBackdrop;
+		sharedBackdrop = nil;
+		backdrop:Show()
+	end
+end
+
+-- The shared tooltip can be reused without the loot button losing focus first.
+if GameTooltip:HasScript('OnTooltipCleared') then
+	GameTooltip:HookScript('OnTooltipCleared', RestoreSharedBackdrop)
+end
+GameTooltip:HookScript('OnHide', RestoreSharedBackdrop)
+hooksecurefunc(GameTooltip, 'SetOwner', RestoreSharedBackdrop)
+
 local function GetTooltip()
 	if db('useGlobalLootTooltip') then
 		return GameTooltip;
@@ -44,23 +60,22 @@ function LootButton:OnEnter()
 		sibling:OnLeave()
 	end
 
-	local tooltip = GetTooltip()
-	if ( slotType == LOOT_SLOT_ITEM ) then
+	if ( slotType == LOOT_SLOT_ITEM or slotType == LOOT_SLOT_CURRENCY ) then
+		local tooltip = GetTooltip()
 		tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
-		tooltip:SetLootItem(slot)
-		self:SetScript('OnUpdate', self.OnUpdate)
-	elseif ( slotType == LOOT_SLOT_CURRENCY ) then
-		tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
-		tooltip:SetLootCurrency(slot)
-		self:SetScript('OnUpdate', self.OnUpdate)
-	elseif ( slotType == LOOT_SLOT_MONEY ) then
-		self:SetScript('OnUpdate', nil)
-		self:SetClampedSize(330, 50)
-	end
+		if ( slotType == LOOT_SLOT_ITEM ) then
+			tooltip:SetLootItem(slot)
+		else
+			tooltip:SetLootCurrency(slot)
+		end
 
-	if tooltip:IsOwned(self) then
-		self.Text:SetAlpha(0)
-		self.hasTooltipFocus = true;
+		if CPAPI.Scrub(tooltip:IsOwned(self)) then
+			self.lootTooltip = tooltip;
+			self.Text:SetAlpha(0)
+			self:SetScript('OnUpdate', self.OnUpdate)
+		end
+	elseif ( slotType == LOOT_SLOT_MONEY ) then
+		self:SetClampedSize(330, 50)
 	end
 
 	self:LockHighlight()
@@ -68,13 +83,15 @@ function LootButton:OnEnter()
 end
 
 function LootButton:OnLeave()
-	local tooltip = GetTooltip()
-	if tooltip:IsOwned(self) then
-		tooltip.NineSlice:Show()
+	local tooltip = self.lootTooltip;
+	self.lootTooltip = nil;
+	self:SetScript('OnUpdate', nil)
+	if tooltip and CPAPI.Scrub(tooltip:IsOwned(self)) then
+		if tooltip == GameTooltip then
+			RestoreSharedBackdrop()
+		end
 		tooltip:Hide()
-		self:SetScript('OnUpdate', nil)
 	end
-	self.hasTooltipFocus = false;
 	self.NameFrame:SetSize(300, 50)
 	self.Text:SetAlpha(1)
 	self:UnlockHighlight()
@@ -82,18 +99,23 @@ function LootButton:OnLeave()
 end
 
 function LootButton:OnUpdate()
-	local tooltip = GetTooltip()
-	local isOwned = CPAPI.Scrub(tooltip:IsOwned(self))
-	local width   = (isOwned and CPAPI.Scrub(tooltip:GetWidth()) or 330) + 50;
-	local height  = (isOwned and CPAPI.Scrub(tooltip:GetHeight()) or 50);
-	self:SetClampedSize(width, height)
-	if self.hasTooltipFocus and not isOwned then
-		self:OnLeave()
-	else
-		-- HACK: Readjust the tooltip if showing a single line, because it looks nicer.
-		tooltip.NineSlice:Hide()
-		tooltip:SetAnchorType('ANCHOR_BOTTOMRIGHT', 0, (tooltip:NumLines() == 1) and 40 or 50)
+	local tooltip = self.lootTooltip;
+	if not tooltip or not CPAPI.Scrub(tooltip:IsOwned(self)) then
+		return self:OnLeave()
 	end
+
+	local width = ( CPAPI.Scrub(tooltip:GetWidth()) or 330 ) + 50;
+	local height = CPAPI.Scrub(tooltip:GetHeight()) or 50;
+	self:SetClampedSize(width, height)
+
+	local backdrop = tooltip.NineSlice;
+	if backdrop and backdrop:IsShown() then
+		if tooltip == GameTooltip then
+			sharedBackdrop = backdrop;
+		end
+		backdrop:Hide()
+	end
+	tooltip:SetAnchorType('ANCHOR_BOTTOMRIGHT', 0, (tooltip:NumLines() == 1) and 40 or 50)
 end
 
 function LootButton:SetClampedSize(width, height)
