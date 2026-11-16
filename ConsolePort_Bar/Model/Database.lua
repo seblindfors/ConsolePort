@@ -320,6 +320,11 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Color of the main XP bar.';
 		deps = { enableXPBar = true };
 	};
+	watchBarBackdropColor = _{Data.Color('26606060');
+		name = L'Watch Bar Backdrop Color';
+		desc = L'Color and opacity of the empty portion of the watch bars.';
+		deps = { enableXPBar = true };
+	};
 	tintColor = _{Data.Color(classColor);
 		name = 'Tint Color';
 		desc = 'Global color of the tint effect on the toolbar and dividers.';

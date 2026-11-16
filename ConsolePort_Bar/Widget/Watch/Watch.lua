@@ -595,6 +595,7 @@ CPWatchBarContainerMixin.Events = {
 
 function CPWatchBarContainerMixin:OnLoad()
 	self.bars = {};
+	env:RegisterCallback('Settings/watchBarBackdropColor', self.UpdateBackdropColor, self)
 	env:RegisterCallbacks(self.UpdateBarVisibility, self, 'Settings/watchTopTextVisibility', 'Settings/watchBottomTextVisibility')
 	env:RegisterCallbacks(self.UpdateBarTexts, self, 'Settings/watchTopTextFormat', 'Settings/watchBottomTextFormat')
 
@@ -795,19 +796,19 @@ function CPWatchBarContainerMixin:LayoutBar(bar, barWidth, isSecondary, isDouble
 	local invertTexture = self.inverted and XP_BAR_TEXTURE_NORMAL or XP_BAR_TEXTURE_INVERTED;
 	local anchor = self.inverted and 'TOP' or 'BOTTOM';
 	local offset = self.inverted and -18 or 18;
+	local texture = isDouble and isSecondary and invertTexture or normalTexture;
+	bar.StatusBar.BarTexture:SetTexture(texture)
+	bar.ProgressBackdrop:SetTexture(texture)
 
 	if ( isDouble ) then
 		if ( isSecondary ) then
 			bar:SetPoint(anchor, self:GetParent(), 0, offset)
-			bar.StatusBar.BarTexture:SetTexture(invertTexture)
 		else
 			bar:SetPoint(anchor, self:GetParent(), 0, 0)
-			bar.StatusBar.BarTexture:SetTexture(normalTexture)
 		end
 		self:SetDoubleBarSize(bar, barWidth)
 	else
 		bar:SetPoint(anchor, self:GetParent(), 0, 0)
-		bar.StatusBar.BarTexture:SetTexture(normalTexture)
 		self:SetSingleBarSize(bar, barWidth)
 	end
 	bar:Show()
@@ -817,6 +818,13 @@ end
 function CPWatchBarContainerMixin:SetXPBarColor(r, g, b)
 	if self.experienceBar then
 		self.experienceBar:SetBarColor(r, g, b)
+	end
+end
+
+function CPWatchBarContainerMixin:UpdateBackdropColor()
+	local r, g, b, a = env:GetColorRGBA('watchBarBackdropColor');
+	for _, bar in self:Enumerate() do
+		bar.ProgressBackdrop:SetVertexColor(r, g, b, a)
 	end
 end
 
@@ -853,6 +861,17 @@ function CPWatchBarContainerMixin:SetEndCapWidth(width)
 end
 
 do -- Bar setup
+	local transparent = CreateColor(0, 0, 0, 0);
+	local opaque = CreateColor(0, 0, 0, 1);
+
+	local function addBarGradient(bar, statusBar, topRight, bottomLeft, startColor, endColor)
+		local gradient = bar:CreateTexture(nil, 'BACKGROUND', nil, -3);
+		gradient:SetPoint('TOPRIGHT', statusBar, topRight)
+		gradient:SetPoint('BOTTOMLEFT', statusBar, bottomLeft)
+		gradient:SetColorTexture(1, 1, 1, 1)
+		gradient:SetGradient('HORIZONTAL', startColor, endColor)
+	end
+
 	local function configureNativeWatchText(bar, name)
 		function bar:ShouldBarTextBeDisplayed()
 			return shouldShowWatchBarText(env(getWatchTextSlot(self).visibility), self:IsMouseOver());
@@ -907,6 +926,15 @@ do -- Bar setup
 		end
 
 		statusBar.Background:Hide()
+		addBarGradient(bar, statusBar, 'TOP', 'BOTTOMLEFT', transparent, opaque)
+		addBarGradient(bar, statusBar, 'TOPRIGHT', 'BOTTOM', opaque, transparent)
+		local track = bar:CreateTexture(nil, 'BACKGROUND', nil, -2);
+		track:SetAllPoints(statusBar)
+		track:SetDesaturated(true)
+		track:SetVertexColor(env:GetColorRGBA('watchBarBackdropColor'))
+		track:SetSnapToPixelGrid(true)
+		track:SetTexelSnappingBias(0)
+		bar.ProgressBackdrop = track;
 		statusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_NORMAL)
 		statusBar.BarTexture:SetSnapToPixelGrid(true)
 		statusBar.BarTexture:SetTexelSnappingBias(0)
@@ -926,9 +954,19 @@ do -- Bar setup
 		statusBar:HookScript('OnMinMaxChanged', updateProgressTick)
 		updateProgressTick(statusBar)
 
+		-- Keep both progress markers above the fills, with the text above the markers.
+		local strata = bar:GetFrameStrata();
+		local markerLevel = math.max(bar:GetFrameLevel(), statusBar:GetFrameLevel()) + 1;
+		tick:SetFrameStrata(strata)
+		tick:SetFrameLevel(markerLevel)
+		if bar.ExhaustionTick then
+			bar.ExhaustionTick:SetFrameStrata(strata)
+			bar.ExhaustionTick:SetFrameLevel(markerLevel)
+		end
+
 		local overlay = bar.OverlayFrame;
-		overlay:SetFrameStrata(bar:GetFrameStrata())
-		overlay:SetFrameLevel(math.max(statusBar:GetFrameLevel(), tick:GetFrameLevel()) + 1)
+		overlay:SetFrameStrata(strata)
+		overlay:SetFrameLevel(markerLevel + 1)
 
 		bar.ShouldBeVisible = showPredicate or bar.ShouldBeVisible or nop;
 		bar.GetPriority     = getPriority or bar.GetPriority;
