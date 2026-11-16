@@ -64,6 +64,7 @@ Selector.PrivateEnv = {
 	-- Trigger
 	OnGameMenuShow = [[
 		isMenuOpen = true;
+		if not selector:GetAttribute('enabled') then return end;
 		selector::ClearAndHide(true)
 		local name = selector:GetName();
 		for binding, action in pairs(TRIGGERS) do
@@ -72,6 +73,7 @@ Selector.PrivateEnv = {
 	]];
 	OnGameMenuHide = [[
 		isMenuOpen = nil;
+		if not selector:GetAttribute('enabled') then return end;
 		if not selector::IsButtonHeld(SWITCH) then
 			selector::ClearAndHide(true)
 		else
@@ -79,6 +81,7 @@ Selector.PrivateEnv = {
 		end
 	]];
 	OnTrigger = [[
+		if not selector:GetAttribute('enabled') then return end;
 		if selector:IsVisible() or isMenuOpen then
 			return selector::ClearAndHide(true)
 		end
@@ -185,6 +188,7 @@ function Selector:OnDataLoaded(...)
 	self:OnAxisInversionChanged()
 	self:OnControlsChanged()
 	self:OnSizingChanged()
+	self:OnEnabledChanged()
 	self.ActiveSlice:SetAlpha(0)
 
 	local numButtons = #env.Buttons;
@@ -196,6 +200,14 @@ end
 
 function Selector:OnAxisInversionChanged()
 	self.axisInversion = db('radialCosineDelta')
+end
+
+function Selector:OnEnabledChanged()
+	local enabled = env:IsGameMenuEnabled();
+	self:SetAttribute('enabled', enabled)
+	if not enabled then
+		self:RunAttribute('ClearAndHide', true)
+	end
 end
 
 function Selector:OnSizingChanged()
@@ -414,6 +426,10 @@ function GameMenuButtonMixin:OnClear()
 end
 
 db:RegisterSafeCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
+db:RegisterSafeCallbacks(Selector.OnEnabledChanged, Selector,
+	'Settings/gameMenuEnable',
+	'OnNativeNavigationChanged'
+);
 db:RegisterSafeCallbacks(Selector.OnControlsChanged, Selector,
 	'OnModifierChanged',
 	'Settings/radialPrimaryStick',

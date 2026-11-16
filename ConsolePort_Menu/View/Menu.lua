@@ -28,7 +28,7 @@ function Menu:OnSizingChanged()
 end
 
 function Menu:OnFrameShown(visible, frame)
-	if ( frame == GameMenu ) and not db('gameMenuEnable') then
+	if ( frame == GameMenu ) and not env:IsGameMenuEnabled() then
 		visible = false;
 	end
 	self.Owners[frame].visible = visible;

@@ -382,13 +382,10 @@ end
 
 function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
-	if CPAPI.IsCamelotVersion then
-		self:RegisterEvent('INPUT_DEVICE_INTERFACE_TRANSITION')
-	end
 	return CPAPI.BurnAfterReading;
 end
 
-function Mouse:INPUT_DEVICE_INTERFACE_TRANSITION()
+function Mouse:OnNativeNavigationChanged()
 	self:SetEnabled(db('mouseHandlingEnabled'))
 end
 
@@ -427,6 +424,7 @@ function Mouse:OnHintsFocus(_, disableMouseHandling)
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
+db:RegisterSafeCallback('OnNativeNavigationChanged', Mouse.OnNativeNavigationChanged, Mouse)
 db:RegisterCallback('OnHintsFocus', Mouse.OnHintsFocus, Mouse)
 ---------------------------------------------------------------
 -- Variables
