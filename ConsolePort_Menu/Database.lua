@@ -1,9 +1,9 @@
-local _, Data = CPAPI.LinkEnv(...)
+local _, Data, env, db = CPAPI.LinkEnv(...)
 ---------------------------------------------------------------
 ConsolePort:AddVariables({
 ---------------------------------------------------------------
 	_(MAINMENU_BUTTON, INTERFACE_LABEL);
-	gameMenuEnable = _{Data.Bool(not CPAPI.IsCamelotVersion);
+	gameMenuEnable = _{Data.Bool(true);
 		name = 'Game Menu';
 		desc = 'Replaces the game menu with a controller-friendly menu and a quick access ring.';
 	};
@@ -43,3 +43,8 @@ ConsolePort:AddVariables({
 		deps = { gameMenuEnable = true, gameMenuCustomSet = true };
 	};
 })
+
+---------------------------------------------------------------
+function env:IsGameMenuEnabled()
+	return db('gameMenuEnable') and not CPAPI.IsNativeNavigationActive();
+end

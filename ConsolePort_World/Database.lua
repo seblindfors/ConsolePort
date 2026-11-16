@@ -76,7 +76,7 @@ ConsolePort:AddVariables({
 		name = LOOT;
 		desc = 'Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.';
 		list = SETTING_GROUP_GAMEPLAY;
-		hide = CPAPI.IsModernVersion;
+		hide = CPAPI.IsRetailVersion;
 	};
 	QMenuCollectionPet = _{Data.Bool(true);
 		name = PET;

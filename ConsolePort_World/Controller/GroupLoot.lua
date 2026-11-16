@@ -1,4 +1,4 @@
-if CPAPI.IsModernVersion then return end;
+if CPAPI.IsRetailVersion then return end;
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local LOOT_ROW_INDEX  = env.QMenuID();

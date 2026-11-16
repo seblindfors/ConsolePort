@@ -46,7 +46,7 @@ env.Const.PageDescription =  {
 ---------------------------------------------------------------
 do -- Variables
 ---------------------------------------------------------------
-local classColor = CreateColor(CPAPI.NormalizeColor(CPAPI.GetClassColor()));
+local classColor = CPAPI.GetClassAccentColor();
 
 env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------

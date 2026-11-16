@@ -1,11 +1,23 @@
-if not CPAPI.IsCamelotVersion or not C_GamepadTargeting or not Enum.GamepadTargetingFilters then return end;
+if not CPAPI.IsCamelotVersion then return end;
+local _, db = ...;
+
+---------------------------------------------------------------
+-- Interface style transitions (Forever)
+---------------------------------------------------------------
+local Transition = CPAPI.CreateEventHandler({'Frame', '$parentInterfaceTransition', ConsolePort}, {
+	'INPUT_DEVICE_INTERFACE_TRANSITION';
+})
+
+function Transition:INPUT_DEVICE_INTERFACE_TRANSITION()
+	db:TriggerEvent('OnNativeNavigationChanged', CPAPI.IsNativeNavigationActive())
+end
+
+if not C_GamepadTargeting or not Enum.GamepadTargetingFilters then return end;
 ---------------------------------------------------------------
 -- Native gamepad targeting (Forever)
 ---------------------------------------------------------------
 -- Hold-to-target buttons over the game's gamepad targeting
 -- manager, bindable like any other ConsolePort action.
-
-local _, db = ...;
 
 local function CreateTargetButton(name, filter, tabTarget, tabCvar)
 	local button = CreateFrame('Button', 'ConsolePort'..name, ConsolePort)

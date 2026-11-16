@@ -214,7 +214,7 @@ db:Register('Variables', CPAPI.Callable({
 	--------------------------------------------------------------------------------------------------------
 	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse
 	--------------------------------------------------------------------------------------------------------
-	mouseHandlingEnabled = _{Bool(not CPAPI.IsCamelotVersion);
+	mouseHandlingEnabled = _{Bool(true);
 		name = 'Enable Mouse Handling';
 		desc = 'Enable custom mouse handling, automating cursor toggling and timeout while using left and right mouse button emulation.';
 		note = 'While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.';
@@ -355,7 +355,7 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Color of the sticky selection slice.';
 		advd = true;
 	};
-	radialAccentColor = _{Color(CPAPI.GetClassColorObject());
+	radialAccentColor = _{Color(CPAPI.GetClassAccentColor());
 		name = 'Accent Color';
 		list = COLORS;
 		desc = 'Color accent of radial menu items.';

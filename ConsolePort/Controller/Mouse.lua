@@ -367,6 +367,7 @@ end
 -- Handler on/off
 ---------------------------------------------------------------
 function Mouse:SetEnabled(enabled)
+	enabled = enabled and not CPAPI.IsNativeNavigationActive();
 	self.enabled = enabled;
 	self:EnableGamePadButton(enabled)
 	if enabled then
@@ -382,6 +383,10 @@ end
 function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
 	return CPAPI.BurnAfterReading;
+end
+
+function Mouse:OnNativeNavigationChanged()
+	self:SetEnabled(db('mouseHandlingEnabled'))
 end
 
 function Mouse:OnVariableChanged()
@@ -413,12 +418,13 @@ function Mouse:OnVariableChanged()
 end
 
 function Mouse:OnHintsFocus(_, disableMouseHandling)
-	if db('mouseHandlingEnabled') and not disableMouseHandling then
+	if self.enabled and not disableMouseHandling then
 		self:SetCameraControl()
 	end
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
+db:RegisterSafeCallback('OnNativeNavigationChanged', Mouse.OnNativeNavigationChanged, Mouse)
 db:RegisterCallback('OnHintsFocus', Mouse.OnHintsFocus, Mouse)
 ---------------------------------------------------------------
 -- Variables
@@ -451,7 +457,7 @@ do -- Cursor reset workaround (button script not triggered)
 	};
 
 	WorldFrame:HookScript('OnMouseUp', function(_, button)
-		if not CursorControl() or not db('mouseHandlingEnabled') then return end;
+		if not CursorControl() or not Mouse.enabled then return end;
 
 		local key  = ButtonListeners[button];
 		local cvar = key and key[reverseMouseHandling];
