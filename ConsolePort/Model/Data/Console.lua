@@ -80,6 +80,7 @@ db:Register('Console', CPAPI.Proxy({
 		{	cvar = 'interactOnLeftClick';
 			type = Bool(false);
 			name = INTERACT_ON_LEFT_CLICK_TEXT;
+			list = 'Behavior';
 			desc = OPTION_TOOLTIP_INTERACT_ON_LEFT_CLICK;
 			note = 'Affects both mouse and gamepad.';
 		};
@@ -98,8 +99,9 @@ db:Register('Console', CPAPI.Proxy({
 		};
 		{	cvar = 'CursorCenteredYPos';
 			type = Range(0.6, 0.025, 0, 1);
-			name = 'Cursor Center Position';
-			desc = 'Vertical position of centered cursor & targeting, as fraction of screen height.';
+			name = 'Reticle Position';
+			list = 'Appearance';
+			desc = 'Vertical position of the reticle, centered cursor and targeting, as fraction of screen height.';
 		};
 		{	cvar = 'GamePadCursorSpeedStart';
 			type = Number(0.1, 0.05);
@@ -268,6 +270,18 @@ db:Register('Console', CPAPI.Proxy({
 			type = Bool(false);
 			name = 'Show Tooltip';
 			desc = 'Show tooltip for interactables.';
+		};
+		{	cvar = 'GamepadTargetingAnalogDeadzone';
+			type = Range(0.6, 0.05, 0, 1);
+			name = 'Targeting Button Deadzone';
+			desc = 'How far the camera stick must be pushed while a targeting button is held before it picks targets instead of moving the camera.';
+			note = 'Releasing the button with the stick below this keeps the camera moving.';
+		};
+		{	cvar = 'GamepadTargetingAnalogPullbackThreshold';
+			type = Range(0.15, 0.05, 0, 1);
+			name = 'Targeting Button Pullback';
+			desc = 'How far the camera stick must ease back from its furthest push before the pick is released, letting the next push select again.';
+			advd = true;
 		};
 	};
 	--------------------------------------------------------------------------------------------------------

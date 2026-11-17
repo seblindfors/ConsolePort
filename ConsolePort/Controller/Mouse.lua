@@ -127,6 +127,8 @@ end
 ---------------------------------------------------------------
 local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
 local CursorCentered = function() return CVar_Center:Get(true) end;
+local HoverFreeLook  = function() return C_GamePad.GetAllowHoverEventsWithFreeLook and C_GamePad.GetAllowHoverEventsWithFreeLook() end;
+local CanHoverCenter = function() return CursorCentered() or HoverFreeLook() end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
 local IsMouseOver    = function() return UnitExists('mouseover') end;
 local IsWorldFocus   = function() return WorldFrame:IsMouseMotionFocus() end;
@@ -294,6 +296,13 @@ function Mouse:SetFreeLook(enabled)
 	return self
 end
 
+function Mouse:SetHoverEvents(enabled)
+	if C_GamePad.SetAllowHoverEventsWithFreeLook then
+		C_GamePad.SetAllowHoverEventsWithFreeLook(enabled)
+	end
+	return self
+end
+
 ---------------------------------------------------------------
 -- Compounded control functions
 ---------------------------------------------------------------
@@ -302,6 +311,7 @@ function Mouse:SetFreeCursor()
 		:SetFreeLook(false)
 		:SetCentered(false)
 		:SetCursorControl(true)
+		:SetHoverEvents(false)
 end
 
 function Mouse:SetCenteredCursor()
@@ -310,6 +320,7 @@ function Mouse:SetCenteredCursor()
 		:SetFreeLook(true)
 		:SetCentered(true)
 		:SetCursorControl(false)
+		:SetHoverEvents(true)
 end
 
 function Mouse:SetCameraControl()
@@ -318,6 +329,7 @@ function Mouse:SetCameraControl()
 		:SetFreeLook(true)
 		:SetCentered(false)
 		:SetCursorControl(false)
+		:SetHoverEvents(true)
 end
 
 function Mouse:AttemptSetCameraControl(_)
@@ -350,7 +362,7 @@ function Mouse:OnUpdate(elapsed)
 		self.elapsed = 0;
 		return
 	end
-	if showMouseOverTooltip and is(_, IsMouseOver, CursorCentered) then
+	if showMouseOverTooltip and is(_, IsMouseOver, CanHoverCenter) then
 		local guid = CPAPI.Scrub(UnitGUID('mouseover'))
 		if guid and self.mouseOverGUID ~= guid then
 			self.mouseOverGUID = guid;
@@ -374,6 +386,7 @@ function Mouse:SetEnabled(enabled)
 		db:SetCVar('GamePadCursorAutoEnable', 0)
 		db:SetCVar('CursorFreelookStartDelta', 0.001)
 		db:SetCVar('GamePadCursorCenteredEmulation', 0)
+		self:SetHoverEvents(not CursorControl())
 	end
 	(enabled and FrameUtil.RegisterFrameForEvents or FrameUtil.UnregisterFrameForEvents)(self, self.Events);
 	self:SetScript('OnUpdate', enabled and self.OnUpdate or nil)
