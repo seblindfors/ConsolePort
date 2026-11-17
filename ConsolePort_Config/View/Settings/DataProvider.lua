@@ -102,7 +102,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 		Bindings = KEY_BINDINGS_MAC;
 		Camera   = CAMERA_LABEL;
 		Interact = UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT;
-		Mouse    = MOUSE_LABEL;
+		Mouse    = 'Reticle';
 		System   = GENERAL;
 	};
 

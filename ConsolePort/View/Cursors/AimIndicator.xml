@@ -1,0 +1,7 @@
+<Ui>
+
+	<Frame name="ConsolePortAimIndicator" parent="UIParent" hidden="true" frameStrata="LOW" alpha="0">
+		<Size x="160" y="160"/>
+	</Frame>
+
+</Ui>

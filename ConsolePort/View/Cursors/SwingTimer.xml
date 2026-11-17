@@ -1,0 +1,17 @@
+<Ui>
+
+	<Frame name="ConsolePortSwingTimer" parent="UIParent" hidden="true" frameStrata="LOW" alpha="0">
+		<Size x="30" y="30"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Track" setAllPoints="true"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Full" setAllPoints="true"/>
+				<Texture parentKey="Left" setAllPoints="true" hidden="true"/>
+				<Texture parentKey="Right" setAllPoints="true" hidden="true"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
+</Ui>
