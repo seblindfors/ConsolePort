@@ -767,6 +767,7 @@ L['Cluster Modifier Toggle'] = '클러스터 조합키 전환';
 L['Clusters'] = '클러스터';
 L['Color'] = '색상';
 L['Color accent of radial menu items.'] = '원형 메뉴 항목의 색상 강조.';
+L['Color and opacity of the empty portion of the watch bars.'] = '관찰 막대의 빈 부분의 색상과 불투명도입니다.';
 L['Color of a partially selected slice.'] = '부분적으로 선택된 조각의 색상.';
 L['Color of the active slice.'] = '활성 조각의 색상.';
 L['Color of the cooldown swipe effect on buttons.'] = '버튼의 재사용 대기시간 스와이프 효과 색상.';
@@ -1594,6 +1595,7 @@ L['Vertical position of the reticle, centered cursor and targeting, as fraction 
 L['Visibility'] = '표시';
 L['Visibility Condition'] = '가시성 조건';
 L['Watch Bar'] = '감시 막대';
+L['Watch Bar Backdrop Color'] = '관찰 막대 배경 색상';
 L['Watch bars include XP, reputation, honor, artifact power, azerite, and house favor where available.'] = '감시 막대에는 경험치, 평판, 명예, 유물력, 아제라이트, 그리고 가능한 경우 주택 호감도가 포함됩니다.';
 L['When disabled, a button press will also act as a cursor click.'] = '비활성화되면 버튼 누름도 커서 클릭으로 작동합니다.';
 L['When disabled, you will need to press the accept button to confirm a selection.'] = '비활성화되면 선택을 확인하려면 수락 버튼을 눌러야 합니다.';
