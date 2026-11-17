@@ -1,7 +1,7 @@
 <Ui>
 	<Script file="Watchbar.lua"/>
 
-	<Frame name="CPWatchbar" virtual="true" clampedToScreen="true" movable="true" mixin="CPWatchbar" enableMouseClicks="false">
+	<Frame name="CPWatchbar" frameStrata="LOW" fixedFrameStrata="true" virtual="true" clampedToScreen="true" movable="true" mixin="CPWatchbar" enableMouseClicks="false">
 		<Size x="900" y="64"/>
 		<Scripts>
 			<OnDragStart method="StartMoving"/>

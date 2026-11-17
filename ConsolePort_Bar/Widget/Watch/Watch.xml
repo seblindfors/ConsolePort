@@ -57,7 +57,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CPExpStatusBarTemplate" useParentLevel="true" inherits="CPStatusTrackingBarTemplate" hidden="true" mixin="CPExpBarMixin" virtual="true">
+	<Frame name="CPExpStatusBarTemplate" inherits="CPStatusTrackingBarTemplate" hidden="true" mixin="CPExpBarMixin" virtual="true">
 		<Size x="804" y="11"/>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-1">
@@ -119,30 +119,6 @@
 			<OnUpdate method="UpdateFade"/>
 		</Scripts>
 		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="BGLeft">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="0" y="0"/>
-						<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOM"/>
-					</Anchors>
-					<Color r="0.0" g="0.0" b="0.0" a="1"/>
-					<Gradient orientation="HORIZONTAL">
-						<MinColor r="0" g="0" b="0" a="0"/>
-						<MaxColor r="0" g="0" b="0" a="1"/>
-					</Gradient>
-				</Texture>
-				<Texture parentKey="BGRight">
-					<Anchors>
-						<Anchor point="TOPRIGHT" x="0" y="0"/>
-						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOM"/>
-					</Anchors>
-					<Color r="0.0" g="0.0" b="0.0" a="1"/>
-					<Gradient orientation="HORIZONTAL">
-						<MinColor r="0" g="0" b="0" a="1"/>
-						<MaxColor r="0" g="0" b="0" a="0"/>
-					</Gradient>
-				</Texture>	
-			</Layer>
 			<Layer level="OVERLAY">
 				<Texture parentKey="SingleBarLarge" hidden="true">
 					<Size x="804" y="14"/>
