@@ -776,6 +776,7 @@ L['Cluster Modifier Toggle'] = 'Переключатель модификато�
 L['Clusters'] = 'Кластеры';
 L['Color'] = 'Цвет';
 L['Color accent of radial menu items.'] = 'Цветовой акцент элементов кругового меню.';
+L['Color and opacity of the empty portion of the watch bars.'] = 'Цвет и непрозрачность пустой части полос отслеживания.';
 L['Color of a partially selected slice.'] = 'Цвет частично выбранного сегмента.';
 L['Color of the active slice.'] = 'Цвет активного сегмента.';
 L['Color of the cooldown swipe effect on buttons.'] = 'Цвет эффекта смахивания восстановления на кнопках.';
@@ -1587,6 +1588,7 @@ L['Vertical position of the reticle, centered cursor and targeting, as fraction 
 L['Visibility'] = 'Отображение';
 L['Visibility Condition'] = 'Условие видимости';
 L['Watch Bar'] = 'Полоса отслеживания';
+L['Watch Bar Backdrop Color'] = 'Цвет фона полос отслеживания';
 L['Watch bars include XP, reputation, honor, artifact power, azerite, and house favor where available.'] = 'Полосы отслеживания включают опыт, репутацию, честь, силу артефакта, азерит и, где доступно, расположение дома.';
 L['When disabled, a button press will also act as a cursor click.'] = 'Когда отключено, нажатие кнопки также будет действовать как клик курсора.';
 L['When disabled, you will need to press the accept button to confirm a selection.'] = 'Когда отключено, вам нужно будет нажать кнопку принятия для подтверждения выбора.';

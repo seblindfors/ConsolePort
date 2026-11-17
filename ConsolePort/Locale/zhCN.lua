@@ -765,6 +765,7 @@ L['Cluster Modifier Toggle'] = '集群修饰键切换';
 L['Clusters'] = '集群';
 L['Color'] = '颜色';
 L['Color accent of radial menu items.'] = '径向菜单项的颜色强调。';
+L['Color and opacity of the empty portion of the watch bars.'] = '监视条空白部分的颜色和不透明度。';
 L['Color of a partially selected slice.'] = '部分选中的扇区的颜色。';
 L['Color of the active slice.'] = '活动扇区的颜色。';
 L['Color of the cooldown swipe effect on buttons.'] = '按钮上冷却扫掠效果的颜色。';
@@ -1593,6 +1594,7 @@ L['Vertical position of the reticle, centered cursor and targeting, as fraction 
 L['Visibility'] = '可见性';
 L['Visibility Condition'] = '可见性条件';
 L['Watch Bar'] = '监视条';
+L['Watch Bar Backdrop Color'] = '监视条背景颜色';
 L['Watch bars include XP, reputation, honor, artifact power, azerite, and house favor where available.'] = '监视条包括经验、声望、荣誉、神器能量、艾泽里特，以及可用时的宅邸好感。';
 L['When disabled, a button press will also act as a cursor click.'] = '禁用时，按下按钮也会作为光标点击。';
 L['When disabled, you will need to press the accept button to confirm a selection.'] = '禁用时，你需要按下接受按钮以确认选择。';

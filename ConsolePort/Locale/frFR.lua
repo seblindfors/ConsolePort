@@ -774,6 +774,7 @@ L['Cluster Modifier Toggle'] = 'Bascule de modificateur cluster';
 L['Clusters'] = 'Clusters';
 L['Color'] = 'Couleur';
 L['Color accent of radial menu items.'] = 'Accent de couleur des éléments de menu radial.';
+L['Color and opacity of the empty portion of the watch bars.'] = 'Couleur et opacité de la partie vide des barres de suivi.';
 L['Color of a partially selected slice.'] = "Couleur d'une tranche partiellement sélectionnée.";
 L['Color of the active slice.'] = 'Couleur de la tranche active.';
 L['Color of the cooldown swipe effect on buttons.'] = "Couleur de l'effet de balayage de temps de recharge sur les boutons.";
@@ -1578,6 +1579,7 @@ L['Vertical position of the reticle, centered cursor and targeting, as fraction 
 L['Visibility'] = 'Visibilité';
 L['Visibility Condition'] = 'Condition de visibilité';
 L['Watch Bar'] = 'Barre de surveillance';
+L['Watch Bar Backdrop Color'] = 'Couleur de fond des barres de suivi';
 L['When disabled, a button press will also act as a cursor click.'] = 'Quand désactivé, un appui sur un bouton agira aussi comme un clic du curseur.';
 L['When disabled, you will need to press the accept button to confirm a selection.'] = "Quand désactivé, tu devras appuyer sur le bouton d'acceptation pour confirmer une sélection.";
 L['When enabled, a tap will act as a button press.'] = 'Quand activé, un tap agira comme un appui sur un bouton.';

@@ -772,6 +772,7 @@ L['Cluster Modifier Toggle'] = 'Cluster-Modifikator-Umschalter';
 L['Clusters'] = 'Cluster';
 L['Color'] = 'Farbe';
 L['Color accent of radial menu items.'] = 'Farbakzent radialer Menüeinträge.';
+L['Color and opacity of the empty portion of the watch bars.'] = 'Farbe und Deckkraft des leeren Teils der Beobachtungsleisten.';
 L['Color of a partially selected slice.'] = 'Farbe eines teilweise ausgewählten Segments.';
 L['Color of the active slice.'] = 'Farbe des aktiven Segments.';
 L['Color of the cooldown swipe effect on buttons.'] = 'Farbe des Abklingzeit-Wischeffekts auf den Tasten.';
@@ -1582,6 +1583,7 @@ L['Vertical position of the reticle, centered cursor and targeting, as fraction 
 L['Visibility'] = 'Sichtbarkeit';
 L['Visibility Condition'] = 'Sichtbarkeits-Bedingung';
 L['Watch Bar'] = 'Beobachtungsleiste';
+L['Watch Bar Backdrop Color'] = 'Hintergrundfarbe der Beobachtungsleisten';
 L['Watch bars include XP, reputation, honor, artifact power, azerite, and house favor where available.'] = 'Beobachtungsleisten umfassen XP, Ruf, Ehre, Artefaktmacht, Azerit und, wo verfügbar, Hausgunst.';
 L['When disabled, a button press will also act as a cursor click.'] = 'Wenn deaktiviert, agiert ein Tastendruck auch als Cursor-Klick.';
 L['When disabled, you will need to press the accept button to confirm a selection.'] = 'Wenn deaktiviert, musst du die Bestätigen-Taste drücken, um eine Auswahl zu bestätigen.';
