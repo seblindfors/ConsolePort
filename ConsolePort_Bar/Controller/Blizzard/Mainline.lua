@@ -55,6 +55,7 @@ function env.UIHandler:HideBlizzard()
 	---------------------------------------------------------------
 	-- Main action bar
 	hideEditModeFrame(MainActionBar, false)
+	MainActionBar.SetShownBase = nop;
 	for i = 1, 12 do
 		hideActionButton(_G['ActionButton' .. i])
 	end
