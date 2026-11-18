@@ -189,3 +189,22 @@ function Auto:ToggleHouseEditorButton(enabled)
 		self:ClearActionByAttribute(DEFAULT_SET, 'house', 'toggle')
 	end
 end
+
+function Auto:ToggleCampAction(command, enabled)
+	if enabled then
+		local info = SecureHandlerMap.camp(command)
+		local wasAdded = self:AssignAction(info)
+		if wasAdded then
+			local _, action = env:GetKindAndAction(info)
+			self:AnnounceAddition(action.text)
+		end
+	else
+		self:ClearActionByAttribute(DEFAULT_SET, 'camp', command)
+	end
+end
+
+function Auto:ToggleCampActions()
+	for command, spellID in pairs(env.CampSpells) do
+		self:ToggleCampAction(command, C_UnitAuras.GetPlayerAuraBySpellID(spellID) ~= nil)
+	end
+end
