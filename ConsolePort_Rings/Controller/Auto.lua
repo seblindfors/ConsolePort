@@ -203,8 +203,30 @@ function Auto:ToggleCampAction(command, enabled)
 	end
 end
 
+function Auto:ToggleCampItem(itemID, enabled)
+	local index = self:SearchActionByAttribute(DEFAULT_SET, 'campItem', itemID)
+	if not enabled then
+		return index and self:RemoveAction(DEFAULT_SET, index)
+	end
+	if index then return end;
+
+	local link = CPAPI.GetItemInfo(itemID).itemLink;
+	if not link then return end;
+
+	local info = SecureHandlerMap.item(link)
+	info.campItem = itemID;
+	if self:AssignAction(info) then
+		self:AnnounceAddition(link)
+	end
+end
+
 function Auto:ToggleCampActions()
+	local hasAura = {};
 	for command, spellID in pairs(env.CampSpells) do
-		self:ToggleCampAction(command, C_UnitAuras.GetPlayerAuraBySpellID(spellID) ~= nil)
+		hasAura[command] = C_UnitAuras.GetPlayerAuraBySpellID(spellID) ~= nil;
+		self:ToggleCampAction(command, hasAura[command])
+	end
+	for itemID, command in pairs(env.CampItems) do
+		self:ToggleCampItem(itemID, hasAura[command] and C_Item.GetItemCount(itemID) > 0)
 	end
 end

@@ -89,6 +89,9 @@ function Events:BAG_UPDATE_DELAYED()
 	if not self:IsAutoEnabled() then return end;
 	_(self.ToggleInventoryQuestItems, self, not self.announcedBagAdditions)
 	_(self.AddAllQuestWatchItems, self)
+	if CPAPI.IsCamelotVersion then
+		_(self.ToggleCampActions, self)
+	end
 	self.announcedBagAdditions = true; -- Only announce once per session
 end
 
