@@ -34,6 +34,10 @@ env.CampSpells = {
 	professions = 1229739; -- Welcoming Campfire
 };
 
+env.CampItems = {
+	[211527] = 'sit'; -- Cozy Sleeping Bag
+};
+
 local CampActions = {
 	sit = {
 		text      = env.L'Sit';
