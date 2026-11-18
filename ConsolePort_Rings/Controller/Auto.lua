@@ -221,12 +221,13 @@ function Auto:ToggleCampItem(itemID, enabled)
 end
 
 function Auto:ToggleCampActions()
-	local hasAura = {};
-	for command, spellID in pairs(env.CampSpells) do
-		hasAura[command] = C_UnitAuras.GetPlayerAuraBySpellID(spellID) ~= nil;
-		self:ToggleCampAction(command, hasAura[command])
+	local function HasAura(spellID)
+		return C_UnitAuras.GetPlayerAuraBySpellID(spellID) ~= nil;
 	end
-	for itemID, command in pairs(env.CampItems) do
-		self:ToggleCampItem(itemID, hasAura[command] and C_Item.GetItemCount(itemID) > 0)
+	for command, spellID in pairs(env.CampSpells) do
+		self:ToggleCampAction(command, HasAura(spellID))
+	end
+	for itemID, spellID in pairs(env.CampItems) do
+		self:ToggleCampItem(itemID, HasAura(spellID) and C_Item.GetItemCount(itemID) > 0)
 	end
 end
