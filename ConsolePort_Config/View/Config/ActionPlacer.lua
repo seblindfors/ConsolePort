@@ -370,7 +370,8 @@ function Placer:OnSlotClicked(actionID, bindingID)
 	local kind, _, _, cursorSpellID = GetCursorInfo()
 	ClearCursor()
 	self.placing = nil;
-	if ( kind == 'spell' and cursorSpellID and not payload.isMapped(actionID) ) then
+	local isSwappedOut = ( payload.kind ~= 'spell' or cursorSpellID ~= payload.id );
+	if ( kind == 'spell' and cursorSpellID and isSwappedOut ) then
 		return self:SetPayload(Payloads.spell(cursorSpellID))
 	end
 	if ( bindingID and not db.Gamepad:GetBindingKey(bindingID) ) then
