@@ -29,13 +29,17 @@ env.SecureHandlerMap = CreateFromMixins(db.ActionMap, {
 ---------------------------------------------------------------
 -- Camp actions
 ---------------------------------------------------------------
+local CAMPFIRE_NEARBY    = 1283391;
+local WELCOMING_CAMPFIRE = 1229739;
+local COZY_SLEEPING_BAG  = 211527;
+
 env.CampSpells = {
-	sit         = 1283391; -- Campfire Nearby
-	professions = 1229739; -- Welcoming Campfire
+	sit         = CAMPFIRE_NEARBY;
+	professions = WELCOMING_CAMPFIRE;
 };
 
 env.CampItems = {
-	[211527] = 'sit'; -- Cozy Sleeping Bag
+	[COZY_SLEEPING_BAG] = CAMPFIRE_NEARBY;
 };
 
 local CampActions = {
