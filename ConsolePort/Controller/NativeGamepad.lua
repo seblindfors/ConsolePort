@@ -66,15 +66,12 @@ db:RegisterCallback('OnNativeNavigationChanged', Targeting.OnNativeNavigationCha
 local FILTER_ALL = C_GamepadTargeting and Enum.GamepadTargetingFilters and Enum.GamepadTargetingFilters.All;
 if not FILTER_ALL then return end;
 
-local TAB_MACROS = {
-	'/targetenemy [@target,noexists]';
-	'/targetfriend [@target,noexists]';
-};
+local TAB_MACROS = { '/targetenemy', '/targetfriend' };
 
 local TargetAny = CreateFrame('Button', '$parentTargetAny', ConsolePort, 'SecureActionButtonTemplate')
 TargetAny:RegisterForClicks('AnyDown', 'AnyUp')
 TargetAny:SetAttribute('type', 'macro')
-TargetAny:SetAttribute('useOnKeyDown', false)
+TargetAny:SetAttribute('useOnKeyDown', true)
 
 function TargetAny:OnTabSettingChanged()
 	self:SetAttribute('macrotext', TAB_MACROS[db('trgtAnyTabTarget')] or '')

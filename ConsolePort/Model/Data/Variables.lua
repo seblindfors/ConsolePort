@@ -147,7 +147,7 @@ db:Register('Variables', CPAPI.Callable({
 	};
 	trgtAnyTabTarget = _{Map(0, {[0] = OFF, [1] = 'Hostile', [2] = 'Friendly'});
 		name = 'Target Any Tab Targeting';
-		desc = 'Releasing Target Any (Hold) with nothing targeted selects the nearest enemy or friend.';
+		desc = 'Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.';
 		hide = not C_GamepadTargeting or nil;
 	};
 	--------------------------------------------------------------------------------------------------------
