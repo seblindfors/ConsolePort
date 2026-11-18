@@ -95,6 +95,9 @@ end
 function UnitMenu:AddAdditionalContextData(contextData)
 	---@see UnitPopupShared.lua:UnitPopupManager:OpenMenu
 	contextData.name, contextData.server = UnitNameUnmodified(contextData.unit);
+	-- Players here have two-part names: the second value is the surname (realm when cross-realm).
+	-- Blizzard's GetFullPlayerName/IsPlayerMe look at contextData.surname, so mirror it.
+	contextData.surname = ( contextData.server ~= '' ) and contextData.server or nil;
 	contextData.playerLocation = UnitPopupSharedUtil.TryCreatePlayerLocation(contextData);
 	if not CPAPI.IsSecret(UnitGUID(contextData.unit)) then
 		contextData.accountInfo = UnitPopupSharedUtil.GetBNetAccountInfo(contextData);
@@ -816,6 +819,130 @@ end
 do local hideButton = { CanShow = nop };
 	Replace(UnitPopupEnterEditModeMixin, hideButton);
 	Replace(UnitPopupCopyCharacterNameButtonMixin, hideButton);
+end
+
+---------------------------------------------------------------
+-- Whisper: mirror Blizzard's UnitPopupWhisperButtonMixin:OnClick.
+-- Players on this realm have two-part names, and UnitName/UnitNameUnmodified
+-- returns them as (name, surname); ConsolePort only kept the first part.
+-- @see Blizzard_FrameXMLUtil/Camelot/NameUtil.lua:14 (GetUnmodifiedUnitFullName)
+-- @see Blizzard_UnitPopupShared/UnitPopupSharedButtonMixins.lua:494
+---------------------------------------------------------------
+do
+	local function GetNameSeparator()
+		local consts = Constants and Constants.CharacterNameSeparatorConsts;
+		return ( consts and consts.CHARACTERNAME_SURNAME_SEPARATOR ) or '-';
+	end
+
+	-- Resolve "名-姓" for the given popup context. Used by whisper and invite.
+	local function GetUnitFullName(contextData)
+		local unit = contextData.unit;
+		local name, surname;
+		if unit then
+			name, surname = UnitNameUnmodified(unit);
+		end
+		if ( not name or name == UNKNOWN ) then
+			name, surname = contextData.name, contextData.surname or contextData.server;
+		end
+		if ( not name or name == UNKNOWN or name == '' ) then
+			return nil;
+		end
+
+		-- Rebuild the full name: "名-姓" (or "名-服务器" when cross-realm).
+		if ( surname and surname ~= '' ) then
+			local separator = GetNameSeparator();
+			if not name:find(separator .. surname, 1, true) then
+				name = name .. separator .. surname;
+			end
+		end
+
+		return name;
+	end
+
+	local function IsBattleNetWhisper(contextData)
+		if contextData.bnetIDAccount then
+			return true;
+		end
+		local playerLocation = contextData.playerLocation;
+		if playerLocation and playerLocation:IsBattleNetGUID() then
+			return true;
+		end
+		return false;
+	end
+
+	local function SendWhisper(contextData)
+		local isBNet = IsBattleNetWhisper(contextData);
+		local name = GetUnitFullName(contextData);
+
+		-- /run CP_DEBUG_WHISPER = true  to see what this resolves to in game.
+		if _G.CP_DEBUG_WHISPER then
+			print(format('|cff69ccf0CP whisper|r unit=%s bnet=%s name=%s',
+				tostring(contextData.unit), tostring(isBNet), tostring(name)));
+		end
+
+		if isBNet then
+			if ChatFrameUtil and ChatFrameUtil.SendBNetTell then
+				ChatFrameUtil.SendBNetTell(contextData.name);
+			end
+			return;
+		end
+
+		if not name then return end;
+
+		if ChatFrameUtil and ChatFrameUtil.SendTell then
+			-- This is the stock path: opens the chat box with "/w name " and
+			-- parses the prefix, which is what actually sets the tell target.
+			ChatFrameUtil.SendTell(name, contextData.chatFrame);
+		elseif ChatFrame_OpenChat then
+			local text = '/w ' .. name .. ' ';
+			local chatFrame = SELECTED_CHAT_FRAME or DEFAULT_CHAT_FRAME;
+			if chatFrame then
+				ChatFrame_OpenChat(text, chatFrame);
+				if chatFrame.editBox and chatFrame.editBox.ParseText then
+					chatFrame.editBox:ParseText(0);
+				end
+			else
+				ChatFrame_OpenChat(text);
+			end
+		end
+	end
+
+	Replace(UnitPopupWhisperButtonMixin, {
+		OnClick = function(self, contextData)
+			SendWhisper(contextData);
+		end;
+	});
+
+	-- Invite: same problem as whisper. UnitPopupInviteButtonMixin:OnClick calls
+	-- UnitPopupSharedUtil.GetFullPlayerName(contextData), which needs contextData.surname
+	-- to build "名-姓"; ConsolePort's context data only has the first name, so
+	-- C_PartyInfo.InviteUnit() was given a nonexistent character.
+	-- @see Blizzard_UnitPopupShared/UnitPopupSharedButtonMixins.lua:552
+	local function InviteOnClick(self, contextData)
+		local fullName = GetUnitFullName(contextData);
+		local inviteType = self.GetInviteName and self:GetInviteName() or 'INVITE';
+
+		-- /run CP_DEBUG_INVITE = true  to see what this resolves to in game.
+		if _G.CP_DEBUG_INVITE then
+			print(format('|cff69ccf0CP invite|r unit=%s type=%s name=%s',
+				tostring(contextData.unit), tostring(inviteType), tostring(fullName)));
+		end
+
+		if not fullName then return end;
+
+		if UnitPopupSharedUtil and UnitPopupSharedUtil.TryInvite then
+			-- Keeps the BNet handling and the "party is full" check of the stock button.
+			UnitPopupSharedUtil.TryInvite(contextData, inviteType, fullName);
+		elseif inviteType == 'REQUEST_INVITE' and C_PartyInfo and C_PartyInfo.RequestInviteFromUnit then
+			C_PartyInfo.RequestInviteFromUnit(fullName);
+		elseif C_PartyInfo and C_PartyInfo.InviteUnit then
+			C_PartyInfo.InviteUnit(fullName);
+		end
+	end
+
+	Replace(UnitPopupInviteButtonMixin,        {OnClick = InviteOnClick});
+	Replace(UnitPopupSuggestInviteButtonMixin, {OnClick = InviteOnClick});
+	Replace(UnitPopupRequestInviteButtonMixin, {OnClick = InviteOnClick});
 end
 
 ---------------------------------------------------------------
