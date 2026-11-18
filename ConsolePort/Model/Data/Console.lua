@@ -271,6 +271,16 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Show Tooltip';
 			desc = 'Show tooltip for interactables.';
 		};
+		{	cvar = 'GamepadTabHostileTargetAction';
+			type = Bool(true);
+			name = 'Tab Target Hostile on Release';
+			desc = 'Releasing Target Hostile (Hold) without picking a target selects the nearest enemy.';
+		};
+		{	cvar = 'GamepadTabFriendlyTargetAction';
+			type = Bool(true);
+			name = 'Tab Target Friendly on Release';
+			desc = 'Releasing Target Friendly (Hold) without picking a target selects the nearest friend.';
+		};
 		{	cvar = 'GamepadTargetingAnalogDeadzone';
 			type = Range(0.6, 0.05, 0, 1);
 			name = 'Targeting Button Deadzone';
