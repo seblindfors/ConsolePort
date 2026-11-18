@@ -263,6 +263,7 @@ if CPAPI.IsCamelotVersion then
 	Bindings.Custom.Inspect        = reserved(2);
 	Bindings.Custom.TargetFriendly = 'GAMEPADLEFTTARGETMODIFIER';
 	Bindings.Custom.TargetHostile  = 'GAMEPADRIGHTTARGETMODIFIER';
+	Bindings.Custom.TargetAny      = ('CLICK %sTargetAny:LeftButton'):format(_);
 	Bindings.Macroable.Interact    = true;
 	Bindings.Macroable.Inspect     = true;
 
@@ -288,6 +289,11 @@ if CPAPI.IsCamelotVersion then
 				binding = Bindings.Custom.TargetHostile;
 				name    = L.NAME_TARGET_HOSTILE;
 				desc    = L.DESC_TARGET_HOSTILE;
+			})
+			tinsert(Bindings.Primary, index + 3, {
+				binding = Bindings.Custom.TargetAny;
+				name    = L.NAME_TARGET_ANY;
+				desc    = L.DESC_TARGET_ANY;
 			})
 			break;
 		end
@@ -486,6 +492,7 @@ if CPAPI.IsCamelotVersion then
 	Bindings.DefaultIcons[Bindings.Custom.Inspect]        = client 'INV_Misc_Spyglass_03';
 	Bindings.DefaultIcons[Bindings.Custom.TargetFriendly] = Bindings.CustomIcons.TWNScan;
 	Bindings.DefaultIcons[Bindings.Custom.TargetHostile]  = Bindings.CustomIcons.TWNScan;
+	Bindings.DefaultIcons[Bindings.Custom.TargetAny]      = Bindings.CustomIcons.TWNScan;
 end
 
 function Bindings:OnDataLoaded()
