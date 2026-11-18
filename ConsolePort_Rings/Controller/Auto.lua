@@ -117,7 +117,7 @@ end
 function Auto:ToggleExtraActionButton(enabled)
 	if not CPAPI.IsModernVersion then return end
 
-	if enabled then
+	if enabled and CPAPI.IsRetailVersion then
 		self:AssignAction(SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
 		self.hasExtraActionButton = true;
 	else
