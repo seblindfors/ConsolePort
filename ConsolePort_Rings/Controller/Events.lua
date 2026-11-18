@@ -64,6 +64,14 @@ function Events:UNIT_QUEST_LOG_CHANGED()
 	_(self.RefreshQuestWatchItems, self)
 end
 
+if CPAPI.IsCamelotVersion then
+	Events:RegisterUnitEvent('UNIT_AURA', 'player')
+	function Events:UNIT_AURA()
+		if not self:IsAutoEnabled() then return end;
+		_(self.ToggleCampActions, self)
+	end
+end
+
 function Events:SPELLS_CHANGED()
 	env.IsSpellValidationReady = true;
 	if self:IsAutoEnabled() then
@@ -95,6 +103,9 @@ function Events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
 	if isInitialLogin or isReloadingUi then
 		env.IsDataReady = true;
 		self:QueueRefresh()
+		if CPAPI.IsCamelotVersion and self:IsAutoEnabled() then
+			_(self.ToggleCampActions, self)
+		end
 		self:UnregisterEvent('PLAYER_ENTERING_WORLD')
 	end
 end

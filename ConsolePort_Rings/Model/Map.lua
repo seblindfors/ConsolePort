@@ -19,7 +19,32 @@ env.SecureHandlerMap = CreateFromMixins(db.ActionMap, {
 		type  = 'custom';
 		house = command;
 	} end;
+	---------------------------------------------------------------
+	camp = function(command) return {
+		type = 'custom';
+		camp = command;
+	} end;
 });
+
+---------------------------------------------------------------
+-- Camp actions
+---------------------------------------------------------------
+env.CampSpells = {
+	sit         = 1283391; -- Campfire Nearby
+	professions = 1229739; -- Welcoming Campfire
+};
+
+local CampActions = {
+	sit = {
+		text      = env.L'Sit';
+		macrotext = '/sit';
+	};
+	professions = {
+		text      = TRADE_SKILLS;
+		texture   = [[Interface\Icons\INV_Misc_Wrench_01]];
+		macrotext = '/click ProfessionMicroButton';
+	};
+};
 
 ---------------------------------------------------------------
 -- Mapping from type to usable LAB attributes
@@ -76,6 +101,21 @@ local function GetCustomAction(data)
 					self:SetTexCoord(0, 1, 0, 1)
 				end
 			end;
+		}, secureEnvData;
+	end
+	if data.camp then
+		local action = CampActions[data.camp];
+		if not action then return end;
+		local secureEnvData = {
+			type      = 'macro';
+			macro     = false;
+			macrotext = action.macrotext;
+		};
+		return { -- LAB data
+			func    = CPAPI.Static(secureEnvData);
+			text    = action.text;
+			texture = action.texture or C_Spell.GetSpellTexture(env.CampSpells[data.camp]);
+			tooltip = action.text;
 		}, secureEnvData;
 	end
 end

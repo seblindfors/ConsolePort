@@ -117,7 +117,7 @@ end
 function Auto:ToggleExtraActionButton(enabled)
 	if not CPAPI.IsModernVersion then return end
 
-	if enabled then
+	if enabled and CPAPI.IsRetailVersion then
 		self:AssignAction(SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
 		self.hasExtraActionButton = true;
 	else
@@ -187,5 +187,24 @@ function Auto:ToggleHouseEditorButton(enabled)
 		self:AnnounceAddition(BINDING_NAME_HOUSING_TOGGLEEDITOR)
 	else
 		self:ClearActionByAttribute(DEFAULT_SET, 'house', 'toggle')
+	end
+end
+
+function Auto:ToggleCampAction(command, enabled)
+	if enabled then
+		local info = SecureHandlerMap.camp(command)
+		local wasAdded = self:AssignAction(info)
+		if wasAdded then
+			local _, action = env:GetKindAndAction(info)
+			self:AnnounceAddition(action.text)
+		end
+	else
+		self:ClearActionByAttribute(DEFAULT_SET, 'camp', command)
+	end
+end
+
+function Auto:ToggleCampActions()
+	for command, spellID in pairs(env.CampSpells) do
+		self:ToggleCampAction(command, C_UnitAuras.GetPlayerAuraBySpellID(spellID) ~= nil)
 	end
 end
