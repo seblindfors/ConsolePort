@@ -59,3 +59,33 @@ end
 GamepadMode.RegisterTargetModifierStateChanged(Targeting.OnHoldChanged, Targeting)
 GamepadMode.RegisterTargetModifierStateCancelled(Targeting.OnHoldCancelled, Targeting)
 db:RegisterCallback('OnNativeNavigationChanged', Targeting.OnNativeNavigationChanged, Targeting)
+
+---------------------------------------------------------------
+-- Target any unit (Forever)
+---------------------------------------------------------------
+local FILTER_ALL = C_GamepadTargeting and Enum.GamepadTargetingFilters and Enum.GamepadTargetingFilters.All;
+if not FILTER_ALL then return end;
+
+local TAB_MACROS = { '/targetenemy', '/targetfriend' };
+
+local TargetAny = CreateFrame('Button', '$parentTargetAny', ConsolePort, 'SecureActionButtonTemplate')
+TargetAny:RegisterForClicks('AnyDown', 'AnyUp')
+TargetAny:SetAttribute('type', 'macro')
+TargetAny:SetAttribute('useOnKeyDown', true)
+
+function TargetAny:OnTabSettingChanged()
+	self:SetAttribute('macrotext', TAB_MACROS[db('trgtAnyTabTarget')] or '')
+end
+
+TargetAny:SetScript('PreClick', function(_, _, down)
+	if down then
+		C_GamepadTargeting.SetFilter(FILTER_ALL)
+		C_GamepadTargeting.Enable()
+		return Targeting:OnHoldChanged(GamepadTargetingState.BOTH);
+	end
+	C_GamepadTargeting.Disable()
+	Targeting:OnHoldChanged(TARGETING_NONE)
+end)
+
+db:RegisterSafeCallback('OnDataLoaded', TargetAny.OnTabSettingChanged, TargetAny)
+db:RegisterSafeCallback('Settings/trgtAnyTabTarget', TargetAny.OnTabSettingChanged, TargetAny)

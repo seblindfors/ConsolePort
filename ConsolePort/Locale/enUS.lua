@@ -26,6 +26,7 @@ L.NAME_INTERACT               = 'Interact';
 L.NAME_INSPECT                = 'Inspect';
 L.NAME_TARGET_FRIENDLY        = 'Target Friendly (Hold)';
 L.NAME_TARGET_HOSTILE         = 'Target Hostile (Hold)';
+L.NAME_TARGET_ANY             = 'Target Any (Hold)';
 ---------------------------------------------------------------
 -- Formats
 ---------------------------------------------------------------
@@ -231,6 +232,10 @@ L.DESC_TARGET_HOSTILE = [[
 	Hold to aim at hostile units with the reticle. Releasing
 	without a selection targets the nearest enemy, when the game
 	option for it is on.
+]];
+L.DESC_TARGET_ANY = [[
+	Hold to aim at any unit with the reticle, friendly or
+	hostile. Releasing targets the unit the reticle picked.
 ]];
 L.DESC_QUICK_MENU = [[
 	A quick access menu that gathers common actions performed
