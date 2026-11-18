@@ -155,7 +155,7 @@ UH:CreateEnvironment({
 
 	SetTarget = [[
 		local macrotext, unit = self::GetCommand()
-		if not useInstant then
+		if ( not useInstant or ( useAim and unit ) ) then
 			self:SetAttribute('macrotext', macrotext)
 		end
 		self:::FinalizeBindings(unit)
@@ -189,10 +189,16 @@ UH:Wrap('PreClick', [[
 		if defaultToScan then
 			self:::EndTargetScan()
 		end
+		if useAim then
+			self:::EndAim()
+		end
 		return self::SetTarget()
 	elseif defaultToScan then
 		self:::StartTargetScan()
 		self:SetAttribute('macrotext', '/targetenemy')
+	end
+	if useAim then
+		self:::StartAim()
 	end
 
 	self::SetBindings()
@@ -218,6 +224,17 @@ end
 
 function UH:EndTargetScan()
 	TargetPriorityHighlightEnd()
+end
+
+---------------------------------------------------------------
+-- Reticle aiming
+---------------------------------------------------------------
+function UH:StartAim()
+	db.AimTargeting:Begin()
+end
+
+function UH:EndAim()
+	db.AimTargeting:End()
 end
 
 ---------------------------------------------------------------
@@ -259,6 +276,12 @@ function UH:OnTargetSettingsChanged()
 		self:SetAttribute(key, db(varID))
 		self:Run([[%s = self:GetAttribute(%q)]], key, key)
 	end
+	local useAim = db('unitHotkeyAimMode') and db.AimTargeting ~= nil;
+	self:SetAttribute('useAim', useAim)
+	self:Run([[
+		useAim = self:GetAttribute('useAim')
+		defaultToScan = defaultToScan and not useAim;
+	]])
 end
 
 function UH:OnHotkeySetChanged()
@@ -285,7 +308,8 @@ end
 db:RegisterSafeCallbacks(UH.OnTargetSettingsChanged, UH,
 	'Settings/unitHotkeyFocusMode',
 	'Settings/unitHotkeyDefaultMode',
-	'Settings/unitHotkeyInstantMode'
+	'Settings/unitHotkeyInstantMode',
+	'Settings/unitHotkeyAimMode'
 );
 db:RegisterSafeCallbacks(UH.OnModifiersChanged, UH,
 	'Gamepad/Active',

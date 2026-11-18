@@ -66,6 +66,20 @@ db:RegisterCallback('OnNativeNavigationChanged', Targeting.OnNativeNavigationCha
 local FILTER_ALL = C_GamepadTargeting and Enum.GamepadTargetingFilters and Enum.GamepadTargetingFilters.All;
 if not FILTER_ALL then return end;
 
+function Targeting:Begin(filter)
+	C_GamepadTargeting.SetFilter(filter or FILTER_ALL)
+	C_GamepadTargeting.Enable()
+	self:OnHoldChanged(GamepadTargetingState.BOTH)
+end
+
+function Targeting:End()
+	local picked = C_GamepadTargeting.Disable();
+	self:OnHoldChanged(TARGETING_NONE)
+	return picked;
+end
+
+db:Register('AimTargeting', Targeting)
+
 local TAB_MACROS = { '/targetenemy', '/targetfriend' };
 
 local TargetAny = CreateFrame('Button', '$parentTargetAny', ConsolePort, 'SecureActionButtonTemplate')
@@ -79,12 +93,9 @@ end
 
 TargetAny:SetScript('PreClick', function(_, _, down)
 	if down then
-		C_GamepadTargeting.SetFilter(FILTER_ALL)
-		C_GamepadTargeting.Enable()
-		return Targeting:OnHoldChanged(GamepadTargetingState.BOTH);
+		return Targeting:Begin(FILTER_ALL);
 	end
-	C_GamepadTargeting.Disable()
-	Targeting:OnHoldChanged(TARGETING_NONE)
+	Targeting:End()
 end)
 
 db:RegisterSafeCallback('OnDataLoaded', TargetAny.OnTabSettingChanged, TargetAny)

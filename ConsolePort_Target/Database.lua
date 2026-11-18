@@ -151,6 +151,12 @@ env.Variables = {
 		name = 'Default to '..BLUE(GetBindingName('TARGETSCANENEMY'));
 		desc = 'Hotkeys use '..BLUE(GetBindingName('TARGETSCANENEMY'))..' when no target is selected.';
 	};
+	unitHotkeyAimMode = _{Data.Bool(false);
+		name = 'Aim With Reticle';
+		desc = 'Holding the hotkey binding also aims at any unit with the reticle. Releasing targets the unit it picked, unless a hotkey was pressed.';
+		note = 'Replaces the target scan default while enabled.';
+		hide = not C_GamepadTargeting or nil;
+	};
 	unitHotkeyNamePlates = _{Data.Bool(true);
 		name = 'Show on Name Plates';
 		desc = 'Hotkey prompts appear on applicable name plates.';
