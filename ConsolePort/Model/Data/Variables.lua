@@ -150,6 +150,11 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.';
 		hide = not C_GamepadTargeting or nil;
 	};
+	trgtAimTooltip = _{Bool(true);
+		name = 'Show Tooltip While Aiming';
+		desc = 'Show the tooltip of each unit picked while holding a hold-to-target binding.';
+		hide = not C_GamepadTargeting or nil;
+	};
 	--------------------------------------------------------------------------------------------------------
 	_(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT, BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------

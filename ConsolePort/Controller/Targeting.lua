@@ -172,6 +172,52 @@ Targeting.PLAYER_SOFT_ENEMY_CHANGED  = GenerateClosure(TrySetUnitTooltip, 'trgtE
 Targeting.PLAYER_SOFT_FRIEND_CHANGED = GenerateClosure(TrySetUnitTooltip, 'trgtFriendTooltip', 'softfriend')
 
 ---------------------------------------------------------------
+do -- Aim hold tooltip
+---------------------------------------------------------------
+	local AIM_UNIT, AIM_EVENT = 'target', 'PLAYER_TARGET_CHANGED';
+
+	local function IsAimTooltipOwned(self, guid)
+		return not self.aimHeld
+			and self.tooltipGUID == guid
+			and GameTooltip:IsOwned(UIParent);
+	end
+
+	local function OnAimReleased()
+		local self, guid = Targeting, Targeting.aimTooltipGUID;
+		if self.aimHeld then return end;
+		self:UnregisterEvent(AIM_EVENT)
+		self.aimTooltipGUID = nil;
+		if not guid or db:GetCVar('SoftTargetTooltipLocked', false) then return end;
+		After(db:GetCVar('SoftTargetTooltipDurationMs', 2000) / 1000, function()
+			if IsAimTooltipOwned(self, guid) then
+				GameTooltip:FadeOut()
+			end
+		end)
+	end
+
+	function Targeting:PLAYER_TARGET_CHANGED()
+		local guid = CPAPI.Scrub(UnitGUID(AIM_UNIT))
+		if ( guid and self.tooltipGUID ~= guid and IsTooltipAvailable() ) then
+			self.tooltipGUID, self.aimTooltipGUID = guid, guid;
+			SetTooltipToUnit(AIM_UNIT)
+		end
+	end
+
+	function Targeting:OnAimHold(held)
+		self.aimHeld = held;
+		if not held then
+			return RunNextFrame(OnAimReleased);
+		end
+		if db('trgtAimTooltip') then
+			self.tooltipGUID = nil;
+			self:RegisterEvent(AIM_EVENT)
+		end
+	end
+
+	db:RegisterCallback('OnAimHold', Targeting.OnAimHold, Targeting)
+end
+
+---------------------------------------------------------------
 do -- Interact tooltip and nameplate handling
 ---------------------------------------------------------------
 	local InteractNamePlate, interactID, currentGUID = db.Data.Cvar('SoftTargetNameplateInteract'), 'anyinteract';
