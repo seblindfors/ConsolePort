@@ -25,6 +25,7 @@ L.NAME_RING_MENU              = 'Menù radiale'; -- en:8d7e5939
 L.NAME_RING_PET               = 'Menù radiale compagno'; -- en:8dab5a0e
 L.NAME_RING_TARGET            = 'Menù radiale bersaglio (tieni premuto)'; -- en:59e8a9cb
 L.NAME_RING_UTILITY           = 'Menù radiale strumenti'; -- en:96bc880d
+L.NAME_TARGET_ANY             = 'Bersaglio qualsiasi (tieni premuto)'; -- en:a8e90f6e
 L.NAME_TARGET_FRIENDLY        = 'Bersaglio alleato (tieni premuto)'; -- en:02e85141
 L.NAME_TARGET_HOSTILE         = 'Bersaglio ostile (tieni premuto)'; -- en:bc8d3927
 L.NAME_TOOLBAR                = 'Mostra/nascondi barra degli strumenti'; -- en:06f55dd8
@@ -373,6 +374,7 @@ L.DESC_TARGETSCANENEMY = [[
 
 	Raccomandata come scorciatoia principale di selezione del bersaglio per la maggior parte dei giocatori.
 ]]; -- en:2de05bb9
+L.DESC_TARGET_ANY = [[Tieni premuto per mirare a qualsiasi unità con il reticolo, alleata o ostile. Rilasciando si prende di mira l'unità scelta dal reticolo.]]; -- en:80342d8d
 L.DESC_TARGET_FRIENDLY = [[Tieni premuto per mirare alle unità alleate con il reticolo. Rilasciare senza una selezione prende di mira l'alleato più vicino, se l'opzione del gioco è attiva.]]; -- en:a07c46a4
 L.DESC_TARGET_HOSTILE = [[Tieni premuto per mirare alle unità ostili con il reticolo. Rilasciare senza una selezione prende di mira il nemico più vicino, se l'opzione del gioco è attiva.]]; -- en:0772559e
 L.DESC_TOGGLEAUTORUN = [[
@@ -1039,7 +1041,6 @@ L['High'] = 'Alto';
 L['Higher is slower.'] = 'Più alto è più lento.';
 L['Higher values appear on top of lower values. Valid range 0-10000.'] = 'Valori più alti appaiono sopra valori più bassi. Intervallo valido 0-10000.';
 L['Highlight Color'] = 'Colore evidenziatura';
-L['Hold Target Tab Targeting'] = 'Bersaglio tab dei pulsanti tieni';
 L['Honor'] = 'Onore';
 L['Horizontal Offset'] = 'Offset orizzontale';
 L['Horizontal offset from anchor point.'] = 'Offset orizzontale dal punto di ancoraggio.';
@@ -1291,6 +1292,8 @@ L['Relative anchor point of the hotkey icon on group buttons.'] = "Punto di anco
 L['Relative anchor point of the hotkey text on buttons.'] = 'Punto di ancoraggio relativo del testo della scorciatoia sui pulsanti.';
 L['Relative anchor point of the macro text on buttons.'] = 'Punto di ancoraggio relativo del testo della macro sui pulsanti.';
 L['Relative Rescale'] = 'Riscalatura relativa';
+L['Releasing Target Friendly (Hold) without picking a target selects the nearest friend.'] = "Rilasciare Bersaglio alleato (tieni premuto) senza una selezione prende di mira l'alleato più vicino.";
+L['Releasing Target Hostile (Hold) without picking a target selects the nearest enemy.'] = 'Rilasciare Bersaglio ostile (tieni premuto) senza una selezione prende di mira il nemico più vicino.';
 L['Releasing the button with the stick below this keeps the camera moving.'] = 'Rilasciare il pulsante con lo stick sotto questa soglia lascia muovere la telecamera.';
 L['Reload'] = 'Ricarica';
 L['Remaining'] = 'Rimanente';
@@ -1469,6 +1472,8 @@ L['Switch the action bar layout to %s? Your current layout will be replaced.'] =
 L['Switches between the main menu and the radial companion.'] = 'Cambia tra il menù principale e il compagno radiale.';
 L['Synchronize Bindings'] = 'Sincronizza scorciatoie';
 L['Synchronize Config'] = 'Sincronizza configurazione';
+L['Tab Target Friendly on Release'] = 'Bersaglio tab alleato al rilascio';
+L['Tab Target Hostile on Release'] = 'Bersaglio tab ostile al rilascio';
 L['Take ownership of, and move the bag slots to the toolbar.'] = 'Prendi il controllo degli slot delle borse e spostali sulla barra degli strumenti.';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Prendi possesso e sposta i pulsanti del micromenù sulla barra degli strumenti.';
 L['Tank'] = 'Tank';
@@ -1477,6 +1482,7 @@ L['Tap to Latch and Doubled Bar'] = 'Tocca per bloccare e barra doppia';
 L['Tapping a modifier latches it until tapped again. Holding always overrides.'] = 'Toccare un modificatore lo blocca finché non viene toccato di nuovo. Tenerlo premuto ha sempre la precedenza.';
 L['Taps for cursor clicks are right clicks instead of left.'] = 'I tap per i click del cursore sono click destri invece di sinistri.';
 L['Target'] = 'Bersaglio';
+L['Target Any Tab Targeting'] = 'Bersaglio tab con bersaglio qualsiasi';
 L['Target enemies automatically by looking at them.'] = 'Bersaglia i nemici automaticamente guardandoli.';
 L['Target friends automatically by looking at them.'] = 'Bersaglia gli amici automaticamente guardandoli.';
 L['Target Match Lock'] = 'Blocco corrispondenza bersaglio';
@@ -1650,6 +1656,7 @@ L['Macro condition to enable the click override button. The default condition cl
 L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = [[Tacca: fai clic sulla tacca o premi la scorciatoia e il menu resta aperto. Passaggio del mouse: il menu scorre fuori mentre il mouse è sulla barra degli strumenti e si chiude poco dopo che se ne va, a dimensione originale.]];
 L['Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.'] = [[L'opacità è espressa in percentuale, dove 100 è completamente visibile e 0 è completamente trasparente. I valori al di fuori dell'intervallo 0-100 saranno limitati.]];
 L['Pointer arrow rotates in the direction of travel, and portraits scale up and down on movement.'] = [[La freccia puntatore ruota nella direzione di movimento, e i ritratti si ingrandiscono e rimpiccioliscono durante il movimento.]];
+L['Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.'] = [[Premendo Bersaglio qualsiasi (tieni premuto) viene prima selezionato il nemico o alleato più vicino. Il reticolo regola poi la selezione finché il tasto è premuto.]];
 L['Replaces the default loot frame with a custom version optimized for controller navigation.'] = [[Sostituisce il riquadro bottino predefinito con una versione personalizzata ottimizzata per la navigazione con controller.]];
 L['Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.'] = [[Mostra i tiri di bottino di gruppo nel menù rapido, permettendoti di tirare per gli oggetti usando i pulsanti del gamepad in combattimento.]];
 L['Takes the format of...\n'] = [[Prende il formato di…
@@ -1664,7 +1671,6 @@ L['Use global game tooltip for loot information, allowing other addons to add in
 L['Watch bars include XP, reputation, honor, artifact power, azerite, and house favor where available.'] = [[Le barre di monitoraggio includono XP, reputazione, onore, potere dell'artefatto, azerite e favore della casa dove disponibile.]];
 L['When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.'] = [[Quando impostato a zero, guarda sempre la direzione del tuo stick di movimento.
 Quando impostato al massimo, non guardare mai la direzione del tuo stick di movimento.]];
-L['Whether Target Hostile (Hold) and Target Friendly (Hold) also tab to the nearest target. On Press: tab when pressed, then the reticle adjusts the pick while held. When Untargeted: tab on release if nothing is targeted.'] = [[Se Bersaglio ostile (tieni) e Bersaglio alleato (tieni) selezionano anche con tab il bersaglio più vicino. Alla pressione: tab alla pressione, poi il reticolo regola la scelta mentre sono premuti. Senza bersaglio: tab al rilascio se nulla è selezionato.]];
 L['While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.'] = [[Mentre è disabilitato, sono disabilitati anche il timeout del cursore e l'alternanza tra cursore libero e fisso al centro.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Il tuo dispositivo %s ha gestione separata per le connessioni Bluetooth e cablate.
 Quale stai usando?]];

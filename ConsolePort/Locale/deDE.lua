@@ -25,6 +25,7 @@ L.NAME_RING_MENU              = 'Menü-Ring'; -- en:8d7e5939
 L.NAME_RING_PET               = 'Begleiter-Ring'; -- en:8dab5a0e
 L.NAME_RING_TARGET            = 'Ziel-Ring (Halten)'; -- en:59e8a9cb
 L.NAME_RING_UTILITY           = 'Werkzeug-Ring'; -- en:96bc880d
+L.NAME_TARGET_ANY             = 'Beliebiges Ziel (Halten)'; -- en:a8e90f6e
 L.NAME_TARGET_FRIENDLY        = 'Freundliches Ziel (Halten)'; -- en:02e85141
 L.NAME_TARGET_HOSTILE         = 'Feindliches Ziel (Halten)'; -- en:bc8d3927
 L.NAME_TOOLBAR                = 'Werkzeugleiste umschalten'; -- en:06f55dd8
@@ -369,6 +370,7 @@ L.DESC_TARGETSCANENEMY = [[
 
 	Empfohlen als primäre Ziel-Belegung für die meisten Spieler.
 ]]; -- en:2de05bb9
+L.DESC_TARGET_ANY = [[Halten, um mit dem Fadenkreuz auf eine beliebige Einheit zu zielen, freundlich oder feindlich. Loslassen wählt die Einheit, die das Fadenkreuz erfasst hat.]]; -- en:80342d8d
 L.DESC_TARGET_FRIENDLY = [[Halten, um mit dem Fadenkreuz auf freundliche Einheiten zu zielen. Loslassen ohne Auswahl wählt den nächsten Verbündeten, wenn die Spieloption dafür aktiv ist.]]; -- en:a07c46a4
 L.DESC_TARGET_HOSTILE = [[Halten, um mit dem Fadenkreuz auf feindliche Einheiten zu zielen. Loslassen ohne Auswahl wählt den nächsten Feind, wenn die Spieloption dafür aktiv ist.]]; -- en:0772559e
 L.DESC_TOGGLEAUTORUN = [[
@@ -1036,7 +1038,6 @@ L['High'] = 'Hoch';
 L['Higher is slower.'] = 'Höher ist langsamer.';
 L['Higher values appear on top of lower values. Valid range 0-10000.'] = 'Höhere Werte erscheinen über niedrigeren. Gültiger Bereich 0–10000.';
 L['Highlight Color'] = 'Hervorhebungs-Farbe';
-L['Hold Target Tab Targeting'] = 'Tab-Ziel bei Halten-Zielen';
 L['Honor'] = 'Ehre';
 L['Horizontal Offset'] = 'Horizontaler Offset';
 L['Horizontal offset from anchor point.'] = 'Horizontaler Offset vom Ankerpunkt.';
@@ -1290,6 +1291,8 @@ L['Relative anchor point of the hotkey icon on group buttons.'] = 'Relativer Ank
 L['Relative anchor point of the hotkey text on buttons.'] = 'Relativer Ankerpunkt des Hotkey-Textes auf den Tasten.';
 L['Relative anchor point of the macro text on buttons.'] = 'Relativer Ankerpunkt des Makrotextes auf den Tasten.';
 L['Relative Rescale'] = 'Relative Reskalierung';
+L['Releasing Target Friendly (Hold) without picking a target selects the nearest friend.'] = 'Loslassen von Freundliches Ziel (Halten) ohne Auswahl wählt den nächsten Freund.';
+L['Releasing Target Hostile (Hold) without picking a target selects the nearest enemy.'] = 'Loslassen von Feindliches Ziel (Halten) ohne Auswahl wählt den nächsten Feind.';
 L['Releasing the button with the stick below this keeps the camera moving.'] = 'Wird die Taste losgelassen, während der Stick darunter liegt, bewegt sich die Kamera weiter.';
 L['Reload'] = 'Neu laden';
 L['Remaining'] = 'Verbleibend';
@@ -1470,6 +1473,8 @@ L['Switch the action bar layout to %s? Your current layout will be replaced.'] =
 L['Switches between the main menu and the radial companion.'] = 'Wechselt zwischen dem Hauptmenü und der radialen Begleitung.';
 L['Synchronize Bindings'] = 'Belegungen synchronisieren';
 L['Synchronize Config'] = 'Konfiguration synchronisieren';
+L['Tab Target Friendly on Release'] = 'Tab-Ziel Freund beim Loslassen';
+L['Tab Target Hostile on Release'] = 'Tab-Ziel Feind beim Loslassen';
 L['Take ownership of, and move the bag slots to the toolbar.'] = 'Taschenplätze übernehmen und auf die Werkzeugleiste verschieben.';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Mikromenü-Tasten übernehmen und in die Werkzeugleiste verschieben.';
 L['Tank'] = 'Tank';
@@ -1478,6 +1483,7 @@ L['Tap to Latch and Doubled Bar'] = 'Tippen zum Einrasten und doppelte Leiste';
 L['Tapping a modifier latches it until tapped again. Holding always overrides.'] = 'Ein Tippen auf einen Modifikator rastet ihn ein, bis erneut getippt wird. Halten hat immer Vorrang.';
 L['Taps for cursor clicks are right clicks instead of left.'] = 'Tipps für Cursor-Klicks sind Rechtsklicks statt Linksklicks.';
 L['Target'] = 'Ziel';
+L['Target Any Tab Targeting'] = 'Tab-Ziel bei beliebigem Ziel';
 L['Target enemies automatically by looking at them.'] = 'Gegner automatisch anvisieren, indem du sie anschaust.';
 L['Target friends automatically by looking at them.'] = 'Freunde automatisch anvisieren, indem du sie anschaust.';
 L['Target Match Lock'] = 'Ziel-Match-Sperre';
@@ -1652,6 +1658,7 @@ L['Loadout and bar settings are currently %s.\n\n%s for this character, or for a
 L['Macro condition to enable the click override button. The default condition clicks right mouse button when there is no enemy target.'] = [[Makro-Bedingung zur Aktivierung der Klick-Override-Taste. Die Standardbedingung klickt die rechte Maustaste, wenn es kein feindliches Ziel gibt.]];
 L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = [[Kerbe: Klicke auf die Kerbe oder drücke die Belegung, und das Menü bleibt offen. Mauszeiger: Das Menü fährt aus, solange die Maus über der Werkzeugleiste ist, und schließt kurz nachdem sie sie verlässt, in Originalgröße.]];
 L['Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.'] = [[Deckkraft in Prozent, wobei 100 vollständig sichtbar und 0 vollständig transparent ist. Werte außerhalb von 0–100 werden begrenzt.]];
+L['Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.'] = [[Beim Drücken von Beliebiges Ziel (Halten) wird zuerst der nächste Feind oder Freund ausgewählt. Das Fadenkreuz passt die Auswahl an, solange die Taste gehalten wird.]];
 L['Takes the format of...\n'] = [[Hat das Format von…
 ]];
 L['The bindings underlying the button combinations will be unavailable while the cursor is in use.\n\nModifier can also be configured on a per button basis.'] = [[Die Belegungen, die den Tastenkombinationen zugrunde liegen, sind während der Cursor-Verwendung nicht verfügbar.
@@ -1661,6 +1668,5 @@ L['Use a shoulder button combined with crosshair for smooth and precise interact
 L['Use global game tooltip for loot information, allowing other addons to add information to lootable items.'] = [[Globalen Spiel-Tooltip für Beute-Informationen verwenden, damit andere Addons Informationen zu plünderbaren Gegenständen hinzufügen können.]];
 L['When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.'] = [[Auf null gesetzt, drehst du dich immer in deine Bewegungs-Stick-Richtung.
 Auf Max gesetzt, drehst du dich nie in deine Bewegungs-Stick-Richtung.]];
-L['Whether Target Hostile (Hold) and Target Friendly (Hold) also tab to the nearest target. On Press: tab when pressed, then the reticle adjusts the pick while held. When Untargeted: tab on release if nothing is targeted.'] = [[Ob Feind anvisieren (Halten) und Freund anvisieren (Halten) zusätzlich per Tab das nächste Ziel wählen. Beim Drücken: Tab beim Drücken, danach passt das Visier die Auswahl an, solange gehalten wird. Ohne Ziel: Tab beim Loslassen, wenn nichts anvisiert ist.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Dein %s-Gerät hat separate Behandlung für Bluetooth und kabelgebundene Verbindung.
 Welche verwendest du?]];
