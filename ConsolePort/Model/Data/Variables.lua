@@ -145,9 +145,9 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Explicit only matches hard locked targets through using a targeting binding, while implicit matches targets you attack.';
 		advd = true;
 	};
-	trgtHoldTabTarget = _{Map(1, {[0] = OFF, [1] = 'On Press', [2] = 'When Untargeted'});
-		name = 'Hold Target Tab Targeting';
-		desc = 'Whether Target Hostile (Hold) and Target Friendly (Hold) also tab to the nearest target. On Press: tab when pressed, then the reticle adjusts the pick while held. When Untargeted: tab on release if nothing is targeted.';
+	trgtAnyTabTarget = _{Map(1, {[0] = OFF, [1] = 'Hostile', [2] = 'Friendly'});
+		name = 'Target Any Tab Targeting';
+		desc = 'Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.';
 		hide = not C_GamepadTargeting or nil;
 	};
 	--------------------------------------------------------------------------------------------------------

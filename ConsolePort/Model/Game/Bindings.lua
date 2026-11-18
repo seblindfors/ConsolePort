@@ -258,12 +258,12 @@ if CPAPI.IsCamelotVersion then
 			or ('GamepadMainActionBarFramePageUnitTopCenteredAnchorTopBarActionButton%d'):format(index + 4);
 		return ('CLICK %s:LeftButton'):format(name);
 	end
-	local function click(id) return ('CLICK %s%s:LeftButton'):format(_, id) end;
 
 	Bindings.Custom.Interact       = reserved(1);
 	Bindings.Custom.Inspect        = reserved(2);
-	Bindings.Custom.TargetFriendly = click 'TargetFriendly';
-	Bindings.Custom.TargetHostile  = click 'TargetHostile';
+	Bindings.Custom.TargetFriendly = 'GAMEPADLEFTTARGETMODIFIER';
+	Bindings.Custom.TargetHostile  = 'GAMEPADRIGHTTARGETMODIFIER';
+	Bindings.Custom.TargetAny      = ('CLICK %sTargetAny:LeftButton'):format(_);
 	Bindings.Macroable.Interact    = true;
 	Bindings.Macroable.Inspect     = true;
 
@@ -276,15 +276,28 @@ if CPAPI.IsCamelotVersion then
 			name    = L.NAME_INSPECT;
 			desc    = L.DESC_INSPECT;
 		};
-		{	binding = Bindings.Custom.TargetFriendly;
-			name    = L.NAME_TARGET_FRIENDLY;
-			desc    = L.DESC_TARGET_FRIENDLY;
-		};
-		{	binding = Bindings.Custom.TargetHostile;
-			name    = L.NAME_TARGET_HOSTILE;
-			desc    = L.DESC_TARGET_HOSTILE;
-		};
 	}) do tinsert(Bindings.Special, set) end
+
+	for index, set in ipairs(Bindings.Primary) do
+		if ( set.binding == Bindings.Proxied.TargetNearest ) then
+			tinsert(Bindings.Primary, index + 1, {
+				binding = Bindings.Custom.TargetFriendly;
+				name    = L.NAME_TARGET_FRIENDLY;
+				desc    = L.DESC_TARGET_FRIENDLY;
+			})
+			tinsert(Bindings.Primary, index + 2, {
+				binding = Bindings.Custom.TargetHostile;
+				name    = L.NAME_TARGET_HOSTILE;
+				desc    = L.DESC_TARGET_HOSTILE;
+			})
+			tinsert(Bindings.Primary, index + 3, {
+				binding = Bindings.Custom.TargetAny;
+				name    = L.NAME_TARGET_ANY;
+				desc    = L.DESC_TARGET_ANY;
+			})
+			break;
+		end
+	end
 end
 
 Bindings.Dynamic = {
@@ -479,6 +492,7 @@ if CPAPI.IsCamelotVersion then
 	Bindings.DefaultIcons[Bindings.Custom.Inspect]        = client 'INV_Misc_Spyglass_03';
 	Bindings.DefaultIcons[Bindings.Custom.TargetFriendly] = Bindings.CustomIcons.TWNScan;
 	Bindings.DefaultIcons[Bindings.Custom.TargetHostile]  = Bindings.CustomIcons.TWNScan;
+	Bindings.DefaultIcons[Bindings.Custom.TargetAny]      = Bindings.CustomIcons.TWNScan;
 end
 
 function Bindings:OnDataLoaded()

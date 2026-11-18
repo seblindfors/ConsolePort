@@ -25,6 +25,7 @@ L.NAME_RING_MENU              = 'Круговое меню'; -- en:8d7e5939
 L.NAME_RING_PET               = 'Круговое меню питомца'; -- en:8dab5a0e
 L.NAME_RING_TARGET            = 'Круговое меню цели (удерживать)'; -- en:59e8a9cb
 L.NAME_RING_UTILITY           = 'Круговое меню утилит'; -- en:96bc880d
+L.NAME_TARGET_ANY             = 'Любая цель (удерживать)'; -- en:a8e90f6e
 L.NAME_TARGET_FRIENDLY        = 'Дружественная цель (удерживать)'; -- en:02e85141
 L.NAME_TARGET_HOSTILE         = 'Враждебная цель (удерживать)'; -- en:bc8d3927
 L.NAME_TOOLBAR                = 'Переключить панель инструментов'; -- en:06f55dd8
@@ -373,6 +374,7 @@ L.DESC_TARGETSCANENEMY = [[
 
 	Рекомендуется как основная привязка выбора цели для большинства игроков.
 ]]; -- en:2de05bb9
+L.DESC_TARGET_ANY = [[Удерживайте, чтобы наводиться прицелом на любое существо, дружественное или враждебное. При отпускании выбирается существо, на которое навёлся прицел.]]; -- en:80342d8d
 L.DESC_TARGET_FRIENDLY = [[Удерживайте, чтобы наводиться на дружественных существ прицелом. Отпускание без выбора выбирает ближайшего союзника, если включена соответствующая настройка игры.]]; -- en:a07c46a4
 L.DESC_TARGET_HOSTILE = [[Удерживайте, чтобы наводиться на враждебных существ прицелом. Отпускание без выбора выбирает ближайшего врага, если включена соответствующая настройка игры.]]; -- en:0772559e
 L.DESC_TOGGLEAUTORUN = [[
@@ -1041,7 +1043,6 @@ L['High'] = 'Высокий';
 L['Higher is slower.'] = 'Чем выше, тем медленнее.';
 L['Higher values appear on top of lower values. Valid range 0-10000.'] = 'Более высокие значения отображаются над более низкими. Допустимый диапазон 0–10000.';
 L['Highlight Color'] = 'Цвет подсветки';
-L['Hold Target Tab Targeting'] = 'Цель по Tab при удержании';
 L['Honor'] = 'Честь';
 L['Horizontal Offset'] = 'Горизонтальное смещение';
 L['Horizontal offset from anchor point.'] = 'Горизонтальное смещение от точки привязки.';
@@ -1296,6 +1297,8 @@ L['Relative anchor point of the hotkey icon on group buttons.'] = 'Относи�
 L['Relative anchor point of the hotkey text on buttons.'] = 'Относительная точка привязки текста горячей клавиши на кнопках.';
 L['Relative anchor point of the macro text on buttons.'] = 'Относительная точка привязки текста макроса на кнопках.';
 L['Relative Rescale'] = 'Относительное перемасштабирование';
+L['Releasing Target Friendly (Hold) without picking a target selects the nearest friend.'] = 'Отпускание «Дружественная цель (удерживать)» без выбора выбирает ближайшего союзника.';
+L['Releasing Target Hostile (Hold) without picking a target selects the nearest enemy.'] = 'Отпускание «Враждебная цель (удерживать)» без выбора выбирает ближайшего врага.';
 L['Releasing the button with the stick below this keeps the camera moving.'] = 'Если отпустить кнопку, когда стик ниже этого порога, камера продолжит двигаться.';
 L['Reload'] = 'Перезагрузить';
 L['Remaining'] = 'Осталось';
@@ -1475,6 +1478,8 @@ L['Switch the action bar layout to %s? Your current layout will be replaced.'] =
 L['Switches between the main menu and the radial companion.'] = 'Переключается между основным меню и радиальным компаньоном.';
 L['Synchronize Bindings'] = 'Синхронизировать привязки';
 L['Synchronize Config'] = 'Синхронизировать конфигурацию';
+L['Tab Target Friendly on Release'] = 'Tab по союзнику при отпускании';
+L['Tab Target Hostile on Release'] = 'Tab по врагу при отпускании';
 L['Take ownership of, and move the bag slots to the toolbar.'] = 'Взять ячейки сумок под управление и перенести их на панель инструментов.';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Взять во владение и переместить кнопки микроменю на панель инструментов.';
 L['Tank'] = 'Танк';
@@ -1483,6 +1488,7 @@ L['Tap to Latch and Doubled Bar'] = 'Нажать для фиксации и д�
 L['Tapping a modifier latches it until tapped again. Holding always overrides.'] = 'Нажатие модификатора фиксирует его до следующего нажатия. Удержание всегда имеет приоритет.';
 L['Taps for cursor clicks are right clicks instead of left.'] = 'Касания для кликов курсора — это правые клики вместо левых.';
 L['Target'] = 'Цель';
+L['Target Any Tab Targeting'] = 'Выбор по Tab для любой цели';
 L['Target enemies automatically by looking at them.'] = 'Автоматически выбирать врагов, глядя на них.';
 L['Target friends automatically by looking at them.'] = 'Автоматически выбирать друзей, глядя на них.';
 L['Target Match Lock'] = 'Блокировка соответствия цели';
@@ -1655,6 +1661,7 @@ L['Loadout and bar settings are currently %s.\n\n%s for this character, or for a
 L['Macro condition to enable the click override button. The default condition clicks right mouse button when there is no enemy target.'] = [[Условие макроса для включения кнопки переопределения клика. Условие по умолчанию нажимает правую кнопку мыши, когда нет вражеской цели.]];
 L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = [[Выступ: нажмите на выступ или привязку, и меню останется открытым. Наведение: меню выезжает, пока мышь находится над панелью инструментов, и закрывается вскоре после её ухода, в исходном размере.]];
 L['Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.'] = [[Непрозрачность выражается в процентах, где 100 — полностью видимо, а 0 — полностью прозрачно. Значения вне диапазона 0–100 будут ограничены.]];
+L['Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.'] = [[При нажатии «Любая цель (удерживать)» сначала выбирается ближайший враг или союзник. Затем прицел уточняет выбор, пока кнопка удерживается.]];
 L['Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.'] = [[Показывать броски групповой добычи в меню быстрого доступа, позволяя бросать на предметы с помощью кнопок геймпада в бою.]];
 L['Takes the format of...\n'] = [[Имеет формат…
 ]];
@@ -1665,6 +1672,5 @@ L['Use a shoulder button combined with crosshair for smooth and precise interact
 L['Use global game tooltip for loot information, allowing other addons to add information to lootable items.'] = [[Использовать глобальную игровую подсказку для информации о добыче, позволяя другим аддонам добавлять информацию к подбираемым предметам.]];
 L['When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.'] = [[Когда установлено в ноль, всегда смотрите в направлении стика движения.
 Когда установлено на максимум, никогда не смотрите в направлении стика движения.]];
-L['Whether Target Hostile (Hold) and Target Friendly (Hold) also tab to the nearest target. On Press: tab when pressed, then the reticle adjusts the pick while held. When Untargeted: tab on release if nothing is targeted.'] = [[Выбирают ли кнопки Враг (удержание) и Союзник (удержание) также ближайшую цель по Tab. При нажатии: Tab при нажатии, затем визир уточняет выбор, пока они удерживаются. Без цели: Tab при отпускании, если ничего не выбрано.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Ваше устройство %s имеет отдельную обработку для подключений Bluetooth и проводных.
 Какое вы используете?]];

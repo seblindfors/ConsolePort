@@ -521,12 +521,17 @@ end
 -- for every key it owns. BINDINGS takes precedence over STORED.
 -- Rewires the modifiers, the earliest point the device is indexed.
 -- @param bindings : bindings[button][prefix] = bindingID
+local GAMEPAD_CONTEXT = CPAPI.IsCamelotVersion and Enum.BindingContext.GamepadModeInGameCore;
+local function IsContextAction(binding)
+	return GAMEPAD_CONTEXT and C_KeyBindings.GetBindingContextForAction(binding) == GAMEPAD_CONTEXT;
+end
+
 function Layers:OnNewBindings(bindings)
 	local blocked, batch = db.Gamepad.Index.Modifier.Blocked, {};
 	self:Execute([[ wipe(STORED) ]])
 	for button, set in pairs(bindings or db.Gamepad:GetBindings()) do
 		for prefix, binding in pairs(set) do
-			if ( binding and binding ~= '' and not blocked[prefix..button] ) then
+			if ( binding and binding ~= '' and not blocked[prefix..button] and not IsContextAction(binding) ) then
 				batch[#batch + 1] = CPAPI.FormatSecureBody({
 					layer = prefix; button = button; binding = binding;
 				}, [[

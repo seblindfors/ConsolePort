@@ -25,6 +25,7 @@ L.NAME_RING_MENU              = 'Menú radial'; -- en:8d7e5939
 L.NAME_RING_PET               = 'Menú radial de mascota'; -- en:8dab5a0e
 L.NAME_RING_TARGET            = 'Menú radial de objetivo (mantener)'; -- en:59e8a9cb
 L.NAME_RING_UTILITY           = 'Menú radial de utilidad'; -- en:96bc880d
+L.NAME_TARGET_ANY             = 'Cualquier objetivo (mantener)'; -- en:a8e90f6e
 L.NAME_TARGET_FRIENDLY        = 'Objetivo amistoso (mantener)'; -- en:02e85141
 L.NAME_TARGET_HOSTILE         = 'Objetivo hostil (mantener)'; -- en:bc8d3927
 L.NAME_TOOLBAR                = 'Alternar barra de herramientas'; -- en:06f55dd8
@@ -369,6 +370,7 @@ L.DESC_TARGETSCANENEMY = [[
 
 	Recomendado como asignación principal de selección de objetivos para la mayoría de jugadores.
 ]]; -- en:2de05bb9
+L.DESC_TARGET_ANY = [[Mantén para apuntar a cualquier unidad con la retícula, amistosa u hostil. Al soltar se fija como objetivo la unidad elegida por la retícula.]]; -- en:80342d8d
 L.DESC_TARGET_FRIENDLY = [[Mantén para apuntar a unidades amistosas con la retícula. Soltar sin seleccionar fija como objetivo al aliado más cercano, si la opción del juego está activada.]]; -- en:a07c46a4
 L.DESC_TARGET_HOSTILE = [[Mantén para apuntar a unidades hostiles con la retícula. Soltar sin seleccionar fija como objetivo al enemigo más cercano, si la opción del juego está activada.]]; -- en:0772559e
 L.DESC_TOGGLEAUTORUN = [[
@@ -1037,7 +1039,6 @@ L['High'] = 'Alto';
 L['Higher is slower.'] = 'Más alto es más lento.';
 L['Higher values appear on top of lower values. Valid range 0-10000.'] = 'Valores más altos aparecen sobre valores más bajos. Rango válido 0-10000.';
 L['Highlight Color'] = 'Color de resaltado';
-L['Hold Target Tab Targeting'] = 'Tabular objetivo al mantener';
 L['Honor'] = 'Honor';
 L['Horizontal Offset'] = 'Desplazamiento horizontal';
 L['Horizontal offset from anchor point.'] = 'Desplazamiento horizontal desde el punto de anclaje.';
@@ -1290,6 +1291,8 @@ L['Relative anchor point of the hotkey icon on group buttons.'] = 'Punto de ancl
 L['Relative anchor point of the hotkey text on buttons.'] = 'Punto de anclaje relativo del texto de tecla rápida en los botones.';
 L['Relative anchor point of the macro text on buttons.'] = 'Punto de anclaje relativo del texto de macro en los botones.';
 L['Relative Rescale'] = 'Reescalado relativo';
+L['Releasing Target Friendly (Hold) without picking a target selects the nearest friend.'] = 'Soltar Objetivo amistoso (mantener) sin seleccionar fija como objetivo al amigo más cercano.';
+L['Releasing Target Hostile (Hold) without picking a target selects the nearest enemy.'] = 'Soltar Objetivo hostil (mantener) sin seleccionar fija como objetivo al enemigo más cercano.';
 L['Releasing the button with the stick below this keeps the camera moving.'] = 'Soltar el botón con el stick por debajo de este valor mantiene la cámara en movimiento.';
 L['Reload'] = 'Recargar';
 L['Remaining'] = 'Restante';
@@ -1469,6 +1472,8 @@ L['Switch the action bar layout to %s? Your current layout will be replaced.'] =
 L['Switches between the main menu and the radial companion.'] = 'Alterna entre el menú principal y el compañero radial.';
 L['Synchronize Bindings'] = 'Sincronizar asignaciones';
 L['Synchronize Config'] = 'Sincronizar configuración';
+L['Tab Target Friendly on Release'] = 'Tabular objetivo amistoso al soltar';
+L['Tab Target Hostile on Release'] = 'Tabular objetivo hostil al soltar';
 L['Take ownership of, and move the bag slots to the toolbar.'] = 'Tomar control de los espacios de bolsas y moverlos a la barra de herramientas.';
 L['Take ownership of, and move the micro menu buttons to the toolbar.'] = 'Tomar la propiedad y mover los botones del micromenú a la barra de herramientas.';
 L['Tank'] = 'Tanque';
@@ -1477,6 +1482,7 @@ L['Tap to Latch and Doubled Bar'] = 'Tocar para fijar y barra doble';
 L['Tapping a modifier latches it until tapped again. Holding always overrides.'] = 'Tocar un modificador lo fija hasta volver a tocarlo. Mantenerlo pulsado siempre tiene prioridad.';
 L['Taps for cursor clicks are right clicks instead of left.'] = 'Las pulsaciones para clics del cursor son clics derechos en lugar de izquierdos.';
 L['Target'] = 'Objetivo';
+L['Target Any Tab Targeting'] = 'Tabular objetivo con cualquier objetivo';
 L['Target enemies automatically by looking at them.'] = 'Seleccionar enemigos automáticamente mirándolos.';
 L['Target friends automatically by looking at them.'] = 'Seleccionar amigos automáticamente mirándolos.';
 L['Target Match Lock'] = 'Bloqueo de coincidencia de objetivo';
@@ -1647,6 +1653,7 @@ L['Loadout and bar settings are currently %s.\n\n%s for this character, or for a
 L['Macro condition to enable the click override button. The default condition clicks right mouse button when there is no enemy target.'] = [[Condición de macro para activar el botón de sustitución de clic. La condición por defecto hace clic derecho cuando no hay objetivo enemigo.]];
 L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = [[Muesca: haz clic en la muesca o pulsa la asignación, y el menú permanece abierto. Al pasar el ratón: el menú se despliega mientras el ratón está sobre la barra de herramientas y se cierra poco después de salir, a su tamaño original.]];
 L['Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.'] = [[La opacidad se expresa en porcentaje, donde 100 es totalmente visible y 0 totalmente transparente. Los valores fuera del rango 0-100 se ajustarán.]];
+L['Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.'] = [[Al pulsar Cualquier objetivo (mantener) se selecciona primero al enemigo o amigo más cercano. La retícula ajusta después la selección mientras se mantiene.]];
 L['Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.'] = [[Mostrar tiradas de botín de grupo en el menú rápido, permitiéndote tirar el dado para objetos usando botones del mando en combate.]];
 L['Takes the format of...\n'] = [[Toma el formato de…
 ]];
@@ -1661,7 +1668,6 @@ L['Vertical position of the reticle, centered cursor and targeting, as fraction 
 L['Watch bars include XP, reputation, honor, artifact power, azerite, and house favor where available.'] = [[Las barras de seguimiento incluyen XP, reputación, honor, poder de artefacto, azerita y favor de la casa cuando esté disponible.]];
 L['When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.'] = [[Cuando se configura a cero, siempre mira en la dirección de tu stick de movimiento.
 Cuando se configura al máximo, nunca mira en la dirección de tu stick de movimiento.]];
-L['Whether Target Hostile (Hold) and Target Friendly (Hold) also tab to the nearest target. On Press: tab when pressed, then the reticle adjusts the pick while held. When Untargeted: tab on release if nothing is targeted.'] = [[Si Seleccionar hostil (mantener) y Seleccionar aliado (mantener) también tabulan al objetivo más cercano. Al pulsar: tabula al pulsar y luego la retícula ajusta la elección mientras se mantienen. Sin objetivo: tabula al soltar si no hay nada seleccionado.]];
 L['While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.'] = [[Mientras esté desactivado, el tiempo de espera del cursor y la alternancia entre cursor libre y fijo central también están desactivados.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Tu dispositivo %s tiene gestión separada para conexión Bluetooth y por cable.
 ¿Cuál estás usando?]];

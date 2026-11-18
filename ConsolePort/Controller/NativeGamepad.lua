@@ -12,60 +12,80 @@ function Transition:INPUT_DEVICE_INTERFACE_TRANSITION()
 	db:TriggerEvent('OnNativeNavigationChanged', CPAPI.IsNativeNavigationActive())
 end
 
-if not C_GamepadTargeting or not Enum.GamepadTargetingFilters then return end;
 ---------------------------------------------------------------
 -- Native gamepad targeting (Forever)
 ---------------------------------------------------------------
--- Hold-to-target buttons over the game's gamepad targeting
--- manager, bindable like any other ConsolePort action. The
--- manager is driven from PreClick; the tab target is protected,
--- so it runs as the button's own macro, on press or on release
--- depending on the setting. On release, the camera stick is held
--- off only when pushed past the targeting deadzone.
+local CONTEXT = Enum.BindingContext and Enum.BindingContext.GamepadModeInGameCore;
+if not CONTEXT or not GamepadMode or not GamepadMode.RegisterTargetModifierStateChanged then return end;
 
-local TAB_OFF, TAB_ALWAYS, TAB_NO_TARGET = 0, 1, 2;
 local ANALOG_DEADZONE = 'GamepadTargetingAnalogDeadzone';
+local TARGETING_NONE  = GamepadTargetingState.NONE;
 
-local function CreateTargetButton(name, filter, macro)
-	local button = CreateFrame('Button', 'ConsolePort'..name, ConsolePort, 'SecureActionButtonTemplate')
-	button:RegisterForClicks('AnyDown', 'AnyUp')
-	button:SetAttribute('type', 'macro')
-	button:SetScript('PreClick', function(_, _, down)
-		if down then
-			C_GamepadTargeting.SetFilter(filter)
-			C_GamepadTargeting.Enable()
-			db:TriggerEvent('OnAimHold', true)
-			return;
-		end
-		C_GamepadTargeting.Disable()
-		db:TriggerEvent('OnAimHold', false)
-		db.Radial:ReleaseStick('Camera', tonumber(GetCVar(ANALOG_DEADZONE)) or 0)
-	end)
-	function button:UpdateMacro()
-		local mode = db('trgtHoldTabTarget');
-		if ( mode == TAB_ALWAYS ) then
-			self:SetAttribute('useOnKeyDown', true)
-			self:SetAttribute('macrotext', macro)
-		elseif ( mode == TAB_NO_TARGET ) then
-			self:SetAttribute('useOnKeyDown', false)
-			self:SetAttribute('macrotext', macro .. ' [@target,noexists]')
-		else
-			self:SetAttribute('useOnKeyDown', false)
-			self:SetAttribute('macrotext', '')
-		end
+local Targeting = CPAPI.DataHandler({})
+
+local ActivateContext;
+function ActivateContext()
+	if InCombatLockdown() then
+		return db:RunSafe(ActivateContext);
 	end
-	return button;
+	if not C_KeyBindings.IsBindingContextActive(CONTEXT) then
+		C_KeyBindings.ActivateBindingContext(CONTEXT)
+	end
 end
 
-local TargetFriendly = CreateTargetButton('TargetFriendly', Enum.GamepadTargetingFilters.Friendly, '/targetfriend')
-local TargetHostile  = CreateTargetButton('TargetHostile',  Enum.GamepadTargetingFilters.Hostile,  '/targetenemy')
+function Targeting:OnHoldChanged(state)
+	local held = ( state ~= TARGETING_NONE );
+	if ( self.held == held ) then return end;
+	self.held = held;
+	db:TriggerEvent('OnAimHold', held)
+	if not held then
+		db.Radial:ReleaseStick('Camera', tonumber(GetCVar(ANALOG_DEADZONE)) or 0)
+	end
+end
 
-local TargetButtons = CPAPI.DataHandler({})
+function Targeting:OnHoldCancelled()
+	self:OnHoldChanged(TARGETING_NONE)
+end
 
-function TargetButtons:OnDataLoaded()
-	TargetFriendly:UpdateMacro()
-	TargetHostile:UpdateMacro()
+function Targeting:OnNativeNavigationChanged()
+	RunNextFrame(ActivateContext)
+end
+
+function Targeting:OnDataLoaded()
+	ActivateContext()
 	return CPAPI.BurnAfterReading;
 end
 
-db:RegisterSafeCallback('Settings/trgtHoldTabTarget', TargetButtons.OnDataLoaded, TargetButtons)
+GamepadMode.RegisterTargetModifierStateChanged(Targeting.OnHoldChanged, Targeting)
+GamepadMode.RegisterTargetModifierStateCancelled(Targeting.OnHoldCancelled, Targeting)
+db:RegisterCallback('OnNativeNavigationChanged', Targeting.OnNativeNavigationChanged, Targeting)
+
+---------------------------------------------------------------
+-- Target any unit (Forever)
+---------------------------------------------------------------
+local FILTER_ALL = C_GamepadTargeting and Enum.GamepadTargetingFilters and Enum.GamepadTargetingFilters.All;
+if not FILTER_ALL then return end;
+
+local TAB_MACROS = { '/targetenemy', '/targetfriend' };
+
+local TargetAny = CreateFrame('Button', '$parentTargetAny', ConsolePort, 'SecureActionButtonTemplate')
+TargetAny:RegisterForClicks('AnyDown', 'AnyUp')
+TargetAny:SetAttribute('type', 'macro')
+TargetAny:SetAttribute('useOnKeyDown', true)
+
+function TargetAny:OnTabSettingChanged()
+	self:SetAttribute('macrotext', TAB_MACROS[db('trgtAnyTabTarget')] or '')
+end
+
+TargetAny:SetScript('PreClick', function(_, _, down)
+	if down then
+		C_GamepadTargeting.SetFilter(FILTER_ALL)
+		C_GamepadTargeting.Enable()
+		return Targeting:OnHoldChanged(GamepadTargetingState.BOTH);
+	end
+	C_GamepadTargeting.Disable()
+	Targeting:OnHoldChanged(TARGETING_NONE)
+end)
+
+db:RegisterSafeCallback('OnDataLoaded', TargetAny.OnTabSettingChanged, TargetAny)
+db:RegisterSafeCallback('Settings/trgtAnyTabTarget', TargetAny.OnTabSettingChanged, TargetAny)

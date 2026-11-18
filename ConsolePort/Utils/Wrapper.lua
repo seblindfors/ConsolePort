@@ -116,10 +116,30 @@ do
 		ReportBindingError(keyChord, bindingID);
 	end
 
+	local GAMEPAD_CONTEXT = CPAPI.IsCamelotVersion and Enum.BindingContext.GamepadModeInGameCore;
+	local DEFAULT_CONTEXT = Enum.BindingContext and Enum.BindingContext.None;
+
+	local function IsSharedContext(context)
+		return not context or context == DEFAULT_CONTEXT or context == GAMEPAD_CONTEXT;
+	end
+
+	local function ClearSharedContext(keyChord, bindingID)
+		if not GAMEPAD_CONTEXT then return end;
+		local context = bindingID and C_KeyBindings.GetBindingContextForAction(bindingID)
+		if not IsSharedContext(context) then return end;
+		if ( context ~= GAMEPAD_CONTEXT ) then
+			SetBinding(keyChord, nil, GAMEPAD_CONTEXT)
+		end
+		if ( context == GAMEPAD_CONTEXT or not bindingID ) then
+			SetBinding(keyChord, nil)
+		end
+	end
+
 	function CPAPI.SetBinding(keyChord, bindingID, saveAfter)
 		if bindingID and not db('bindingOverlapEnable') then
 			CPAPI.ClearBindingsForID(bindingID, false)
 		end
+		ClearSharedContext(keyChord, bindingID)
 		if TrySetBinding(keyChord, bindingID, saveAfter) then
 			CPAPI.SaveBindings()
 			return true;
@@ -140,6 +160,13 @@ do
 
 	if CPAPI.IsModernVersion then
 		function CPAPI.GetBindingAction(keyChord, checkOverride, context)
+			if ( GAMEPAD_CONTEXT and IsSharedContext(context) ) then
+				local action = GetBindingAction(keyChord, checkOverride)
+				if ( action ~= '' ) then
+					return action;
+				end
+				return GetBindingAction(keyChord, checkOverride, GAMEPAD_CONTEXT)
+			end
 			return GetBindingAction(keyChord, checkOverride, context)
 		end
 	else
