@@ -192,7 +192,15 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Guide ]] if (not CPAPI.IsClassicEraVersion and not CPAPI.IsAnniVersion and EJMicroButton) then _{
+--[[ Legacy ]] if CPAPI.IsCamelotVersion and LegacyMicroButton then _{
+---------------------------------------------------------------
+	text  = LEGACY_BUTTON;
+	atlas = 'Legacy-up-c60';
+	ref   = LegacyMicroButton;
+} end;
+
+---------------------------------------------------------------
+--[[ Guide ]] if (not CPAPI.IsClassicEraVersion and not CPAPI.IsAnniVersion and not CPAPI.IsCamelotVersion and EJMicroButton) then _{
 ---------------------------------------------------------------
 	text  = ADVENTURE_JOURNAL;
 	img   = [[Interface\ENCOUNTERJOURNAL\UI-EJ-PortraitIcon]];
