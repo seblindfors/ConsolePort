@@ -147,8 +147,7 @@ db:Register('Variables', CPAPI.Callable({
 	};
 	trgtAnyTabTarget = _{Map(0, {[0] = OFF, [1] = 'Hostile', [2] = 'Friendly'});
 		name = 'Target Any Tab Targeting';
-		desc = 'Releasing Target Any (Hold) without picking a unit targets the nearest enemy or friend.';
-		note = 'In combat, this only applies while nothing is targeted.';
+		desc = 'Releasing Target Any (Hold) with nothing targeted selects the nearest enemy or friend.';
 		hide = not C_GamepadTargeting or nil;
 	};
 	--------------------------------------------------------------------------------------------------------

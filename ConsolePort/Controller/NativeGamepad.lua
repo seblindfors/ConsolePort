@@ -66,40 +66,28 @@ db:RegisterCallback('OnNativeNavigationChanged', Targeting.OnNativeNavigationCha
 local FILTER_ALL = C_GamepadTargeting and Enum.GamepadTargetingFilters and Enum.GamepadTargetingFilters.All;
 if not FILTER_ALL then return end;
 
-local TAB_MACROS = { '/targetenemy', '/targetfriend' };
+local TAB_MACROS = {
+	'/targetenemy [@target,noexists]';
+	'/targetfriend [@target,noexists]';
+};
 
 local TargetAny = CreateFrame('Button', '$parentTargetAny', ConsolePort, 'SecureActionButtonTemplate')
 TargetAny:RegisterForClicks('AnyDown', 'AnyUp')
-TargetAny:RegisterEvent('PLAYER_REGEN_DISABLED')
 TargetAny:SetAttribute('type', 'macro')
 TargetAny:SetAttribute('useOnKeyDown', false)
 
-function TargetAny:SetTabMacro(picked)
-	local macro = TAB_MACROS[db('trgtAnyTabTarget')] or '';
-	if picked then
-		macro = '';
-	elseif ( picked == nil and macro ~= '' ) then
-		macro = macro .. ' [@target,noexists]';
-	end
-	self:SetAttribute('macrotext', macro)
-end
-
 function TargetAny:OnTabSettingChanged()
-	self:SetTabMacro(nil)
+	self:SetAttribute('macrotext', TAB_MACROS[db('trgtAnyTabTarget')] or '')
 end
 
-TargetAny:SetScript('OnEvent', TargetAny.OnTabSettingChanged)
-TargetAny:SetScript('PreClick', function(self, _, down)
+TargetAny:SetScript('PreClick', function(_, _, down)
 	if down then
 		C_GamepadTargeting.SetFilter(FILTER_ALL)
 		C_GamepadTargeting.Enable()
 		return Targeting:OnHoldChanged(GamepadTargetingState.BOTH);
 	end
-	local picked = C_GamepadTargeting.Disable();
+	C_GamepadTargeting.Disable()
 	Targeting:OnHoldChanged(TARGETING_NONE)
-	if not InCombatLockdown() then
-		self:SetTabMacro(picked)
-	end
 end)
 
 db:RegisterSafeCallback('OnDataLoaded', TargetAny.OnTabSettingChanged, TargetAny)
