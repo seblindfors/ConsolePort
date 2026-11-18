@@ -330,6 +330,15 @@ function Secure:RefreshAll()
 		numButtons = #set > numButtons and #set or numButtons;
 	end
 	self:SetAttribute('numButtons', numButtons)
+	if self:IsShown() then
+		self:Run([[
+			local set = self:GetAttribute('state')
+			if set then
+				self::DrawSelectedRing(set)
+				self:::OnPostShow()
+			end
+		]])
+	end
 end
 
 function Secure:ClearAllActions()
