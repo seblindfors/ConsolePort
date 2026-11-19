@@ -542,6 +542,12 @@ db:Register('Variables', CPAPI.Callable({
 		list = 'Modifiers';
 		advd = true;
 	};
+	layersStrictModifiers = _{Bool(false);
+		name = 'Strict Modifier Bindings';
+		desc = 'A modifier combination with nothing bound does nothing, instead of falling back to the unmodified button.';
+		note = 'The game drops the modifier from a combination that has no binding and fires the unmodified button instead. This holds those combinations empty, so a held modifier always swaps the binding set.';
+		list = 'Modifiers';
+	};
 	gamepadPagedBar = _{Range(1, 1, 1, 10);
 		name = 'Paged Gamepad Bar';
 		desc = 'Gamepad bar that swaps to the stance or form bar, the way the main action bar does for a keyboard.';

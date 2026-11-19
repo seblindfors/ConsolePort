@@ -239,6 +239,7 @@ function CPClusterBar:OnLoad()
 
 	env:RegisterSafeCallback('OnNewBindings', self.OnNewBindings, self)
 	env:RegisterSafeCallback('Settings/clusterFullStateModifier', self.OnDriverChanged, self)
+	db:RegisterSafeCallback('Settings/layersStrictModifiers', self.OnStrictChanged, self)
 	db:RegisterSafeCallback('OnModifierChanged', self.OnDriverChanged, self)
 
 	self:OnDriverChanged()
@@ -257,6 +258,14 @@ end
 
 function CPClusterBar:OnPropsUpdated()
 	self:SetProps(self.props)
+end
+
+function CPClusterBar:OnStrictChanged()
+	if not env:IsActive(self) then return end;
+	local bindings = env.Manager:GetBindings()
+	if bindings then
+		self:OnNewBindings(bindings)
+	end
 end
 
 function CPClusterBar:OnNewBindings(bindings)
