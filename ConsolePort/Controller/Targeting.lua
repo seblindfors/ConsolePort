@@ -19,6 +19,7 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 		trgtFriendIcon            = db.Data.Cvar('SoftTargetIconFriend');
 		trgtFriendNameplate       = db.Data.Cvar('SoftTargetNameplateFriend');
 		trgtFriendTooltip         = db.Data.Cvar('SoftTargetTooltipFriend');
+		trgtInteractTooltip       = db.Data.Cvar('SoftTargetTooltipInteract');
 	};
 }))
 
@@ -26,46 +27,19 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 -- Tooltip handling
 ---------------------------------------------------------------
 local GameTooltip, UIParent, After, UnitGUID = GameTooltip, UIParent, C_Timer.After, UnitGUID;
-local SetDefaultAnchor = GenerateClosure(GameTooltip_SetDefaultAnchor, GameTooltip, UIParent);
-local GetNamePlateForUnit, anchor = C_NamePlate.GetNamePlateForUnit;
+local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit;
+local PLATE_REMOVED = 'NAME_PLATE_UNIT_REMOVED';
 
-local function GetSoftTargetIcon(nameplate)
-	return  nameplate
-		and nameplate.UnitFrame
-		and nameplate.UnitFrame.SoftTargetFrame
-		and nameplate.UnitFrame.SoftTargetFrame.Icon;
+local function GetUnitGUID(unit)
+	return CPAPI.Scrub(UnitGUID(unit))
 end
 
-local function IsTooltipAvailable()
-	return not ConsolePort:IsCursorActive()
-		and (( GameTooltip:IsOwned(UIParent) or anchor and GameTooltip:IsOwned(anchor) )
-		or not GameTooltip:IsVisible()
-		or GameTooltip:GetAlpha() < 1);
-end
-
-local function IsTooltipOwned(unit, guid)
-	return GameTooltip:IsOwned(UIParent)
-		and CPAPI.Scrub(GameTooltip:GetUnit()) == unit
-		and CPAPI.Scrub(UnitGUID(unit)) == guid;
-end
-
-local function AddResetUnitTooltipCallback(unit, guid)
-	if db:GetCVar('SoftTargetTooltipLocked', false) then return end;
-	After(db:GetCVar('SoftTargetTooltipDurationMs', 2000) / 1000, function()
-		if IsTooltipOwned(unit, guid) then
-			GameTooltip:FadeOut()
-		end
-	end)
-end
-
-local function SetTooltipToUnit(unit)
-	SetDefaultAnchor()
-	return GameTooltip:SetUnit(unit)
-end
-
-local SetTooltipPosition, TooltipDismount;
-if CPAPI.IsRetailVersion then -- interact tooltip nameplate mount
-	local GET, SET, UNSET, modifiedFrames, framesToModify = 1, 2, 3, {}, {
+---------------------------------------------------------------
+-- Name plate decoration
+---------------------------------------------------------------
+local Decorate, Undecorate = nop, nop;
+if CPAPI.IsRetailVersion then
+	local GET, SET, UNSET, modified, elements = 1, 2, 3, {}, {
 		{ -- Hide name text
 			function(np, _) return np.UnitFrame and np.UnitFrame.name end;
 			function(f) f:Hide() end;
@@ -88,63 +62,171 @@ if CPAPI.IsRetailVersion then -- interact tooltip nameplate mount
 		};
 	};
 
-	function TooltipDismount()
-		for i = #modifiedFrames, 1, -1 do
-			local frame = modifiedFrames[i];
-			if frame then framesToModify[i][UNSET](frame) end;
-			modifiedFrames[i] = nil;
+	function Undecorate()
+		for i = #elements, 1, -1 do
+			local frame = modified[i];
+			if frame then elements[i][UNSET](frame) end;
+			modified[i] = nil;
 		end
 	end
 
-	local function TooltipMount(nameplate, tooltip)
-		TooltipDismount()
-		for i, element in ipairs(framesToModify) do
-			local frame = element[GET](nameplate, tooltip)
+	function Decorate(nameplate)
+		Undecorate()
+		for i, element in ipairs(elements) do
+			local frame = element[GET](nameplate, GameTooltip)
 			if frame then
 				element[SET](frame)
-				modifiedFrames[i] = frame;
+				modified[i] = frame;
 			end
 		end
 	end
-
-	function SetTooltipPosition(unit, offsetX)
-		if UnitCanAttack('player', unit) then return SetDefaultAnchor() end;
-		local nameplate, tooltip = GetNamePlateForUnit(unit), GameTooltip;
-		anchor = GetSoftTargetIcon(nameplate)
-		if anchor then
-			tooltip:SetOwner(anchor, 'ANCHOR_NONE')
-			tooltip:ClearAllPoints()
-			tooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
-			return TooltipMount(nameplate, tooltip)
-		end
-		SetDefaultAnchor()
-	end
-
-	GameTooltip:HookScript('OnHide', TooltipDismount)
-else
-	TooltipDismount, SetTooltipPosition = nop, SetDefaultAnchor;
 end
 
-local function SetTooltipToInteractUnit(unit)
-	SetTooltipPosition(unit, 10)
+---------------------------------------------------------------
+-- Placement
+---------------------------------------------------------------
+-- @param plate : { anchor, offset, decorate }, nil for the default anchor
+local PlateAnchors = {
+	Frame = function(nameplate)
+		return nameplate.UnitFrame or nameplate;
+	end;
+	Icon = function(nameplate)
+		return nameplate.UnitFrame
+			and nameplate.UnitFrame.SoftTargetFrame
+			and nameplate.UnitFrame.SoftTargetFrame.Icon;
+	end;
+};
+
+local UNIT_PLATE = { anchor = 'Frame'; offset = 28 };
+local Shown, isMounted = { owner = UIParent };
+
+local function GetUnitPlate()
+	return db('trgtTooltipOnPlate') and UNIT_PLATE or nil;
+end
+
+local function Detach()
+	Undecorate()
+	if isMounted then
+		isMounted = nil;
+		GameTooltip:ClearAllPoints()
+		Targeting:UnregisterEvent(PLATE_REMOVED)
+	end
+end
+
+local function Mount()
+	local plate = Shown.plate;
+	local nameplate = plate and GetNamePlateForUnit(Shown.unit);
+	local frame = nameplate and PlateAnchors[plate.anchor](nameplate);
+	if not frame then return end;
+	GameTooltip:ClearAllPoints()
+	GameTooltip:SetPoint('LEFT', frame, 'RIGHT', plate.offset, 0)
+	Targeting:RegisterEvent(PLATE_REMOVED)
+	isMounted = true;
+	if plate.decorate then
+		Decorate(nameplate)
+	end
+end
+
+local function SetDefaultAnchor()
+	Detach()
+	GameTooltip_SetDefaultAnchor(GameTooltip, Shown.owner)
+end
+
+local function Place(unit, guid, plate, owner)
+	Shown.unit, Shown.guid, Shown.plate, Shown.owner = unit, guid, plate, owner or UIParent;
+	SetDefaultAnchor()
+	Mount()
+end
+
+local function ShowUnit(unit, guid, plate, owner)
+	Place(unit, guid, plate, owner)
 	return GameTooltip:SetUnit(unit)
 end
 
-local function SetTooltipToUnitName(unit)
-	local name = UnitName(unit)
-	if not name then return false end;
-	SetTooltipPosition(unit, 0)
-	GameTooltip:SetText(name, NORMAL_FONT_COLOR:GetRGB())
-	GameTooltip:Show()
-	return true;
+local function IsShownUnit(unitID)
+	local guid = Shown.guid;
+	return guid and GetUnitGUID(unitID) == guid;
+end
+
+GameTooltip:HookScript('OnHide', Detach)
+hooksecurefunc(GameTooltip, 'SetOwner', Detach)
+
+function Targeting:OnTooltipPlateAdded(unitID)
+	if ( not isMounted and Shown.plate
+		and IsShownUnit(unitID)
+		and IsShownUnit(Shown.unit)
+		and GameTooltip:IsOwned(Shown.owner)
+		and GameTooltip:IsShown() ) then
+		Mount()
+	end
+end
+
+function Targeting:NAME_PLATE_UNIT_REMOVED(unitID)
+	if ( isMounted and IsShownUnit(unitID) ) then
+		local unit, isStillShown = Shown.unit, IsShownUnit(Shown.unit);
+		SetDefaultAnchor()
+		if isStillShown then
+			GameTooltip:SetUnit(unit)
+		end
+	end
+end
+
+---------------------------------------------------------------
+-- Ownership and fading
+---------------------------------------------------------------
+local function IsTooltipAvailable(owner)
+	return not ConsolePort:IsCursorActive()
+		and ( GameTooltip:IsOwned(owner or UIParent)
+		or not GameTooltip:IsVisible()
+		or GameTooltip:GetAlpha() < 1 );
+end
+
+local focusTimer;
+local function ShowUnitWhenFocused(unit, guid, owner)
+	local plate = GetUnitPlate()
+	local delay = plate and db('trgtTooltipDelay') or 0;
+	if focusTimer then
+		focusTimer = focusTimer:Cancel()
+	end
+	if ( delay <= 0 ) then
+		return ShowUnit(unit, guid, plate, owner)
+	end
+	if ( Shown.guid ~= guid and GameTooltip:IsOwned(Shown.owner) ) then
+		GameTooltip:Hide()
+	end
+	focusTimer = C_Timer.NewTimer(delay, function()
+		focusTimer = nil;
+		if ( GetUnitGUID(unit) == guid and IsTooltipAvailable(owner) ) then
+			ShowUnit(unit, guid, plate, owner)
+		end
+	end)
+end
+
+function Targeting:ShowUnitTooltip(unit, guid, owner)
+	return ShowUnitWhenFocused(unit, guid, owner)
+end
+
+local function IsUnitTooltipOwned(unit, guid)
+	return GameTooltip:IsOwned(UIParent)
+		and CPAPI.Scrub(GameTooltip:GetUnit()) == unit
+		and GetUnitGUID(unit) == guid;
+end
+
+local function FadeLater(isStillOwned)
+	if db:GetCVar('SoftTargetTooltipLocked', false) then return end;
+	After(db:GetCVar('SoftTargetTooltipDurationMs', 2000) / 1000, function()
+		if isStillOwned() then
+			GameTooltip:FadeOut()
+		end
+	end)
 end
 
 local function TrySetUnitTooltip(option, unit, self)
-	local guid = CPAPI.Scrub(UnitGUID(unit))
+	local guid = GetUnitGUID(unit)
 	if ( guid and self.tooltipGUID ~= guid and db(option) and IsTooltipAvailable() ) then
 		self.tooltipGUID = guid;
-		SetTooltipToUnit(unit)
-		AddResetUnitTooltipCallback(unit, guid)
+		ShowUnitWhenFocused(unit, guid)
+		FadeLater(GenerateClosure(IsUnitTooltipOwned, unit, guid))
 	end
 end
 
@@ -187,19 +269,16 @@ do -- Aim hold tooltip
 		if self.aimHeld then return end;
 		self:UnregisterEvent(AIM_EVENT)
 		self.aimTooltipGUID = nil;
-		if not guid or db:GetCVar('SoftTargetTooltipLocked', false) then return end;
-		After(db:GetCVar('SoftTargetTooltipDurationMs', 2000) / 1000, function()
-			if IsAimTooltipOwned(self, guid) then
-				GameTooltip:FadeOut()
-			end
-		end)
+		if guid then
+			FadeLater(GenerateClosure(IsAimTooltipOwned, self, guid))
+		end
 	end
 
 	function Targeting:PLAYER_TARGET_CHANGED()
-		local guid = CPAPI.Scrub(UnitGUID(AIM_UNIT))
+		local guid = GetUnitGUID(AIM_UNIT)
 		if ( guid and self.tooltipGUID ~= guid and IsTooltipAvailable() ) then
 			self.tooltipGUID, self.aimTooltipGUID = guid, guid;
-			SetTooltipToUnit(AIM_UNIT)
+			ShowUnitWhenFocused(AIM_UNIT, guid)
 		end
 	end
 
@@ -221,6 +300,25 @@ end
 do -- Interact tooltip and nameplate handling
 ---------------------------------------------------------------
 	local InteractNamePlate, interactID, currentGUID = db.Data.Cvar('SoftTargetNameplateInteract'), 'anyinteract';
+	local UNIT_PLATE = { anchor = 'Icon'; offset = 10; decorate = true };
+	local NAME_PLATE = { anchor = 'Icon'; offset = 0;  decorate = true };
+
+	local function GetInteractPlate(plate)
+		return CPAPI.IsRetailVersion and not UnitCanAttack('player', interactID) and plate or nil;
+	end
+
+	local function SetTooltipToInteractUnit()
+		return ShowUnit(interactID, currentGUID, GetInteractPlate(UNIT_PLATE))
+	end
+
+	local function SetTooltipToUnitName()
+		local name = UnitName(interactID)
+		if not name then return false end;
+		Place(interactID, currentGUID, GetInteractPlate(NAME_PLATE))
+		GameTooltip:SetText(name, NORMAL_FONT_COLOR:GetRGB())
+		GameTooltip:Show()
+		return true;
+	end
 
 	local function CanInteractWithObject(guid)
 		if not CPAPI.Scrub(guid) then return end;
@@ -234,7 +332,7 @@ do -- Interact tooltip and nameplate handling
 	end
 
 	Targeting.UpdateInteractTooltip = CPAPI.Debounce(function(self)
-		TooltipDismount()
+		Undecorate()
 		if not CanInteractWithObject(currentGUID) then
 			return CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') and InteractNamePlate:Set(false)
 		end
@@ -243,10 +341,10 @@ do -- Interact tooltip and nameplate handling
 			if CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') then
 				InteractNamePlate:Set(true)
 			end
-			if not UnitIsPlayer(interactID) and not SetTooltipToInteractUnit(interactID) and not SetTooltipToUnitName(interactID) then
+			if not UnitIsPlayer(interactID) and not SetTooltipToInteractUnit() and not SetTooltipToUnitName() then
 				return;
 			end
-			AddResetUnitTooltipCallback(interactID, currentGUID)
+			FadeLater(GenerateClosure(IsUnitTooltipOwned, interactID, currentGUID))
 
 			-- Show interact hint
 			if not db('trgtShowInteractHint') or UnitCanAttack('player', interactID) then return end;
@@ -266,6 +364,7 @@ do -- Interact tooltip and nameplate handling
 	end
 
 	function Targeting:NAME_PLATE_UNIT_ADDED(unitID)
+		self:OnTooltipPlateAdded(unitID)
 		if CPAPI.Scrub(UnitIsUnit(unitID, interactID)) then
 			currentGUID = UnitGUID(unitID)
 			self:UpdateInteractTooltip()

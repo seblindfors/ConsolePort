@@ -266,11 +266,6 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Show Object Icon';
 			desc = 'Show icon above the current interactable object.';
 		};
-		{	cvar = 'SoftTargetTooltipInteract';
-			type = Bool(false);
-			name = 'Show Tooltip';
-			desc = 'Show tooltip for interactables.';
-		};
 		{	cvar = 'GamepadTabHostileTargetAction';
 			type = Bool(true);
 			name = 'Tab Target Hostile on Release';
@@ -299,13 +294,13 @@ db:Register('Console', CPAPI.Proxy({
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'SoftTargetTooltipDurationMs';
 			type = Number(2000, 250, true);
-			name = 'Automatic Tooltip Duration';
-			desc = 'Duration under which a tooltip is displayed for an acquired target or interactable, in milliseconds.';
+			name = 'Tooltip Duration';
+			desc = 'Milliseconds a tooltip stays up before it fades.';
 		};
 		{	cvar = 'SoftTargetTooltipLocked';
 			type = Bool(false);
-			name = 'Lock Automatic Tooltip';
-			desc = 'Always show tooltip for an automatically acquired target, as long as it exists.';
+			name = 'Keep Tooltip Shown';
+			desc = 'Keep a tooltip up for as long as its unit exists, with no fade.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
