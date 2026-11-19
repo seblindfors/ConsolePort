@@ -169,6 +169,7 @@ def walk_lua_files(root: Path) -> list[Path]:
     addon_dirs = [
         "ConsolePort", "ConsolePort_Bar", "ConsolePort_Config", "ConsolePort_Cursor",
         "ConsolePort_Keyboard", "ConsolePort_Menu", "ConsolePort_Rings", "ConsolePort_World",
+        "ConsolePort_Target",
     ]
     for d in addon_dirs:
         base = root / d
