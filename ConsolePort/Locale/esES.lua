@@ -1395,6 +1395,7 @@ L['Show Friendly Target Icon'] = 'Mostrar icono de objetivo amistoso';
 L['Show Friendly Tooltip'] = 'Mostrar información amistosa';
 L['Show Gauge'] = 'Mostrar medidor';
 L['Show Grid'] = 'Mostrar cuadrícula';
+L['Show Hard Target Tooltip'] = 'Mostrar información del objetivo fijado';
 L['Show help for command(s).'] = 'Mostrar ayuda para orden(es).';
 L['Show Hotkeys'] = 'Mostrar teclas rápidas';
 L['Show icon above the current enemy soft target.'] = 'Mostrar icono sobre el objetivo flexible enemigo actual.';
@@ -1663,6 +1664,7 @@ L['Notch: click the notch or press the binding, and the menu stays open. Hover: 
 L['Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.'] = [[La opacidad se expresa en porcentaje, donde 100 es totalmente visible y 0 totalmente transparente. Los valores fuera del rango 0-100 se ajustarán.]];
 L['Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.'] = [[Al pulsar Cualquier objetivo (mantener) se selecciona primero al enemigo o amigo más cercano. La retícula ajusta después la selección mientras se mantiene.]];
 L['Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.'] = [[Mostrar tiradas de botín de grupo en el menú rápido, permitiéndote tirar el dado para objetos usando botones del mando en combate.]];
+L['Show the tooltip of your current target whenever no aiming, interact or reticle tooltip is showing.'] = 'Muestra la información de tu objetivo actual mientras no se muestre información de apuntado, de interactuar ni de retícula.';
 L['Takes the format of...\n'] = [[Toma el formato de…
 ]];
 L['The bindings underlying the button combinations will be unavailable while the cursor is in use.\n\nModifier can also be configured on a per button basis.'] = [[Las asignaciones subyacentes a las combinaciones de botones no estarán disponibles mientras se usa el cursor.

@@ -5,6 +5,7 @@
 
 local _, db = ...;
 local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$parentTargetingHandler', ConsolePort}, {
+	'PLAYER_TARGET_CHANGED';
 	'PLAYER_SOFT_ENEMY_CHANGED';
 	'PLAYER_SOFT_FRIEND_CHANGED';
 	'PLAYER_SOFT_INTERACT_CHANGED';
@@ -98,7 +99,7 @@ local PlateAnchors = {
 };
 
 local UNIT_PLATE = { anchor = 'Frame'; offset = 28 };
-local Shown, isMounted = { owner = UIParent };
+local Shown, isMounted, isPlacing = { owner = UIParent };
 
 local function GetUnitPlate()
 	return db('trgtTooltipOnPlate') and UNIT_PLATE or nil;
@@ -129,17 +130,19 @@ end
 
 local function SetDefaultAnchor()
 	Detach()
+	isPlacing = true;
 	GameTooltip_SetDefaultAnchor(GameTooltip, Shown.owner)
+	isPlacing = nil;
 end
 
-local function Place(unit, guid, plate, owner)
-	Shown.unit, Shown.guid, Shown.plate, Shown.owner = unit, guid, plate, owner or UIParent;
+local function Place(unit, guid, plate)
+	Shown.unit, Shown.guid, Shown.plate = unit, guid, plate;
 	SetDefaultAnchor()
 	Mount()
 end
 
-local function ShowUnit(unit, guid, plate, owner)
-	Place(unit, guid, plate, owner)
+local function ShowUnit(unit, guid, plate)
+	Place(unit, guid, plate)
 	return GameTooltip:SetUnit(unit)
 end
 
@@ -148,8 +151,6 @@ local function IsShownUnit(unitID)
 	return guid and GetUnitGUID(unitID) == guid;
 end
 
-GameTooltip:HookScript('OnHide', Detach)
-hooksecurefunc(GameTooltip, 'SetOwner', Detach)
 
 function Targeting:OnTooltipPlateAdded(unitID)
 	if ( not isMounted and Shown.plate
@@ -172,63 +173,166 @@ function Targeting:NAME_PLATE_UNIT_REMOVED(unitID)
 end
 
 ---------------------------------------------------------------
--- Ownership and fading
+-- Sources
 ---------------------------------------------------------------
-local function IsTooltipAvailable(owner)
+local Active, isWaiting, focusTimer, expiryTimer = {};
+
+local function IsTooltipAvailable()
 	return not ConsolePort:IsCursorActive()
-		and ( GameTooltip:IsOwned(owner or UIParent)
+		and ( GameTooltip:IsOwned(UIParent)
 		or not GameTooltip:IsVisible()
 		or GameTooltip:GetAlpha() < 1 );
 end
 
-local focusTimer;
-local function ShowUnitWhenFocused(unit, guid, owner)
+local function IsShowingActive()
+	return Active.source and GameTooltip:IsOwned(UIParent) and GameTooltip:IsShown();
+end
+
+local function ShowUnitWhenFocused(unit, guid)
 	local plate = GetUnitPlate()
 	local delay = plate and db('trgtTooltipDelay') or 0;
-	if focusTimer then
-		focusTimer = focusTimer:Cancel()
-	end
 	if ( delay <= 0 ) then
-		return ShowUnit(unit, guid, plate, owner)
+		return ShowUnit(unit, guid, plate)
 	end
-	if ( Shown.guid ~= guid and GameTooltip:IsOwned(Shown.owner) ) then
+	if GameTooltip:IsOwned(UIParent) then
 		GameTooltip:Hide()
 	end
 	focusTimer = C_Timer.NewTimer(delay, function()
 		focusTimer = nil;
-		if ( GetUnitGUID(unit) == guid and IsTooltipAvailable(owner) ) then
-			ShowUnit(unit, guid, plate, owner)
+		if ( GetUnitGUID(unit) == guid and IsTooltipAvailable() ) then
+			ShowUnit(unit, guid, plate)
 		end
 	end)
 end
 
-function Targeting:ShowUnitTooltip(unit, guid, owner)
-	return ShowUnitWhenFocused(unit, guid, owner)
+local function GetExpiry(since)
+	if db:GetCVar('SoftTargetTooltipLocked', false) then
+		return math.huge;
+	end
+	return since + db:GetCVar('SoftTargetTooltipDurationMs', 2000) / 1000;
 end
 
-local function IsUnitTooltipOwned(unit, guid)
-	return GameTooltip:IsOwned(UIParent)
-		and CPAPI.Scrub(GameTooltip:GetUnit()) == unit
-		and GetUnitGUID(unit) == guid;
-end
-
-local function FadeLater(isStillOwned)
-	if db:GetCVar('SoftTargetTooltipLocked', false) then return end;
-	After(db:GetCVar('SoftTargetTooltipDurationMs', 2000) / 1000, function()
-		if isStillOwned() then
-			GameTooltip:FadeOut()
-		end
-	end)
-end
-
-local function TrySetUnitTooltip(option, unit, self)
-	local guid = GetUnitGUID(unit)
-	if ( guid and self.tooltipGUID ~= guid and db(option) and IsTooltipAvailable() ) then
-		self.tooltipGUID = guid;
-		ShowUnitWhenFocused(unit, guid)
-		FadeLater(GenerateClosure(IsUnitTooltipOwned, unit, guid))
+local function Acquire(source, guid)
+	if ( source.guid ~= guid ) then
+		source.guid, source.since = guid, GetTime();
 	end
 end
+
+-- @return guid   : unit to show for this source, nil when not eligible
+-- @return expiry : time at which the source stops being eligible, if any
+local Aim      = { unit = 'target' };
+local Interact = { unit = 'anyinteract' };
+local Reticle  = { unit = 'mouseover' };
+local Hard     = { unit = 'target' };
+local Aimed    = { unit = 'target' };
+local Enemy    = { unit = 'softenemy';  option = 'trgtEnemyTooltip'  };
+local Friend   = { unit = 'softfriend'; option = 'trgtFriendTooltip' };
+local Sources  = { Aim, Interact, Reticle, Hard, Aimed, Enemy, Friend };
+
+function Aim:Poll()
+	return self.held and db('trgtAimTooltip') and GetUnitGUID(self.unit);
+end
+
+function Aimed:Poll(now)
+	local guid = self.guid;
+	if not ( guid and db('trgtAimTooltip') and GetUnitGUID(self.unit) == guid ) then return end;
+	local expiry = GetExpiry(self.since)
+	if ( expiry > now ) then
+		return guid, expiry;
+	end
+end
+
+function Reticle:Poll()
+	local guid = db.Mouse.mouseOverGUID;
+	return guid and GetUnitGUID(self.unit) == guid and guid;
+end
+
+function Hard:Poll()
+	return db('trgtHardTooltip') and GetUnitGUID(self.unit);
+end
+
+local function PollSoftTarget(self, now)
+	local guid = self.guid;
+	if not ( guid and db(self.option) and GetUnitGUID(self.unit) == guid ) then return end;
+	local expiry = GetExpiry(self.since)
+	if ( expiry > now ) then
+		return guid, expiry;
+	end
+end
+
+Enemy.Poll, Friend.Poll = PollSoftTarget, PollSoftTarget;
+
+for _, source in ipairs({ Aim, Reticle, Hard, Aimed, Enemy, Friend }) do
+	function source:Show(guid)
+		ShowUnitWhenFocused(self.unit, guid)
+	end
+end
+
+function Targeting:UpdateTooltip()
+	if expiryTimer then
+		expiryTimer = expiryTimer:Cancel()
+	end
+	local now, source, guid, expiry = GetTime();
+	for _, candidate in ipairs(Sources) do
+		guid, expiry = candidate:Poll(now)
+		if guid then
+			source = candidate;
+			break;
+		end
+	end
+	Interact:SetNamePlateShown(source == Interact)
+	isWaiting = source and not IsTooltipAvailable() or nil;
+	if isWaiting then return end;
+
+	if ( expiry and expiry < math.huge ) then
+		expiryTimer = C_Timer.NewTimer(expiry - now, function()
+			expiryTimer = nil;
+			self:RequestTooltipUpdate()
+		end)
+	end
+	local shown = Active.source;
+	if ( source and shown and source.unit == shown.unit and guid == Active.guid ) then
+		Active.source = source;
+		return;
+	end
+	if ( source == shown and guid == Active.guid ) then return end;
+	if focusTimer then
+		focusTimer = focusTimer:Cancel()
+	end
+	if not source then
+		if IsShowingActive() then
+			GameTooltip:FadeOut()
+		end
+		Active.source, Active.guid = nil, nil;
+		return;
+	end
+	Active.source, Active.guid = source, guid;
+	if ( source:Show(guid) == false ) then
+		Active.source, Active.guid = nil, nil;
+	end
+end
+
+Targeting.RequestTooltipUpdate = CPAPI.Debounce(Targeting.UpdateTooltip, Targeting)
+
+function Targeting:OnTooltipSourceChanged()
+	self:RequestTooltipUpdate()
+end
+
+hooksecurefunc(GameTooltip, 'SetOwner', function()
+	if isPlacing then return end;
+	Detach()
+	if Active.source then
+		Active.source, Active.guid, isWaiting = nil, nil, true;
+	end
+end)
+
+GameTooltip:HookScript('OnHide', function()
+	if isPlacing then return end;
+	Detach()
+	if isWaiting then
+		Targeting:RequestTooltipUpdate()
+	end
+end)
 
 ---------------------------------------------------------------
 -- Direct proxy updates
@@ -250,78 +354,72 @@ end
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
-Targeting.PLAYER_SOFT_ENEMY_CHANGED  = GenerateClosure(TrySetUnitTooltip, 'trgtEnemyTooltip',  'softenemy')
-Targeting.PLAYER_SOFT_FRIEND_CHANGED = GenerateClosure(TrySetUnitTooltip, 'trgtFriendTooltip', 'softfriend')
-
----------------------------------------------------------------
-do -- Aim hold tooltip
----------------------------------------------------------------
-	local AIM_UNIT, AIM_EVENT = 'target', 'PLAYER_TARGET_CHANGED';
-
-	local function IsAimTooltipOwned(self, guid)
-		return not self.aimHeld
-			and self.tooltipGUID == guid
-			and GameTooltip:IsOwned(UIParent);
-	end
-
-	local function OnAimReleased()
-		local self, guid = Targeting, Targeting.aimTooltipGUID;
-		if self.aimHeld then return end;
-		self:UnregisterEvent(AIM_EVENT)
-		self.aimTooltipGUID = nil;
-		if guid then
-			FadeLater(GenerateClosure(IsAimTooltipOwned, self, guid))
-		end
-	end
-
-	function Targeting:PLAYER_TARGET_CHANGED()
-		local guid = GetUnitGUID(AIM_UNIT)
-		if ( guid and self.tooltipGUID ~= guid and IsTooltipAvailable() ) then
-			self.tooltipGUID, self.aimTooltipGUID = guid, guid;
-			ShowUnitWhenFocused(AIM_UNIT, guid)
-		end
-	end
-
-	function Targeting:OnAimHold(held)
-		self.aimHeld = held;
-		if not held then
-			return RunNextFrame(OnAimReleased);
-		end
-		if db('trgtAimTooltip') then
-			self.tooltipGUID = nil;
-			self:RegisterEvent(AIM_EVENT)
-		end
-	end
-
-	db:RegisterCallback('OnAimHold', Targeting.OnAimHold, Targeting)
+function Targeting:PLAYER_SOFT_ENEMY_CHANGED()
+	Acquire(Enemy, GetUnitGUID(Enemy.unit))
+	self:RequestTooltipUpdate()
 end
+
+function Targeting:PLAYER_SOFT_FRIEND_CHANGED()
+	Acquire(Friend, GetUnitGUID(Friend.unit))
+	self:RequestTooltipUpdate()
+end
+
+function Targeting:PLAYER_TARGET_CHANGED()
+	Aimed.guid = nil;
+	self:RequestTooltipUpdate()
+end
+
+function Targeting:OnAimHold(held)
+	Aim.isReleasing = not held;
+	if held then
+		Aim.held, Aimed.guid = true, nil;
+		return self:RequestTooltipUpdate();
+	end
+	RunNextFrame(function()
+		if not Aim.isReleasing then return end;
+		Aim.held, Aim.isReleasing = false, nil;
+		Acquire(Aimed, GetUnitGUID(Aimed.unit))
+		Aimed.since = GetTime();
+		self:RequestTooltipUpdate()
+	end)
+end
+
+db:RegisterCallback('OnAimHold', Targeting.OnAimHold, Targeting)
+db:RegisterCallbacks(Targeting.OnTooltipSourceChanged, Targeting,
+	'OnCursorHide',
+	'Settings/trgtAimTooltip',
+	'Settings/trgtEnemyTooltip',
+	'Settings/trgtFriendTooltip',
+	'Settings/trgtHardTooltip',
+	'Settings/trgtInteractTooltip',
+	'Settings/trgtTooltipOnPlate'
+);
 
 ---------------------------------------------------------------
 do -- Interact tooltip and nameplate handling
 ---------------------------------------------------------------
-	local InteractNamePlate, interactID, currentGUID = db.Data.Cvar('SoftTargetNameplateInteract'), 'anyinteract';
+	local InteractNamePlate = db.Data.Cvar('SoftTargetNameplateInteract');
 	local UNIT_PLATE = { anchor = 'Icon'; offset = 10; decorate = true };
 	local NAME_PLATE = { anchor = 'Icon'; offset = 0;  decorate = true };
 
 	local function GetInteractPlate(plate)
-		return CPAPI.IsRetailVersion and not UnitCanAttack('player', interactID) and plate or nil;
+		return CPAPI.IsRetailVersion and not UnitCanAttack('player', Interact.unit) and plate or nil;
 	end
 
-	local function SetTooltipToInteractUnit()
-		return ShowUnit(interactID, currentGUID, GetInteractPlate(UNIT_PLATE))
+	local function SetTooltipToInteractUnit(guid)
+		return ShowUnit(Interact.unit, guid, GetInteractPlate(UNIT_PLATE))
 	end
 
-	local function SetTooltipToUnitName()
-		local name = UnitName(interactID)
+	local function SetTooltipToUnitName(guid)
+		local name = UnitName(Interact.unit)
 		if not name then return false end;
-		Place(interactID, currentGUID, GetInteractPlate(NAME_PLATE))
+		Place(Interact.unit, guid, GetInteractPlate(NAME_PLATE))
 		GameTooltip:SetText(name, NORMAL_FONT_COLOR:GetRGB())
 		GameTooltip:Show()
 		return true;
 	end
 
 	local function CanInteractWithObject(guid)
-		if not CPAPI.Scrub(guid) then return end;
 		if guid:match('GameObject') then
 			-- Can't determine interaction range for objects,
 			-- so we just assume it's in range.
@@ -331,43 +429,50 @@ do -- Interact tooltip and nameplate handling
 		return select(2, CanLootUnit(guid))
 	end
 
-	Targeting.UpdateInteractTooltip = CPAPI.Debounce(function(self)
-		Undecorate()
-		if not CanInteractWithObject(currentGUID) then
-			return CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') and InteractNamePlate:Set(false)
+	function Interact:Poll(now)
+		local guid = self.guid;
+		if not ( guid and db:GetCVar('SoftTargetTooltipInteract', false) ) then return end;
+		if ( UnitIsPlayer(self.unit) or not CanInteractWithObject(guid) ) then return end;
+		local expiry = GetExpiry(self.since)
+		if ( expiry > now ) then
+			return guid, expiry;
 		end
-		if ( db:GetCVar('SoftTargetTooltipInteract', false) and IsTooltipAvailable() ) then
-			self.tooltipGUID = currentGUID;
-			if CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') then
-				InteractNamePlate:Set(true)
-			end
-			if not UnitIsPlayer(interactID) and not SetTooltipToInteractUnit() and not SetTooltipToUnitName() then
-				return;
-			end
-			FadeLater(GenerateClosure(IsUnitTooltipOwned, interactID, currentGUID))
+	end
 
-			-- Show interact hint
-			if not db('trgtShowInteractHint') or UnitCanAttack('player', interactID) then return end;
-
-			local slug = db.Hotkeys:GetButtonSlugForBinding('INTERACTTARGET', false, true)
-			if not slug then return end;
-
-			local hint = ('%s %s'):format(slug, UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
-			GameTooltip:AddLine(hint, WHITE_FONT_COLOR:GetRGB())
-			GameTooltip:Show()
+	function Interact:Show(guid)
+		if not SetTooltipToInteractUnit(guid) and not SetTooltipToUnitName(guid) then
+			return false;
 		end
-	end, Targeting)
+		if not db('trgtShowInteractHint') or UnitCanAttack('player', self.unit) then return end;
+
+		local slug = db.Hotkeys:GetButtonSlugForBinding('INTERACTTARGET', false, true)
+		if not slug then return end;
+
+		local hint = ('%s %s'):format(slug, UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
+		GameTooltip:AddLine(hint, WHITE_FONT_COLOR:GetRGB())
+		GameTooltip:Show()
+	end
+
+	function Interact:SetNamePlateShown(shown)
+		if ( CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') and self.plateShown ~= shown ) then
+			self.plateShown = shown;
+			InteractNamePlate:Set(shown)
+		end
+	end
 
 	function Targeting:PLAYER_SOFT_INTERACT_CHANGED(_, guid)
-		currentGUID = CPAPI.Scrub(guid)
-		self:UpdateInteractTooltip()
+		Acquire(Interact, CPAPI.Scrub(guid))
+		self:RequestTooltipUpdate()
 	end
 
 	function Targeting:NAME_PLATE_UNIT_ADDED(unitID)
 		self:OnTooltipPlateAdded(unitID)
-		if CPAPI.Scrub(UnitIsUnit(unitID, interactID)) then
-			currentGUID = UnitGUID(unitID)
-			self:UpdateInteractTooltip()
+		if CPAPI.Scrub(UnitIsUnit(unitID, Interact.unit)) then
+			Acquire(Interact, GetUnitGUID(unitID))
+			if ( Active.source == Interact ) then
+				Active.guid = nil;
+			end
+			self:RequestTooltipUpdate()
 		end
 	end
 end

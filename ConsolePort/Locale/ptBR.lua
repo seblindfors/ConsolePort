@@ -1400,6 +1400,7 @@ L['Show Friendly Tooltip'] = 'Mostrar dica de ferramenta amigável';
 L['Show Gauge'] = 'Mostrar medidor';
 L['Show Grid'] = 'Mostrar grade';
 L['Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.'] = 'Mostrar rolagens de saque em grupo no menu rápido, permitindo rolar dados em itens usando botões de controle em combate.';
+L['Show Hard Target Tooltip'] = 'Mostrar dica de ferramenta do alvo fixo';
 L['Show help for command(s).'] = 'Mostrar ajuda para comando(s).';
 L['Show Hotkeys'] = 'Mostrar teclas rápidas';
 L['Show icon above the current enemy soft target.'] = 'Mostrar ícone acima do alvo flexível inimigo atual.';
@@ -1669,6 +1670,7 @@ L['Macro condition to enable the click override button. The default condition cl
 L['Notch: click the notch or press the binding, and the menu stays open. Hover: the menu slides out while the mouse is over the toolbar and closes shortly after it leaves, at its native size.'] = [[Entalhe: clique no entalhe ou pressione a ligação e o menu permanece aberto. Ao passar o mouse: o menu desliza para fora enquanto o mouse está sobre a barra de ferramentas e fecha logo após sair, no tamanho original.]];
 L['Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.'] = [[A opacidade é expressa em porcentagem, onde 100 é totalmente visível e 0 é totalmente transparente. Valores fora da faixa 0-100 serão limitados.]];
 L['Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.'] = [[Ao pressionar Qualquer alvo (segurar), o inimigo ou aliado mais próximo é selecionado primeiro. A retícula então ajusta a seleção enquanto o botão é segurado.]];
+L['Show the tooltip of your current target whenever no aiming, interact or reticle tooltip is showing.'] = 'Mostra a dica de ferramenta do seu alvo atual enquanto nenhuma dica de ferramenta de mira, interação ou retícula estiver visível.';
 L['Takes the format of...\n'] = [[Toma o formato de…
 ]];
 L['The bindings underlying the button combinations will be unavailable while the cursor is in use.\n\nModifier can also be configured on a per button basis.'] = [[As ligações subjacentes às combinações de botões ficarão indisponíveis enquanto o cursor estiver em uso.
