@@ -127,7 +127,7 @@ end
 ---------------------------------------------------------------
 local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
 local CursorCentered = function() return CVar_Center:Get(true) end;
-local HoverFreeLook  = function() return C_GamePad.GetAllowHoverEventsWithFreeLook and C_GamePad.GetAllowHoverEventsWithFreeLook() end;
+local HoverFreeLook  = C_GamePad.GetAllowHoverEventsWithFreeLook or nop;
 local CanHoverCenter = function() return CursorCentered() or HoverFreeLook() end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
 local IsMouseOver    = function() return UnitExists('mouseover') end;
@@ -164,6 +164,7 @@ function Mouse:PLAYER_STARTED_MOVING()
 end
 
 do local function OnModifierUpdate(self, elapsed)
+		self:OnUpdate(elapsed)
 		self.tapTimer = self.tapTimer + elapsed;
 		if self.tapNum > 1 then
 			self.tapNum = 0;
@@ -296,11 +297,16 @@ function Mouse:SetFreeLook(enabled)
 	return self
 end
 
-function Mouse:SetHoverEvents(enabled)
-	if C_GamePad.SetAllowHoverEventsWithFreeLook then
+if C_GamePad.SetAllowHoverEventsWithFreeLook then
+	function Mouse:SetHoverEvents(enabled)
+		self.restoreHoverOnCamera = not enabled;
 		C_GamePad.SetAllowHoverEventsWithFreeLook(enabled)
+		return self
 	end
-	return self
+else
+	function Mouse:SetHoverEvents()
+		return self
+	end
 end
 
 ---------------------------------------------------------------
@@ -356,26 +362,28 @@ function Mouse:OnGamePadButtonDown(button)
 	return self
 end
 
+function Mouse:UpdateReticle()
+	local guid;
+	if ( self.enabled and showMouseOverTooltip and CanHoverCenter()
+		and not ConsolePort:IsCursorActive()
+		and CPAPI.Scrub(IsMouseOver()) ) then
+		guid = CPAPI.Scrub(UnitGUID('mouseover'))
+	end
+	if ( self.mouseOverGUID ~= guid ) then
+		self.mouseOverGUID = guid;
+		db.Targeting:RequestTooltipUpdate()
+	end
+end
+
 function Mouse:OnUpdate(elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed;
-	if self.elapsed > MOUSEOVER_THROTTLE then
-		self.elapsed = 0;
-		return
+	if ( self.elapsed < MOUSEOVER_THROTTLE ) then return end;
+	self.elapsed = 0;
+	if ( self.restoreHoverOnCamera and GamePadControl() and not CursorControl()
+		and not ConsolePort:IsCursorActive() ) then
+		self:SetHoverEvents(true)
 	end
-	if showMouseOverTooltip and is(_, IsMouseOver, CanHoverCenter) then
-		local guid = CPAPI.Scrub(UnitGUID('mouseover'))
-		if guid and self.mouseOverGUID ~= guid then
-			self.mouseOverGUID = guid;
-			db.Targeting:ShowUnitTooltip('mouseover', guid, self)
-		elseif not guid then
-			self.mouseOverGUID = nil;
-		end
-	elseif self.mouseOverGUID then
-		self.mouseOverGUID = nil;
-		if GameTooltip:IsOwned(self) then
-			GameTooltip:Hide()
-		end
-	end
+	self:UpdateReticle()
 end
 
 ---------------------------------------------------------------
@@ -407,6 +415,7 @@ end
 
 function Mouse:OnVariableChanged()
 	if not self.enabled then
+		self:UpdateReticle()
 		self:UnregisterEvent('MODIFIER_STATE_CHANGED')
 		self:UnregisterEvent('CURRENT_SPELL_CAST_CHANGED')
 		return;
@@ -431,6 +440,7 @@ function Mouse:OnVariableChanged()
 	CVar_Target:Set(useCursorReticleTargeting)
 	reverseMouseHandling = db('mouseHandlingReversed')
 	showMouseOverTooltip = db('mouseShowCenterTooltip')
+	self:UpdateReticle()
 end
 
 function Mouse:OnHintsFocus(_, disableMouseHandling)

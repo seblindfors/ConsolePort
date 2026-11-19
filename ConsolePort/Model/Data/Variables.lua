@@ -165,6 +165,10 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Show Friendly Tooltip';
 		desc = 'Show the tooltip of your friendly soft target.';
 	};
+	trgtHardTooltip = _{Bool(false);
+		name = 'Show Hard Target Tooltip';
+		desc = 'Show the tooltip of your current target whenever no aiming, interact or reticle tooltip is showing.';
+	};
 	trgtAimTooltip = _{Bool(true);
 		name = 'Show Aiming Tooltip';
 		desc = 'Show the tooltip of each unit picked while holding a hold-to-target binding.';

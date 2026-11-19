@@ -1392,6 +1392,7 @@ L['Show Friendly Target Icon'] = "Afficher l'icône de cible amicale";
 L['Show Friendly Tooltip'] = "Afficher l'infobulle amicale";
 L['Show Gauge'] = 'Afficher la jauge';
 L['Show Grid'] = 'Afficher la grille';
+L['Show Hard Target Tooltip'] = "Afficher l'infobulle de la cible verrouillée";
 L['Show help for command(s).'] = "Afficher l'aide pour la/les commande(s).";
 L['Show Hotkeys'] = 'Afficher les raccourcis';
 L['Show icon above the current enemy soft target.'] = "Afficher l'icône au-dessus de la cible souple ennemie actuelle.";
@@ -1670,6 +1671,7 @@ L['Opacity is expressed in percentage, where 100 is fully visible and 0 is fully
 L['Pointer arrow rotates in the direction of travel, and portraits scale up and down on movement.'] = [[La flèche du pointeur tourne dans la direction du déplacement, et les portraits agrandissent et rétrécissent en mouvement.]];
 L['Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.'] = [[Appuyer sur Cibler n'importe quelle unité (maintenir) sélectionne d'abord l'ennemi ou l'allié le plus proche. Le réticule ajuste ensuite la sélection tant que la touche est maintenue.]];
 L['Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.'] = [[Afficher les jets de butin de groupe dans le menu rapide, te permettant de jeter les dés sur les objets avec les boutons de manette en combat.]];
+L['Show the tooltip of your current target whenever no aiming, interact or reticle tooltip is showing.'] = "Affiche l'infobulle de votre cible actuelle tant qu'aucune infobulle de visée, d'interaction ou de réticule n'est affichée.";
 L['Takes the format of...\n'] = [[Prend le format de…
 ]];
 L['The bindings underlying the button combinations will be unavailable while the cursor is in use.\n\nModifier can also be configured on a per button basis.'] = [[Les raccourcis sous-jacents aux combinaisons de boutons seront indisponibles tant que le curseur est utilisé.
