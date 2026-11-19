@@ -267,7 +267,7 @@ SLASH_FUNCTIONS = {
 		desc = 'Remove all saved settings and reload interface.';
 		function()
 			CPAPI.Popup('ConsolePort_Uninstall_Settings', {
-				text = 'This action will remove all your saved settings and reload your interface.';
+				text = db.Locale'This action will remove all your saved settings and reload your interface.';
 				button1 = OKAY;
 				button2 = CANCEL;
 				timeout = 0;
@@ -281,7 +281,7 @@ SLASH_FUNCTIONS = {
 		desc = 'Remove all saved settings and bindings, disable addon, and reload interface.';
 		function()
 			CPAPI.Popup('ConsolePort_Uninstall_Addon', {
-				text = 'This action will remove all your saved settings and reload your interface.';
+				text = db.Locale'This action will remove all your saved settings and reload your interface.';
 				button1 = OKAY;
 				button2 = CANCEL;
 				timeout = 0;

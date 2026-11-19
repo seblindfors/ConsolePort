@@ -243,7 +243,7 @@ end
 
 function Mover:SetSnapPixels(snapToPixels)
 	self.snapToPixels = snapToPixels;
-	self.Snap:SetText(('Snap: %dpx'):format(snapToPixels))
+	self.Snap:SetText(('%s: %dpx'):format(db.Locale'Snap', snapToPixels))
 	self.Grid:SetShown(snapToPixels > 5)
 	if self.Grid:IsShown() then
 		self.Grid:SetGridSpacing(snapToPixels)
@@ -434,8 +434,8 @@ end
 
 function Mover:SetSize(width, height)
 	self:SetOmitterSize(width, height)
-	self.Width:SetText(('Width: %d'):format(width))
-	self.Height:SetText(('Height: %d'):format(height))
+	self.Width:SetText(('%s: %d'):format(db.Locale'Width', width))
+	self.Height:SetText(('%s: %d'):format(db.Locale'Height', height))
 	CPAPI.Index(self).SetSize(self, width, height)
 end
 

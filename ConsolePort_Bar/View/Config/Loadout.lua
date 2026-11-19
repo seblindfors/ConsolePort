@@ -21,6 +21,13 @@ local function ConvertName(name, path)
 	return text;
 end
 
+-- Element names double as database keys, and user-created elements are free
+-- text, so only real locale entries are substituted. rawget keeps a name such
+-- as "50% damage" from being run through string.format.
+local function LocalizeName(text)
+	return text and rawget(L, text) or text;
+end
+
 local function DisplaySort(t, a, b)
 	local iA, iB = t[a].sort, t[b].sort;
 	if iA and not iB then
@@ -1093,7 +1100,7 @@ function Loadout:GetPresetSaveFrame()
 			frame.name:SetEnabled(not useDefault)
 			if useDefault then
 				self.oldName = frame.name:GetText()
-				frame.name:SetText('Default')
+				frame.name:SetText(L'Default')
 			elseif self.oldName then
 				frame.name:SetText(self.oldName)
 				self.oldName = nil;
@@ -1248,8 +1255,11 @@ function Loadout:DrawPresets(layoutIndex)
 		if newObj then
 			Mixin(widget, Preset):OnLoad()
 		end
-		widget:SetText(data.preset.name)
-		widget.tooltipText = data.preset.desc;
+		-- Built-in preset names are locale keys; user preset names are free
+		-- text and must be shown exactly as typed.
+		local isBuiltIn = data.readonly;
+		widget:SetText(isBuiltIn and LocalizeName(data.preset.name) or data.preset.name)
+		widget.tooltipText = isBuiltIn and LocalizeName(data.preset.desc) or data.preset.desc;
 		widget.preset = data.preset;
 		tinsert(self.presetButtons, widget)
 
@@ -1330,7 +1340,7 @@ end
 -- Draws a container widget that has no inherent handling of a datapoint (such as a table of settings)
 function Loadout:DrawContainer(parent, path, datapoint, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, datapoint[DP], layoutIndex)
-	widget:SetText(datapoint.name)
+	widget:SetText(LocalizeName(datapoint.name))
 	widget:SetIndentation(depth)
 	parent:AddChild(widget)
 	self:DrawChildren(widget, path, datapoint[DP][DP], layoutIndex, depth)
@@ -1340,7 +1350,7 @@ end
 -- Draws an interface instance (lacks metadata)
 function Loadout:DrawInterface(parent, path, interface, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, interface[DP][DP], layoutIndex)
-	widget:SetText(ConvertName(interface.name, path))
+	widget:SetText(LocalizeName(ConvertName(interface.name, path)))
 	widget:SetIndentation(depth)
 	parent:AddChild(widget)
 	self:DrawChildren(widget, path, interface[DP][DP][DP], layoutIndex, depth)
@@ -1374,7 +1384,7 @@ end
 -- Draws a toplevel interface widget provided by env:GetConfiguration()
 function Loadout:DrawTopLevel(name, path, interface, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, interface.props, layoutIndex)
-	widget:SetText(name)
+	widget:SetText(LocalizeName(name))
 	widget:SetIndentation(depth)
 	widget:Mount(name, path, interface[DP], true, env, path, interface.widget)
 	self:DrawChildren(widget, path, interface.props[DP], layoutIndex, depth)
