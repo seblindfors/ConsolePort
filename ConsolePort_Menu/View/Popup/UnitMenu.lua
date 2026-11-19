@@ -94,7 +94,15 @@ end
 
 function UnitMenu:AddAdditionalContextData(contextData)
 	---@see UnitPopupShared.lua:UnitPopupManager:OpenMenu
-	contextData.name, contextData.server = UnitNameUnmodified(contextData.unit);
+	part1, part2 = UnitNameUnmodified(contextData.unit);
+	if CPAPI.IsCamelotVersion then
+		-- Camelot treats UnitNameUnmodified's second return as a surname.
+		contextData.name = part1
+		contextData.surname = part2
+	else
+		contextData.name = part1
+		contextData.server = part2
+	end
 	contextData.playerLocation = UnitPopupSharedUtil.TryCreatePlayerLocation(contextData);
 	if not CPAPI.IsSecret(UnitGUID(contextData.unit)) then
 		contextData.accountInfo = UnitPopupSharedUtil.GetBNetAccountInfo(contextData);
