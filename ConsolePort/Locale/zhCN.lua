@@ -1968,3 +1968,29 @@ L['DividerMid'] = '中分隔符';
 L['DividerLeft'] = '左分隔符';
 L['DividerRight'] = '右分隔符';
 L['Player action bar setup.'] = '玩家动作条配置。';
+
+---------------------------------------------------------------
+-- Legacy 3.3.15 strings
+---------------------------------------------------------------
+-- Upstream reworded these after 3.3.15, so they are gone from the
+-- current enUS list, but the released 3.3.15 build still asks for
+-- them by these exact keys.
+---------------------------------------------------------------
+L['Always show tooltip for an automatically acquired target, as long as it exists.'] = '只要目标存在，始终为自动获取的目标显示提示框。';
+L['Automatic Tooltip Duration'] = '自动提示框持续时间';
+L['Duration under which a tooltip is displayed for an acquired target or interactable, in milliseconds.'] = '已获取的目标或可交互物显示提示框的持续时间，以毫秒为单位。';
+L['Hold Target Tab Targeting'] = '按住选目标的 Tab 选取';
+L['Lock Automatic Tooltip'] = '锁定自动提示框';
+L['Minimal Interact Nameplate Tooltip'] = '最小化互动姓名板提示框';
+L['Removes the tooltip background for a minimalistic look.'] = '移除提示框背景以获得简约外观。';
+L['Show Interact Hint'] = '显示互动提示';
+L['Show Tooltip'] = '显示提示框';
+L['Show Tooltip Under Reticle'] = '显示准心下的提示框';
+L['Show interact binding hint on interactables.'] = '在可交互物上显示互动快捷键提示。';
+L['Show interact tooltip on nameplates, when applicable.'] = '在适用时在姓名板上显示互动提示框。';
+L['Show tooltip for enemy target.'] = '显示敌方目标的提示框。';
+L['Show tooltip for friendly target.'] = '显示友方目标的提示框。';
+L['Show tooltip for interactables.'] = '显示可交互物的提示框。';
+L['Show tooltip for the unit under the reticle while the cursor is hidden or centered.'] = '当光标隐藏或居中时，显示准心下单位的提示框。';
+L['Use Interact Nameplate Tooltip'] = '使用互动姓名板提示框';
+L['Whether Target Hostile (Hold) and Target Friendly (Hold) also tab to the nearest target. On Press: tab when pressed, then the reticle adjusts the pick while held. When Untargeted: tab on release if nothing is targeted.'] = '是否让“选取敌对（按住）”和“选取友方（按住）”同时 Tab 选取最近目标。按下时：按下即 Tab 选取，按住期间由准心调整选择。无目标时：没有目标则在松开时 Tab 选取。';
