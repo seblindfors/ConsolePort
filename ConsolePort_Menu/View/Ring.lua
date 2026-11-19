@@ -206,7 +206,7 @@ function Selector:OnEnabledChanged()
 	local enabled = env:IsGameMenuEnabled();
 	self:SetAttribute('enabled', enabled)
 	if not enabled then
-		self:RunAttribute('ClearAndHide', true)
+		self:Run([[ self::ClearAndHide(true) ]])
 	end
 end
 
