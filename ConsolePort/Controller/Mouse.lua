@@ -129,7 +129,7 @@ local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyCho
 local CursorCentered = function() return CVar_Center:Get(true) end;
 local HoverFreeLook  = function() return C_GamePad.GetAllowHoverEventsWithFreeLook and C_GamePad.GetAllowHoverEventsWithFreeLook() end;
 local CanHoverCenter = function() return CursorCentered() or HoverFreeLook() end;
-local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
+local TooltipShowing = function() return (GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1) or db.Targeting:IsShowingInteract() end;
 local IsMouseOver    = function() return UnitExists('mouseover') end;
 local IsWorldFocus   = function() return WorldFrame:IsMouseMotionFocus() end;
 local WorldInteract  = function() return TooltipShowing() and IsWorldFocus() end;
@@ -164,6 +164,7 @@ function Mouse:PLAYER_STARTED_MOVING()
 end
 
 do local function OnModifierUpdate(self, elapsed)
+		self:OnUpdate(elapsed)
 		self.tapTimer = self.tapTimer + elapsed;
 		if self.tapNum > 1 then
 			self.tapNum = 0;
@@ -298,6 +299,7 @@ end
 
 function Mouse:SetHoverEvents(enabled)
 	if C_GamePad.SetAllowHoverEventsWithFreeLook then
+		self.restoreHoverOnCamera = not enabled;
 		C_GamePad.SetAllowHoverEventsWithFreeLook(enabled)
 	end
 	return self
@@ -356,23 +358,27 @@ function Mouse:OnGamePadButtonDown(button)
 	return self
 end
 
+function Mouse:UpdateReticle()
+	local guid;
+	if self.enabled and showMouseOverTooltip and CanHoverCenter() and not ConsolePort:IsCursorActive()
+		and CPAPI.Scrub(IsMouseOver()) then
+		guid = CPAPI.Scrub(UnitGUID('mouseover')) or true; -- Keep the hover even when its GUID is restricted.
+	end
+	if self.mouseOverGUID ~= guid then
+		self.mouseOverGUID = guid;
+		db.Targeting:RequestTooltipUpdate()
+	end
+end
+
 function Mouse:OnUpdate(elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed;
-	if self.elapsed > MOUSEOVER_THROTTLE then
-		self.elapsed = 0;
-		return
+	if self.elapsed < MOUSEOVER_THROTTLE then return end;
+	self.elapsed = 0;
+	-- Stick input or jumping can dismiss the free cursor without calling SetCameraControl.
+	if self.restoreHoverOnCamera and GamePadControl() and not CursorControl() and not ConsolePort:IsCursorActive() then
+		self:SetHoverEvents(true)
 	end
-	if showMouseOverTooltip and is(_, IsMouseOver, CanHoverCenter) then
-		local guid = CPAPI.Scrub(UnitGUID('mouseover'))
-		if guid and self.mouseOverGUID ~= guid then
-			self.mouseOverGUID = guid;
-			GameTooltip_SetDefaultAnchor(GameTooltip, self)
-			GameTooltip:SetUnit('mouseover')
-		end
-	elseif GameTooltip:IsOwned(self) then
-		self.mouseOverGUID = nil;
-		GameTooltip:Hide()
-	end
+	self:UpdateReticle()
 end
 
 ---------------------------------------------------------------
@@ -404,6 +410,7 @@ end
 
 function Mouse:OnVariableChanged()
 	if not self.enabled then
+		self:UpdateReticle()
 		self:UnregisterEvent('MODIFIER_STATE_CHANGED')
 		self:UnregisterEvent('CURRENT_SPELL_CAST_CHANGED')
 		return;
@@ -428,6 +435,7 @@ function Mouse:OnVariableChanged()
 	CVar_Target:Set(useCursorReticleTargeting)
 	reverseMouseHandling = db('mouseHandlingReversed')
 	showMouseOverTooltip = db('mouseShowCenterTooltip')
+	self:UpdateReticle()
 end
 
 function Mouse:OnHintsFocus(_, disableMouseHandling)

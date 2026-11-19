@@ -8,7 +8,8 @@ do local GroupOrder = {
 		[SETTING_GROUP_GAMEPLAY]   = 1;
 		[SETTING_GROUP_SYSTEM]     = 2;
 		[BINDING_HEADER_TARGETING] = 3;
-		[INTERFACE_LABEL]          = 4;
+		[L'Tooltips']              = 4;
+		[INTERFACE_LABEL]          = 5;
 	};
 
 	function Settings.GroupSort(_, a, b)
@@ -94,8 +95,11 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 		Interact  = BINDING_HEADER_TARGETING;
 		Mouse     = SETTING_GROUP_SYSTEM;
 		System    = SETTING_GROUP_SYSTEM;
-		Tooltips  = BINDING_HEADER_TARGETING;
+		Tooltips  = L'Tooltips';
 		Touchpad  = SETTING_GROUP_SYSTEM;
+
+		-- CVar overrides preserve the groups used by import and export.
+		SoftTargetTooltipInteract = L'Tooltips';
 	};
 
 	local ConsoleListMap = {
@@ -104,6 +108,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 		Interact = UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT;
 		Mouse    = 'Reticle';
 		System   = GENERAL;
+		Tooltips = L'Timing';
 	};
 
 	for head, group in pairs(db.Console) do
@@ -116,10 +121,12 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 			local value = GetCVar(data.cvar);
 			if ( value ~= nil ) then
 				data[DP] = (data[DP] or data.type()):Set(value);
-				AddSetting(main, list, {
+				local category = ConsoleCategoryMap[data.cvar] or main;
+				local index = category == main and sort + i or GetSortIndex(category, list) + 1;
+				AddSetting(category, list, {
 					varID = data.cvar;
 					field = data;
-					sort  = data.sort or (sort + i);
+					sort  = data.sort or index;
 					type  = env.Elements.Cvar;
 				});
 			end

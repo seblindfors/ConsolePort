@@ -8,6 +8,7 @@ local HAS_CAMERA_INVERT = GetCVar('gamepadInvertPitch') ~= nil;
 -- Helpers
 local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
 local Console, name, db = {}, ...; db('Data')();
+local L = db.Locale;
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
 ------------------------------------------------------------------------------------------------------------
@@ -300,12 +301,13 @@ db:Register('Console', CPAPI.Proxy({
 		{	cvar = 'SoftTargetTooltipDurationMs';
 			type = Number(2000, 250, true);
 			name = 'Automatic Tooltip Duration';
-			desc = 'Duration under which a tooltip is displayed for an acquired target or interactable, in milliseconds.';
+			desc = L'How long soft-target and interact tooltips can appear after acquisition, in milliseconds. Zero hides them while unlocked.';
 		};
 		{	cvar = 'SoftTargetTooltipLocked';
 			type = Bool(false);
 			name = 'Lock Automatic Tooltip';
-			desc = 'Always show tooltip for an automatically acquired target, as long as it exists.';
+			desc = L'Keep tooltips for soft targets and nearby interactables from timing out.';
+			note = CPAPI.IsCamelotVersion and L'After aiming, the tooltip stays until you change or clear your target.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------

@@ -7,6 +7,7 @@ local BINDINGS_OPT = KEY_BINDINGS_MAC or 'Bindings';
 -- Helpers
 local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
 local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
+local L = db.Locale;
 
 ------------------------------------------------------------------------------------------------------------
 -- Variables
@@ -106,14 +107,6 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Target friends automatically by looking at them.';
 		note = 'A friendly soft target can be acquired while having an enemy hard target.';
 	};
-	trgtEnemyTooltip = _{Bool(db:GetCVar('SoftTargetTooltipEnemy', false));
-		name = 'Show Enemy Tooltip';
-		desc = 'Show tooltip for enemy target.';
-	};
-	trgtFriendTooltip = _{Bool(db:GetCVar('SoftTargetTooltipFriend', false));
-		name = 'Show Friendly Tooltip';
-		desc = 'Show tooltip for friendly target.';
-	};
 	trgtEnemyIcon = _{Bool(db:GetCVar('SoftTargetIconEnemy', false));
 		name = 'Show Enemy Target Icon';
 		desc = 'Show icon above the current enemy soft target.';
@@ -150,13 +143,36 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Pressing Target Any (Hold) first selects the nearest enemy or friend. The reticle then adjusts the pick while held.';
 		hide = not C_GamepadTargeting or nil;
 	};
+	--------------------------------------------------------------------------------------------------------
+	_(BINDING_HEADER_TARGETING, L'Tooltips');
+	--------------------------------------------------------------------------------------------------------
 	trgtAimTooltip = _{Bool(true);
-		name = 'Show Tooltip While Aiming';
-		desc = 'Show the tooltip of each unit picked while holding a hold-to-target binding.';
+		name = L'Show Tooltip While Aiming';
+		desc = L'Hold a targeting button to see the tooltip for the unit you aim at. When you let go, interact tooltips can show again.';
 		hide = not C_GamepadTargeting or nil;
 	};
+	trgtEnemyTooltip = _{Bool(db:GetCVar('SoftTargetTooltipEnemy', false));
+		name = L'Show Enemy Soft Target Tooltip';
+		desc = L'Show a tooltip for automatically acquired enemy soft targets.';
+	};
+	trgtFriendTooltip = _{Bool(db:GetCVar('SoftTargetTooltipFriend', false));
+		name = L'Show Friendly Soft Target Tooltip';
+		desc = L'Show a tooltip for automatically acquired friendly soft targets.';
+	};
+	trgtHardTooltip = _{Bool(false);
+		name = L'Show Hard Target Tooltip';
+		desc = L'Show your selected target while no hover or interact tooltip is displayed.';
+	};
 	--------------------------------------------------------------------------------------------------------
-	_(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT, BINDING_HEADER_TARGETING);
+	_(L'Reticle', L'Tooltips');
+	--------------------------------------------------------------------------------------------------------
+	mouseShowCenterTooltip = _{Bool(true);
+		name = L'Show Tooltip Under Reticle';
+		desc = L'Show tooltip for the unit under the reticle while the cursor is hidden or centered.';
+		hide = not C_GamePad.SetAllowHoverEventsWithFreeLook or nil;
+	};
+	--------------------------------------------------------------------------------------------------------
+	_(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT, L'Tooltips');
 	--------------------------------------------------------------------------------------------------------
 	trgtShowInteractHint = _{Bool(true);
 		name = 'Show Interact Hint';
@@ -174,6 +190,9 @@ db:Register('Variables', CPAPI.Callable({
 		deps = { trgtShowInteractNameplate = true };
 		advd = true;
 	};
+	--------------------------------------------------------------------------------------------------------
+	_(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT, BINDING_HEADER_TARGETING);
+	--------------------------------------------------------------------------------------------------------
 	trgtEnablePlayerInteract = _{Bool(true);
 		name = 'Enable Player Interact';
 		desc = 'Open unit menu when interacting with other players.';
@@ -278,12 +297,6 @@ db:Register('Variables', CPAPI.Callable({
 		list = 'Visibility';
 		desc = 'Cursor hides when you start moving, if free of obstacles.';
 		note = 'Requires Settings > Hide Cursor on Stick Input set to None.';
-	};
-	mouseShowCenterTooltip = _{Bool(true);
-		name = 'Show Tooltip Under Reticle';
-		list = 'Visibility';
-		desc = 'Show tooltip for the unit under the reticle while the cursor is hidden or centered.';
-		hide = not C_GamePad.SetAllowHoverEventsWithFreeLook or nil;
 	};
 	doubleTapModifier = _{Select('<none>', '<none>', unpack(MODID_SELECT));
 		name = 'Double Tap Modifier';
