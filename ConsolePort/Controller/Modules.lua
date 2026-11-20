@@ -22,7 +22,7 @@ Modules.Registry = {
 		name     = 'Action Bar';
 		desc     = 'Replaces the default action bars with a layout designed for gamepad play.';
 		presets  = {
-			{ id = 'Default';         name = DEFAULT };
+			{ id = 'Default';         name = L('Cluster - %s', L'Round Silver') };
 			{ id = 'CrossbarMinimal'; name = 'Crossbar: Minimal' };
 			{ id = 'CrossbarTriple';  name = 'Crossbar: Triple' };
 		};

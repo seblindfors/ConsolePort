@@ -25,6 +25,30 @@ env.Const.ValidPoints    = CPAPI.Enum(
 	'LEFT',   'TOPLEFT',  'BOTTOMLEFT',
 	'RIGHT',  'TOPRIGHT', 'BOTTOMRIGHT'
 );
+
+local CLUSTER_DESIGN = {
+	Original     = 1;
+	OriginalGold = 2;
+	Hex          = 3;
+	Squared      = 4;
+	Beveled      = 5;
+};
+env.Const.ClusterDesign = CLUSTER_DESIGN;
+
+-- Keep saved design IDs stable when changing the selector order.
+local CLUSTER_DESIGN_ORDER = {
+	[CLUSTER_DESIGN.Original]     = 1;
+	[CLUSTER_DESIGN.Beveled]      = 2;
+	[CLUSTER_DESIGN.OriginalGold] = 3;
+	[CLUSTER_DESIGN.Hex]          = 4;
+	[CLUSTER_DESIGN.Squared]      = 5;
+};
+
+function env:IsGoldClusterDesign()
+	local design = self('clusterDesign');
+	return design == CLUSTER_DESIGN.OriginalGold or design == CLUSTER_DESIGN.Hex or design == CLUSTER_DESIGN.Squared;
+end
+
 env.Const.PageDescription =  {
 	['vehicleui']   = 'Vehicle UI is active.';
 	['possessbar']  = 'Possess bar is visible, such as Mind Control or Eyes of the Beast.';
@@ -258,17 +282,30 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Enable all modifier states for the cluster, including unmapped modifiers.';
 		advd = true;
 	};
-	swipeColor = _{Data.Color(classColor);
-		name = 'Swipe Color';
-		desc = 'Color of the cooldown swipe effect on buttons.';
+	-- A3 is the default alpha byte for black cooldown and GCD shading.
+	clusterSwipeColor = _{Data.Color('a3000000');
+		name = L'Cooldown Swipe Color';
+		desc = L'Color and opacity of regular cooldown and swing timer shading.';
+	};
+	clusterGcdSwipeColor = _{Data.Color('a3000000');
+		name = L'Global Cooldown Swipe Color';
+		desc = L'Color and opacity of the global cooldown shading on cluster buttons.';
 	};
 	borderColor = _{Data.Color(WHITE_FONT_COLOR);
 		name = 'Border Vertex Color';
 		desc = 'Color of the vertices on the border of buttons.';
 	};
-	clusterBorderStyle = _{Data.Select('Normal', 'Normal', 'Large', 'Beveled');
-		name = 'Main Button Border Style';
-		desc = 'Style of the border around main buttons.';
+	clusterDesign = _{
+		Data.Map(CLUSTER_DESIGN.Original, {
+			[CLUSTER_DESIGN.Original]     = L'Round Silver';
+			[CLUSTER_DESIGN.Beveled]      = L'Beveled Silver';
+			[CLUSTER_DESIGN.OriginalGold] = L'Round Gold';
+			[CLUSTER_DESIGN.Hex]          = L'Hex Gold';
+			[CLUSTER_DESIGN.Squared]      = L'Squared Gold';
+		});
+		name = L'Cluster Design';
+		desc = L'Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.';
+		optionSort = function(_, a, b) return CLUSTER_DESIGN_ORDER[a] < CLUSTER_DESIGN_ORDER[b] end;
 	};
 	---------------------------------------------------------------
 	_('Toolbar', ACTIONBARS_LABEL);
@@ -341,7 +378,9 @@ local M1, M2, M3 = 'M1', 'M2', 'M3';
 local NOMOD,  SHIFT,    CTRL,    ALT =
       '',    'SHIFT-', 'CTRL-', 'ALT-';
 ---------------------------------------------------------------
+-- Reference sizes in UI units: main button, flyout button, and its larger border art.
 local SIZE_L,  SIZE_S,  SIZE_T  = 64, 46, 58;
+-- Side and middle wedge anchor offsets, plus the diagonal corner adjustment.
 local OFS_MOD, OFS_MID, OFS_FIX = 38, 21, 4;
 -----------------------------------------------------------------------------------------------------------------------
 local HK_ICONS_SIZE_L, HK_ICONS_SIZE_S = 32, 20;
@@ -352,7 +391,6 @@ env.Const.Cluster = {
 	Types      = CPAPI.Enum('Cluster', 'ClusterHandle', 'ClusterButton', 'ClusterShadow');
 	ModNames   = CPAPI.Enum(NOMOD, SHIFT, CTRL, CTRL..SHIFT, ALT, ALT..SHIFT, ALT..CTRL, ALT..CTRL..SHIFT);
 	SnapPixels = 4;
-	PxSize     = SIZE_L;
 	Layout = {
 		[NOMOD]      = { ----------------------------------------------------------------------------------------------------------
 			Prefix   = nil;
@@ -403,99 +441,33 @@ env.Const.Cluster = {
 			-----------------------------------------------------------------------------------------------------------------------
 		};
 	};
-	AdjustTextures = {
-		[NOMOD] = {
-			Border                =   env.GetAsset([[Textures\Button\Hilite]]);
-			CheckedTexture        =   env.GetAsset([[Textures\Button\Hilite]]);
-			Flash                 =   env.GetAsset([[Textures\Button\Hilite2x]]);
-			NewActionTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
-			SpellHighlightTexture =   env.GetAsset([[Textures\Button\Hilite2x.png]]);
-		};
-		[SHIFT] = {
-			Border                =   env.GetAsset([[Textures\Button\M1]]);
-			NormalTexture         =   env.GetAsset([[Textures\Button\M1]]);
-			PushedTexture         =   env.GetAsset([[Textures\Button\M1]]);
-			HighlightTexture      =   env.GetAsset([[Textures\Button\M1Hilite]]);
-			CheckedTexture        =   env.GetAsset([[Textures\Button\M1Hilite]]);
-			NewActionTexture      =   env.GetAsset([[Textures\Button\M1Hilite]]);
-			SpellHighlightTexture =   env.GetAsset([[Textures\Button\M1Hilite]]);
-		};
-		[CTRL] = {
-			Border                =   env.GetAsset([[Textures\Button\M1]]);
-			NormalTexture         =   env.GetAsset([[Textures\Button\M1]]);
-			PushedTexture         =   env.GetAsset([[Textures\Button\M1]]);
-			HighlightTexture      =   env.GetAsset([[Textures\Button\M1Hilite]]);
-			CheckedTexture        =   env.GetAsset([[Textures\Button\M1Hilite]]);
-			NewActionTexture      =   env.GetAsset([[Textures\Button\M1Hilite]]);
-			SpellHighlightTexture =   env.GetAsset([[Textures\Button\M1Hilite]]);
-		};
-		[CTRL..SHIFT] = {
-			Border                =   env.GetAsset([[Textures\Button\M3]]);
-			NormalTexture         =   env.GetAsset([[Textures\Button\M3]]);
-			PushedTexture         =   env.GetAsset([[Textures\Button\M3]]);
-			HighlightTexture      =   env.GetAsset([[Textures\Button\M3Hilite]]);
-			CheckedTexture        =   env.GetAsset([[Textures\Button\M3Hilite]]);
-			NewActionTexture      =   env.GetAsset([[Textures\Button\M3Hilite]]);
-			SpellHighlightTexture =   env.GetAsset([[Textures\Button\M3Hilite]]);
-		};
-	};
 	Assets = {
-		CooldownBling             =   env.GetAsset([[Textures\Cooldown\Bling]]);
-		CooldownEdge              =   env.GetAsset([[Textures\Cooldown\Edge2x3.png]]);
 		MainMask                  = CPAPI.GetAsset([[Textures\Button\Mask]]);
-		MainSwipe                 =   env.GetAsset([[Textures\Cooldown\Swipe]]);
 		EmptyIcon                 = CPAPI.GetAsset([[Textures\Button\EmptyIcon]]);
 	};
-	BorderStyle = {
-		Normal = {
-			NormalTexture         =   env.GetAsset([[Textures\Button\Normal]]);
-			PushedTexture         =   env.GetAsset([[Textures\Button\Hilite]]);
-			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
+	-- Muted brown shows through empty gold slots on the cluster and Pet Ring.
+	GoldEmptySlotColor = CreateColor(0.26, 0.23, 0.20, 0.76);
+	-- Fractions of the main button size. Middle is the center flyout distance;
+	-- Outward and Side locate each diagonal flyout along and across the flyout direction.
+	GoldShapes = {
+		[CLUSTER_DESIGN.Hex] = {
+			Asset           = 'Hex';
+			HorizontalAsset = 'HexSideways';
+			Size            = 42 / 64;
+			Middle          = 49 / 64;
+			Outward         = 35 / 64;
+			Side            = 37 / 64;
 		};
-		Large = {
-			NormalTexture         =   env.GetAsset([[Textures\Button\Normal2x.png]]);
-			PushedTexture         =   env.GetAsset([[Textures\Button\Normal2x.png]]);
-			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite2x.png]]);
-		};
-		Beveled = {
-			NormalTexture         = CPAPI.GetAsset([[Textures\Button\Normal]]);
-			PushedTexture         = CPAPI.GetAsset([[Textures\Button\Hilite]]);
-			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
-		};
-	};
-	LABConfig = {
-		clickOnDown     = true;
-		flyoutDirection = 'RIGHT';
-		showGrid        = true;
-		tooltip         = 'enabled';
-		colors = {
-			mana =  { 0.5, 0.5, 1.0 };
-			range = { 0.8, 0.1, 0.1 };
-		};
-		hideElements = {
-			equipped = false;
-			hotkey   = true;
-			macro    = false;
+		[CLUSTER_DESIGN.Squared] = {
+			Asset        = 'Squared';
+			Size         = 34 / 62;
+			Middle       = 47 / 64;
+			Outward      = 39 / 64;
+			Side         = 39 / 64;
+			MainHitInset = 5.25 / 64; -- Transparent padding around the 53.5-unit rim.
 		};
 	};
 };
-
-env.Const.Cluster.Masks, env.Const.Cluster.Swipes = (function(layout, directions)
-	-- Generated masks and swipes for each prefix, e.g.:
-	-- env.Const.Cluster.Masks.M1.UP = 'MASKS\M1_UP'
-	local masks, swipes = {}, {};
-	for _, data in pairs(layout) do
-		local prefix = data.Prefix;
-		if prefix then
-			masks[prefix], swipes[prefix] = {}, {};
-			for direction in pairs(directions) do
-				masks  [prefix][direction] = env.GetAsset([[Textures\Masks\%s_%s]], prefix, direction)
-				swipes [prefix][direction] = env.GetAsset([[Textures\Swipes\%s_%s]], prefix, direction)
-			end
-		end
-	end
-	return masks, swipes;
-end)( env.Const.Cluster.Layout, env.Const.Cluster.Directions )
 
 env.Const.Cluster.ModDriver = (function(driver, ...)
 	for _, modifier in ipairs({...}) do

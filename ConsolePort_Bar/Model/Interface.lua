@@ -382,7 +382,7 @@ Interface.Petring = Data.Interface {
 		fade = _{
 			name = 'Fade Buttons';
 			desc = 'Fade out the pet ring when not moused over.';
-			Data.Bool(true);
+			Data.Bool(false);
 		};
 		status = _{
 			name = 'Status Bar';

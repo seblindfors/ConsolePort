@@ -67,10 +67,18 @@ local function ValidatePresets(presets)
 	return true;
 end
 
+local function sortPresetsByName(presets, a, b)
+	local nameA, nameB = presets[a].name, presets[b].name;
+	if nameA == nameB then
+		return a < b;
+	end
+	return nameA < nameB;
+end
+
 local function GetPresets()
 	local presets = {};
-	local function LoadPresets(tbl, isUserPreset)
-		for id, preset in db.table.spairs(tbl) do
+	local function LoadPresets(tbl, isUserPreset, sort)
+		for id, preset in db.table.spairs(tbl, sort) do
 			tinsert(presets, {
 				id       = id;
 				preset   = preset;
@@ -78,8 +86,9 @@ local function GetPresets()
 			})
 		end
 	end
+	-- Saved presets are listed first by key, then built-ins by display name with ID as the tiebreaker.
 	LoadPresets(env.Presets, true)
-	LoadPresets(CPAPI.Index(env.Presets), false)
+	LoadPresets(CPAPI.Index(env.Presets), false, sortPresetsByName)
 	return presets;
 end
 
