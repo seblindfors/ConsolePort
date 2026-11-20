@@ -222,9 +222,9 @@ end
 -- @return expiry : time at which the source stops being eligible, if any
 local Aim      = { unit = 'target' };
 local Interact = { unit = 'anyinteract' };
-local Reticle  = { unit = 'mouseover' };
+local Reticle  = { unit = 'mouseover';  option = 'mouseShowCenterTooltip' };
 local Hard     = { unit = 'target' };
-local Aimed    = { unit = 'target' };
+local Aimed    = { unit = 'target';     option = 'trgtAimTooltip'    };
 local Enemy    = { unit = 'softenemy';  option = 'trgtEnemyTooltip'  };
 local Friend   = { unit = 'softfriend'; option = 'trgtFriendTooltip' };
 local Sources  = { Aim, Interact, Reticle, Hard, Aimed, Enemy, Friend };
@@ -233,25 +233,7 @@ function Aim:Poll()
 	return self.held and db('trgtAimTooltip') and GetUnitGUID(self.unit);
 end
 
-function Aimed:Poll(now)
-	local guid = self.guid;
-	if not ( guid and db('trgtAimTooltip') and GetUnitGUID(self.unit) == guid ) then return end;
-	local expiry = GetExpiry(self.since)
-	if ( expiry > now ) then
-		return guid, expiry;
-	end
-end
-
-function Reticle:Poll()
-	local guid = db.Mouse.mouseOverGUID;
-	return guid and GetUnitGUID(self.unit) == guid and guid;
-end
-
-function Hard:Poll()
-	return db('trgtHardTooltip') and GetUnitGUID(self.unit);
-end
-
-local function PollSoftTarget(self, now)
+local function PollTimed(self, now)
 	local guid = self.guid;
 	if not ( guid and db(self.option) and GetUnitGUID(self.unit) == guid ) then return end;
 	local expiry = GetExpiry(self.since)
@@ -260,7 +242,17 @@ local function PollSoftTarget(self, now)
 	end
 end
 
-Enemy.Poll, Friend.Poll = PollSoftTarget, PollSoftTarget;
+Aimed.Poll, Enemy.Poll, Friend.Poll = PollTimed, PollTimed, PollTimed;
+
+function Reticle:Poll(now)
+	local guid = db.Mouse.mouseOverGUID;
+	Acquire(self, guid and GetUnitGUID(self.unit) == guid and guid or nil)
+	return PollTimed(self, now)
+end
+
+function Hard:Poll()
+	return db('trgtHardTooltip') and GetUnitGUID(self.unit);
+end
 
 for _, source in ipairs({ Aim, Reticle, Hard, Aimed, Enemy, Friend }) do
 	function source:Show(guid)
