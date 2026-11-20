@@ -61,7 +61,7 @@ Elements.Subcat = Subcat;
 
 function Subcat:Init(elementData)
 	local data = elementData:GetData()
-	self.Text:SetText(data.text)
+	self.Text:SetText(L(data.text))
 	self:SetChecked(data.checked)
 end
 

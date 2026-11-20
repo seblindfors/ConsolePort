@@ -395,7 +395,13 @@ function FlyoutButton:SetBindings(primary, allBindings)
 			self:RefreshBinding(modifier, emulation and allBindings[NOMOD] or primary)
 		end
 	end
-	self:RefreshBinding(self.mod, allBindings[NOMOD])
+	-- A modifier with no binding of its own borrows the icon of the
+	-- unmodified button, unless strict bindings hold the slot empty.
+	local fallback = allBindings[NOMOD];
+	if db('layersStrictModifiers') then
+		fallback = allBindings[self.mod];
+	end
+	self:RefreshBinding(self.mod, fallback)
 	self:RefreshBinding(ALT..self.mod, allBindings[ALT..self.mod])
 	self:UpdateVisibility(self.VisibilityState.NoBinding, false)
 end
@@ -526,6 +532,7 @@ function CPClusterBar:OnLoad()
 
 	env:RegisterSafeCallback('OnNewBindings', self.OnNewBindings, self)
 	env:RegisterSafeCallback('Settings/clusterFullStateModifier', self.OnDriverChanged, self)
+	db:RegisterSafeCallback('Settings/layersStrictModifiers', self.OnStrictChanged, self)
 	db:RegisterSafeCallback('OnModifierChanged', self.OnDriverChanged, self)
 
 	self:OnDriverChanged()
@@ -533,6 +540,16 @@ function CPClusterBar:OnLoad()
 		local newstate = ...;
 		self:ChildUpdate('actionpage', newstate)
 	]])
+end
+
+-- Strict bindings only change what an empty flyout slot shows, not
+-- which bindings exist, so the snapshot is redrawn as it is.
+function CPClusterBar:OnStrictChanged()
+	if not env:IsActive(self) then return end;
+	local bindings = env.Manager:GetBindings()
+	if bindings then
+		self:OnNewBindings(bindings)
+	end
 end
 
 function CPClusterBar:SetProps(props)
