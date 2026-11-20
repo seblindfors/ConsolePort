@@ -110,7 +110,9 @@ do -- Data handler
 		env.db:Register('BarLayoutKey', activeLayout, true)
 
 		if not _G[activeSettings] then _G[activeSettings] = {} end;
-		local settings = CPAPI.Proxy(_G[activeSettings], self.Defaults);
+		local settings = _G[activeSettings];
+		env.UpgradeClusterSettings(settings)
+		settings = CPAPI.Proxy(settings, self.Defaults);
 		env:Register('Settings', settings, true)
 		env:Default(settings)
 		env:Save('Settings', activeSettings)
@@ -120,12 +122,7 @@ do -- Data handler
 		env:Register('Presets', presets, true)
 		env:Save('Presets', VAR_PRESETS)
 
-		if not _G[activeLayout] then
-			local preset = env:GetDefaultLayout();
-			env:ApplyPresetOptions(preset);
-			_G[activeLayout] = preset;
-		end;
-		local layout = env.BuildLayout(_G[activeLayout]);
+		local layout = env.BuildLayout(_G[activeLayout] or self:GetDefaultLayout(), true);
 		env:Register('Layout', layout, true)
 		env:Save('Layout', activeLayout)
 	end
@@ -342,6 +339,11 @@ function env:GetColorGradient(r, g, b, a, i, invert)
 	--[[ maxColor    ]] invert and minColor or maxColor;
 end
 
+-- Smoothstep eases the Pet Ring and cluster effects to rest at both ends of a transition.
+function env.SmoothStep(t)
+	return t * t * (3 - 2 * t);
+end
+
 function env.GetAsset(asset, arg1, ...)
 	return [[Interface\AddOns\ConsolePort_Bar\Assets\]]
 	..(arg1 and asset:format(arg1, ...) or asset);
@@ -501,6 +503,7 @@ ConsolePort:AddSlashCommand('layout', {
 function env:ApplyPresetOptions(preset)
 	-- Apply the options a preset was saved with, then strip them so the layout doesn't carry them.
 	if preset.settings then
+		env.UpgradeClusterSettings(preset.settings)
 		for path, data in pairs(preset.settings) do
 			self('Settings/'..path, data)
 		end
@@ -517,8 +520,7 @@ end
 function env:ApplyPreset(preset)
 	preset = CopyTable(preset)
 	self:ReleaseAll()
-	self:ApplyPresetOptions(preset)
-	self('Layout', self.BuildLayout(preset))
+	self('Layout', self.BuildLayout(preset, true))
 	self:TriggerEvent('OnLayoutChanged', true)
 end
 

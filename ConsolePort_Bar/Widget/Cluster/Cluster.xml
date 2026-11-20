@@ -1,4 +1,7 @@
 <Ui>
+	<Script file="Casting.lua"/>
+	<Script file="Cooldowns.lua"/>
+	<Script file="Buttons.lua"/>
 	<Script file="Cluster.lua"/>
 	<Script file="Skins.lua"/>
 

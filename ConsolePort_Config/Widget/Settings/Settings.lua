@@ -893,7 +893,7 @@ function Select:OnValueChanged(value)
 	local opts = self.controller:GetOptions()
 	local inOrder, selected = {};
 	value = tonumber(value) or value;
-	for opt, val in db.table.spairs(opts) do
+	for opt, val in db.table.spairs(opts, self.metaData.optionSort) do
 		inOrder[#inOrder + 1] = {
 			name  = env.L(type(val) == 'string' and val or opt);
 			value = opt;

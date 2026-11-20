@@ -1,7 +1,7 @@
 <Ui>
 	<Script file="Petring.lua"/>
 
-	<CheckButton name="CPPetRingButton" virtual="true" mixin="CPPetRingButton" frameLevel="4" alpha="0"
+	<CheckButton name="CPPetRingButton" virtual="true" mixin="CPPetRingButton" frameLevel="6" alpha="0"
 		registerForClicks="LeftButtonUp, RightButtonUp, MiddleButtonDown, MiddleButtonUp"
 		inherits="SecureActionButtonTemplate, PetActionButtonTemplate">
 		<Size x="40" y="40"/>
@@ -58,12 +58,13 @@
 		<Scripts>
 			<OnLoad inherit="append" method="OnLoad"/>
 			<OnShow method="OnShow"/>
+			<OnHide inherit="append" method="OnHide"/>
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/>
 			<OnEvent method="OnEvent"/>
 		</Scripts>
 		<Frames>
-			<Frame parentKey="Ring" frameLevel="3" alpha="0">
+			<Frame parentKey="Ring" frameLevel="5">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="-48" y="48"/>
 					<Anchor point="BOTTOMRIGHT" x="48" y="-48"/>
@@ -71,11 +72,7 @@
 				<Layers>
 					<Layer level="BACKGROUND">
 						<MaskTexture parentKey="Mask" setAllPoints="true"
-							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\PetRingMask"/>
-					</Layer>
-					<Layer level="OVERLAY">
-						<Texture parentKey="Border" setAllPoints="true" rotation="18"
-							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\PetRing"/>
+							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\PetRing\IconMask.png"/>
 					</Layer>
 				</Layers>
 			</Frame>

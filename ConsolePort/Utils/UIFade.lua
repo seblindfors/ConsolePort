@@ -75,6 +75,10 @@ function FADE:Update(elapsed)
 	end
 end
 
+db.Alpha.CancelFade = function(frame)
+	FADE:Remove(frame)
+end;
+
 -- Convenience function for simple fade in
 db.Alpha.FadeIn = function (frame, timeToFade, startAlpha, endAlpha, info)
 	if not frame then return end

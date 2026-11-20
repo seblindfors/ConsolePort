@@ -1,8 +1,16 @@
 local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
-local NOMOD, _, _, _, ALT = env.Const.Cluster.ModNames();
+local NOMOD = env.Const.Cluster.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_SHADOW = env.Const.Cluster.Types();
-local ClusterLayout = env.Const.Cluster.Layout;
+local CLUSTER_LAYOUT = env.Const.Cluster.Layout;
+local GOLD_SHAPES    = env.Const.Cluster.GoldShapes;
+-- Outward axis and the side occupied by Shift in the original cluster.
+local FLYOUT_AXES = {
+	UP    = { 0;  1; -1;};
+	RIGHT = { 1;  0;  1;};
+	DOWN  = { 0; -1;  1;};
+	LEFT  = {-1;  0;  1;};
+};
 ---------------------------------------------------------------
 local Cluster = CreateFromMixins(env.DynamicWidgetMixin, env.MovableWidgetMixin);
 ---------------------------------------------------------------
@@ -10,16 +18,17 @@ local Cluster = CreateFromMixins(env.DynamicWidgetMixin, env.MovableWidgetMixin)
 function Cluster:OnLoad(buttonID, parent)
 	self.buttonID = buttonID;
 	self.header   = parent;
+	-- Keep the saved position and mover on the configured footprint.
+	self.anchor = CreateFrame('Frame', nil, parent);
+	self.anchor:SetFrameLevel(self:GetMainButton():GetFrameLevel())
 	self:OnVariableChanged()
 	env:RegisterCallbacks(self.OnVariableChanged, self,
-		'Settings/swipeColor',
 		'Settings/borderColor',
 		'Settings/disableDND'
 	);
 end
 
 function Cluster:OnVariableChanged()
-	self:SetSwipeColor(env:GetColor('swipeColor'))
 	self:SetBorderColor(env:GetColor('borderColor'))
 	for _, button in self:Enumerate() do
 		button:DisableDragNDrop(env('disableDND'))
@@ -31,58 +40,91 @@ function Cluster:Enumerate()
 end
 
 function Cluster:Show()
+	self.anchor:Show()
 	for _, button in self:Enumerate() do
+		-- Preset switches release cached buttons from the widget registry.
+		env:Acquire(CLUSTER_BUTTON, button:GetName())
 		button:ToggleShown(true)
 	end
 end
 
+local function hideClusterButton(button)
+	button:ToggleShown(false)
+end
+
 function Cluster:Hide()
+	self.anchor:Hide()
 	for _, button in self:Enumerate() do
-		button:ToggleShown(false)
+		env:Release(button, hideClusterButton)
 	end
 end
 
 function Cluster:SetPoint(...)
-	local main = self:GetMainButton();
-	local p, _, _, x, y = ...;
-	main:ClearAllPoints()
-	if p and x and y then
-		return main:SetPoint(...)
+	local point, _, _, x, y = ...;
+	self.anchor:ClearAllPoints()
+	if ( point and x and y ) then
+		-- Preset changes clear anchors on cached buttons as well as the handle.
+		local main = self:GetMainButton();
+		main:ClearAllPoints()
+		main:SetPoint('CENTER', self.anchor, 'CENTER')
+		return self.anchor:SetPoint(...)
 	end
 end
 
 function Cluster:ClearAllPoints()
-	local main = self:GetMainButton();
-	main:ClearAllPoints()
+	self.anchor:ClearAllPoints()
+end
+
+local function layoutFlyout(button, main, size, shape)
+	local data = button.layoutData;
+	local axes = shape and FLYOUT_AXES[button.direction];
+	if axes then
+		-- Convert outward and sideways offsets to the cluster's screen direction.
+		local x, y, shiftSide = unpack(axes);
+		local isMiddle       = data.Prefix == 'M3';
+		local outward        = isMiddle and shape.Middle or shape.Outward;
+		local side           = isMiddle and 0 or shape.Side * (data.Prefix == 'M1' and shiftSide or -shiftSide);
+		button:ClearAllPoints()
+		button:SetPoint('CENTER', main, 'CENTER', size * (x * outward + y * side), size * (y * outward - x * side))
+		return size * shape.Size;
+	end
+	local anchor = data[button.direction];
+	if anchor then
+		local point, relativePoint, x, y = unpack(anchor);
+		local offset = data.Offset or 1;
+		button:ClearAllPoints()
+		button:SetPoint(point, main, relativePoint, x * offset, y * offset)
+	end
+	return size * data.Size;
 end
 
 function Cluster:SetSize(size)
-	local main = self:GetMainButton();
-	for _, button in self:Enumerate() do
-		local layoutData = button.layoutData;
-		local objSize = size * (layoutData.Size or 1);
-		local relativePointData = layoutData[button.direction];
-		if relativePointData then
-			local p, rel, x, y = unpack(relativePointData);
-			local offset = layoutData.Offset or 1;
-			button:ClearAllPoints()
-			button:SetPoint(p, main, rel, x * offset, y * offset)
-		end
-		button:SetSize(objSize, objSize)
-		button:UpdateLocal(true)
+	local main  = self:GetMainButton();
+	local shape = GOLD_SHAPES[env('clusterDesign')];
+	self.anchor:SetSize(size, size)
+	if ( shape and shape.MainHitInset ) or ( main.clusterShape and main.clusterShape.MainHitInset ) then
+		local inset = size * (shape and shape.MainHitInset or 0);
+		main:SetHitRectInsets(inset, inset, inset, inset)
 	end
-end
-
-function Cluster:SetSwipeColor(color)
-	local main = self:GetMainButton();
-	main.cooldown:SetSwipeColor(color:GetRGBA())
-	main.swipeColor = color;
+	if ( main.Hotkey1 and (shape or main.clusterShape) ) then
+		main.Hotkey1:ClearAllPoints()
+		if shape then
+			main.Hotkey1:SetPoint('CENTER', 0, size * 0.30)
+		else
+			main.Hotkey1:SetPoint(unpack(main.layoutData.Hotkey[1][3]))
+		end
+	end
+	for modifier, button in self:Enumerate() do
+		local buttonSize = modifier == NOMOD and size or layoutFlyout(button, main, size, shape);
+		button.clusterShape = shape;
+		button:SetSize(buttonSize, buttonSize)
+		button:UpdateClusterSkin()
+	end
 end
 
 function Cluster:SetBorderColor(color)
 	for _, button in self:Enumerate() do
-		button.NormalTexture:SetVertexColor(color:GetRGBA())
-		button.borderColor = color;
+		button:SetBorderColor(color)
 	end
 end
 
@@ -96,6 +138,7 @@ end
 
 function Cluster:SetParent(parent)
 	self.header = parent;
+	self.anchor:SetParent(parent)
 	for _, button in self:Enumerate() do
 		button:NewHeader(parent) -- TODO: do we need to unwrap the LAB button scripts?
 	end
@@ -103,12 +146,12 @@ end
 
 function Cluster:SetDirection(direction)
 	for modifier, button in self:Enumerate() do
+		button.clusterDirection = direction;
 		if modifier == NOMOD then
 			button:SetAttribute('flyoutDirection', 'DOWN')
 		else
 			button:SetAttribute('flyoutDirection', direction)
 			button.direction = direction;
-			button:UpdateLocal(true)
 		end
 	end
 end
@@ -133,7 +176,7 @@ function Cluster:OnPropsUpdated()
 	self:Show()
 	self:SetPoint(pos.point, self:GetParent(), pos.relPoint, pos.x, pos.y)
 	self:SetDirection(props.dir)
-	self:SetSize(props.size) -- TODO: flyout size is not consistent
+	self:SetSize(props.size)
 	self:ToggleFlyouts(not not props.showFlyouts)
 
 	local bindings = env.Manager:GetBindings(self.buttonID);
@@ -148,23 +191,35 @@ function Cluster:SetBindings(bindings)
 	end
 end
 
-Cluster.GetMoveTarget = Cluster.GetMainButton;
-Cluster.GetSnapSize   = CPAPI.Static(env.Const.Cluster.SnapPixels);
+function Cluster:GetMoveTarget()
+	return self.anchor;
+end
+
+Cluster.GetSnapSize = CPAPI.Static(env.Const.Cluster.SnapPixels);
 
 ---------------------------------------------------------------
 local Shadow = {};
+local SHAPED_SHADOW_Y_OFFSET = 3;
 ---------------------------------------------------------------
 
 function Shadow:OnLoad(owner, relativeSize, alpha, texture, point)
 	local update = GenerateClosure(self.Update, self)
-	self.owner = owner;
-	self.point = point;
+	self.owner        = owner;
+	self.point        = point;
 	self.relativeSize = relativeSize;
+	self.baseTexture  = texture;
 	self:SetAlpha(alpha)
 	self:SetTexture(texture)
 	owner:HookScript('OnShow', update)
 	owner:HookScript('OnHide', update)
 	owner:HookScript('OnSizeChanged', update)
+end
+
+function Shadow:SetShapeTexture(texture)
+	if ( self.shapeTexture == texture ) then return end;
+	self.shapeTexture = texture;
+	self:SetTexture(texture or self.baseTexture)
+	self:Update()
 end
 
 function Shadow:Update()
@@ -173,348 +228,7 @@ function Shadow:Update()
 	self:SetShown(self.owner:IsShown())
 	self:SetParent(self.owner:GetParent())
 	self:SetSize(size, size)
-	self:SetPoint(pt, self.owner, pt, x, y)
-end
-
----------------------------------------------------------------
-local FlyoutCooldown = CreateFromMixins(env.ProxyCooldown);
----------------------------------------------------------------
-
-function FlyoutCooldown:OnLoad()
-	env.ProxyCooldown.OnLoad(self)
-	self.text = self:GetRegions()
-	-- Flyout cluster buttons should have smaller CD font
-	local file, height, flags = self.text:GetFont()
-	self.text:SetFont(file, height * 0.75, flags)
-	if ( CPAPI.IsModernVersion and self.SetCooldownFromDurationObject ) then
-		hooksecurefunc(self, 'SetCooldownFromDurationObject', function(cooldown, duration)
-			cooldown:GetParent():OnDurationCooldownSet(cooldown, duration)
-		end)
-	end
-end
-
-function FlyoutCooldown:SetDrawBling(enabled, force)
-	if force then return CPAPI.Index(self).SetDrawBling(self, enabled) end
-end
-
-
----------------------------------------------------------------
-local FlyoutArrow = {};
----------------------------------------------------------------
-
-do -- Flyout arrow owner check, report to parent
-	local function CheckSpellFlyoutOwnership(self)
-		local native, custom = SpellFlyout, env.LAB:GetSpellFlyoutFrame();
-		return (native and native:IsShown() and native:GetParent() == self)
-			or (custom and custom:IsShown() and custom:GetParent() == self)
-	end
-
-	function FlyoutArrow:Show()
-		local parent = self:GetParent()
-		parent:OnSpellFlyout(CheckSpellFlyoutOwnership(parent))
-		return CPAPI.Index(self).Show(self)
-	end
-
-	function FlyoutArrow:Hide()
-		self:GetParent():OnSpellFlyout(false)
-		return CPAPI.Index(self).Hide(self)
-	end
-end
-
----------------------------------------------------------------
-local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, alpha = 0, shown = 0};
-local FLYOUT_COOLDOWN_THRESHOLD = 2;
----------------------------------------------------------------
-do  -- Alpha update closures
-	FlyoutButton.AlphaState = CPAPI.CreateFlagClosures({
-		AlwaysShow    = 0x01;
-		OnCooldown    = 0x02;
-		OverlayActive = 0x04;
-		MouseOver     = 0x08;
-		ShowGrid      = 0x10;
-		Flyout        = 0x20;
-		ConfigShown   = 0x40;
-		LockHighlight = 0x80;
-	});
-
-	FlyoutButton.AlphaEvents = {
-		ACTIONBAR_SHOWGRID = { FlyoutButton.AlphaState.ShowGrid, true  };
-		ACTIONBAR_HIDEGRID = { FlyoutButton.AlphaState.ShowGrid, false };
-	};
-
-	FlyoutButton.VisibilityState = CPAPI.CreateFlagClosures({
-		NoBinding     = 0x01;
-		Disabled	  = 0x02;
-	});
-end
-
-function FlyoutButton:OnShowAll(showAll)
-	self:UpdateAlpha(self.AlphaState.AlwaysShow, showAll)
-end
-
-function FlyoutButton:OnOverlayGlow(state)
-	self:UpdateAlpha(self.AlphaState.OverlayActive, state)
-end
-
-function FlyoutButton:OnMouseMotionFocus()
-	self:UpdateAlpha(self.AlphaState.MouseOver, true)
-	self:SetIgnoreParentAlpha(true)
-end
-
-function FlyoutButton:OnMouseMotionClear()
-	self:UpdateAlpha(self.AlphaState.MouseOver, false)
-	self:SetIgnoreParentAlpha(false)
-end
-
-function FlyoutButton:OnSpellFlyout(enabled)
-	self:UpdateAlpha(self.AlphaState.Flyout, enabled)
-end
-
-function FlyoutButton:OnConfigShown(shown)
-	self:UpdateAlpha(self.AlphaState.ConfigShown, shown)
-end
-
-function FlyoutButton:LockHighlight()
-	self:UpdateAlpha(self.AlphaState.LockHighlight, true)
-	CPAPI.Index(self).LockHighlight(self)
-end
-
-function FlyoutButton:UnlockHighlight()
-	self:UpdateAlpha(self.AlphaState.LockHighlight, false)
-	CPAPI.Index(self).UnlockHighlight(self)
-end
-
-function FlyoutButton:OnEnabledChanged(enabled)
-	self:UpdateVisibility(self.VisibilityState.Disabled, not enabled)
-end
-
-function FlyoutButton:OnAlphaEvent(event)
-	local eventClosure = self.AlphaEvents[event];
-	if eventClosure then
-		self:UpdateAlpha(unpack(eventClosure))
-	end
-end
-
-function FlyoutButton:OnLoad()
-	env:RegisterCallback('Settings/clusterShowAll', self.OnShowAll, self)
-	env:RegisterCallback('Settings/clusterShowFlyoutIcons', self.OnShowFlyoutIcons, self)
-	env:RegisterCallback('OnLoadoutConfigShown', self.OnConfigShown, self)
-
-	self:OnShowAll(env('clusterShowAll'))
-	self:OnShowFlyoutIcons(env('clusterShowFlyoutIcons'))
-
-	Mixin(self.cooldown, FlyoutCooldown):OnLoad()
-	local flyoutArrow = self.FlyoutArrowContainer or self.FlyoutArrow or self.Arrow;
-	if flyoutArrow then
-		Mixin(flyoutArrow, FlyoutArrow)
-	end
-
-	self:HookScript('OnEnter', self.OnMouseMotionFocus)
-	self:HookScript('OnLeave', self.OnMouseMotionClear)
-	self:HookScript('OnEvent', self.OnAlphaEvent)
-	for event in pairs(self.AlphaEvents) do
-		self:RegisterEvent(event)
-	end
-end
-
-function FlyoutButton:OnCooldownSet(cooldown, _, duration)
-	local onCooldown = (cooldown and duration and duration > 0);
-	local fadeInForCD = onCooldown and duration > FLYOUT_COOLDOWN_THRESHOLD;
-	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
-	if hotkey1 then hotkey1:SetShown(not onCooldown) end;
-	if hotkey2 then hotkey2:SetShown(not onCooldown) end;
-	self:UpdateAlpha(self.AlphaState.OnCooldown, fadeInForCD)
-end
-
-local function cancelCooldownReveal(button)
-	if button.cooldownRevealTimer then
-		button.cooldownRevealTimer:Cancel()
-		button.cooldownRevealTimer = nil;
-	end
-end
-
-local function setCooldownReveal(button, show)
-	local flag = button.AlphaState.OnCooldown;
-	if flag(button.alpha, show) ~= button.alpha then
-		button:UpdateAlpha(flag, show)
-	end
-end
-
-function FlyoutButton:OnDurationCooldownSet(cooldown, duration)
-	if not duration:HasSecretValues() then
-		cancelCooldownReveal(self)
-		return setCooldownReveal(self, duration:GetTotalDuration() > FLYOUT_COOLDOWN_THRESHOLD);
-	end
-	-- Wait out the global cooldown when the duration cannot be compared in Lua.
-	if not self.cooldownRevealTimer then
-		self.cooldownRevealTimer = C_Timer.NewTimer(FLYOUT_COOLDOWN_THRESHOLD, function()
-			if cooldown:IsShown() then setCooldownReveal(self, true) end;
-		end);
-	end
-end
-
-function FlyoutButton:OnCooldownClear()
-	cancelCooldownReveal(self)
-	self:ToggleHotkeys(self.showFlyoutIcons)
-	self:UpdateAlpha(self.AlphaState.OnCooldown, false)
-end
-
-function FlyoutButton:OnShowFlyoutIcons(enabled)
-	self.showFlyoutIcons = enabled;
-	self:ToggleHotkeys(enabled)
-end
-
-function FlyoutButton:SetAlpha(alpha, force)
-	if force then return CPAPI.Index(self).SetAlpha(self, alpha) end
-end
-
-function FlyoutButton:UpdateAlpha(closure, state)
-	self.alpha = closure(self.alpha, state);
-	local fadeOut = self.alpha == 0;
-	if fadeOut then
-		self:FadeOut(0.25, self:GetAlpha())
-	else
-		self:FadeIn(0.25, self:GetAlpha())
-	end
-end
-
-function FlyoutButton:UpdateVisibility(closure, state)
-	self.shown = closure(self.shown, state);
-	self:ToggleShown(self.shown == 0)
-end
-
-function FlyoutButton:SetBindings(primary, allBindings)
-	local emulation = db.Gamepad.Index.Modifier.Owner[self.id];
-	if emulation and env.IsModSubset(emulation, self.mod) then
-		return self:UpdateVisibility(self.VisibilityState.NoBinding, true)
-	end
-	for modifier in pairs(allBindings) do
-		if not env.IsModSubset(self.mod, modifier) then
-			self:RefreshBinding(modifier, primary)
-		else
-			self:RefreshBinding(modifier, emulation and allBindings[NOMOD] or primary)
-		end
-	end
-	self:RefreshBinding(self.mod, allBindings[NOMOD])
-	self:RefreshBinding(ALT..self.mod, allBindings[ALT..self.mod])
-	self:UpdateVisibility(self.VisibilityState.NoBinding, false)
-end
-
-function FlyoutButton:GetEffectiveCombination()
-	return self.mod, self.id;
-end
-
----------------------------------------------------------------
-local MainButton = { OnCooldownClear = nop };
----------------------------------------------------------------
-
-function MainButton:OnLoad()
-	env:RegisterCallback('Settings/showMainIcons', self.ToggleHotkeys, self)
-	self:ToggleHotkeys(env('showMainIcons'))
-
-	self:HookScript('OnEnter', self.OnMouseMotionFocus)
-	self:HookScript('OnLeave', self.OnMouseMotionClear)
-
-	Mixin(self.cooldown, env.ProxyCooldown):OnLoad()
-end
-
-function MainButton:OnMouseMotionFocus()
-	if self.mouseMotionTimeout then
-		self.mouseMotionTimeout = self.mouseMotionTimeout:Cancel()
-	end
-	self:SetIgnoreParentAlpha(true)
-end
-
-function MainButton:OnMouseMotionClear()
-	if self.mouseMotionTimeout then
-		self.mouseMotionTimeout = self.mouseMotionTimeout:Cancel()
-	end
-	self.mouseMotionTimeout = C_Timer.NewTimer(5, function()
-		self:SetIgnoreParentAlpha(false)
-	end)
-end
-
-function MainButton:OnCooldownSet()
-	self:Skin(false)
-end
-
-function MainButton:SetBindings(_, allBindings)
-	local emulation = db.Gamepad.Index.Modifier.Owner[self.id];
-	for modifier, binding in pairs(allBindings) do
-		if not emulation then
-			self:RefreshBinding(modifier, binding)
-		else
-			self:RefreshBinding(modifier, allBindings[env.ModComplement(modifier, emulation)])
-		end
-	end
-end
-
-function MainButton:ShouldOverrideActionBarBinding()
-	return true;
-end
-
-function MainButton:GetOverrideBinding(modifier)
-	return modifier..self.id;
-end
-
----------------------------------------------------------------
-local Button = Mixin({ SetNormalTexture = nop }, env.ProxyButton);
----------------------------------------------------------------
-
-function Button:OnLoad(modifier, layoutData)
-	env.ProxyButton.OnLoad(self)
-	self:SetAttribute(CPAPI.SkipHotkeyRender, true)
-	self:SetAttribute('id', self.id)
-	self:SetAttribute('mod', modifier)
-
-	self.CheckedTexture = self.CheckedTexture or self:GetCheckedTexture()
-	self.PushedTexture  = self.PushedTexture  or self:GetPushedTexture()
-	self.NormalTexture  = self.NormalTexture  or self:GetNormalTexture()
-	self.HighlightTexture = self.HighlightTexture or self:GetHighlightTexture()
-
-	self.mod = modifier;
-	self.layoutData = layoutData;
-	self:UpdateSkin()
-	if ( layoutData.Level ) then
-		self:SetFrameLevel(layoutData.Level)
-	end
-
-	Mixin(self, modifier == NOMOD and MainButton or FlyoutButton):OnLoad()
-end
-
-function Button:ToggleHotkeys(enabled)
-	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
-	if hotkey1 then hotkey1:SetShown(enabled) end;
-	if hotkey2 then hotkey2:SetShown(enabled) end;
-end
-
-function Button:ToggleShown(enabled)
-	self:SetShown(enabled)
-	self:SetAttribute(env.Attributes.Hidden, not enabled)
-end
-
-function Button:UpdateLocal(force)
-	if self.Skin then
-		self:Skin(force)
-	end
-end
-
-function Button:UpdateSkin()
-	self.UpdateLocal = Button.UpdateLocal;
-	self.Skin = env.LIB.Skin.ClusterBar[self.mod] or nop; -- Skins.lua
-	self:Skin(true)
-end
-
-function Button:GetOverlayColor()
-	return env:GetColorRGBA('procColor')
-end
-
-function Button:ShowOverlayGlow()
-	env.LIB.RoundGlow.ShowOverlayGlow(self)
-end
-
-function Button:HideOverlayGlow()
-	env.LIB.RoundGlow.HideOverlayGlow(self)
+	self:SetPoint(pt, self.owner, pt, x, y + (self.shapeTexture and SHAPED_SHADOW_Y_OFFSET or 0))
 end
 
 ---------------------------------------------------------------
@@ -576,7 +290,6 @@ function CPClusterBar:UpdateClusters(clusters)
 		if ( cluster:GetParent() ~= self ) then
 			cluster:SetParent(self)
 		end
-		cluster:Show()
 		cluster:SetProps(props)
 	end
 end
@@ -606,9 +319,9 @@ end, env.Interface.Cluster)
 
 env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 	local buttons = {};
-	local cluster = CPAPI.Proxy({buttons = buttons}, CPAPI.Proxy(buttons, Cluster))
+	local cluster = CPAPI.Proxy({buttons = buttons;}, CPAPI.Proxy(buttons, Cluster))
 
-	for modifier, layoutData in pairs(ClusterLayout) do
+	for modifier, layoutData in pairs(CLUSTER_LAYOUT) do
 		local name = env.MakeID('CPB_%s_%s', id, modifier)
 		local button = env:Acquire(CLUSTER_BUTTON, name, id, modifier, parent, layoutData)
 		cluster.buttons[modifier] = button;
@@ -617,36 +330,14 @@ env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 	return cluster;
 end, env.Interface.ClusterHandle)
 
-env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutData)
-	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.Button:GetConfig()), Button)
-	env.LIB.SkinUtility.PreventSkinning(button)
-	for i, hotkeyData in ipairs(layoutData.Hotkey) do
-		local hotkeyID = env.MakeID('%s_%s_%d', id, modifier, i)
-		local hotkey = Mixin(CreateFrame('Frame', hotkeyID, button), env.ProxyHotkey)
-		hotkey.icon = hotkey:CreateTexture(nil, 'OVERLAY', nil, 7)
-		hotkey.icon:SetAllPoints()
-		hotkey:OnLoad(buttonID, unpack(hotkeyData))
-		button['Hotkey'..i] = hotkey;
-	end
-	if ( layoutData.Shadow ) then
-		button.Shadow = env:Acquire(CLUSTER_SHADOW, buttonID, parent, button, layoutData.Shadow)
-	end
-	button:OnLoad(modifier, layoutData)
-	return button;
-end)
-
 env:AddFactory(CLUSTER_SHADOW, function(_, parent, owner, layoutData)
 	local shadow = Mixin(parent:CreateTexture(nil, 'BACKGROUND', nil, 7), Shadow)
 	shadow:OnLoad(owner, unpack(layoutData))
 	return shadow;
 end)
 
-env:RegisterCallbacks(function(self)
-	local style = self.Const.Cluster.BorderStyle[self('clusterBorderStyle')];
-	for key, texture in pairs(style) do
-		self.Const.Cluster.AdjustTextures[NOMOD][key] = texture;
-	end
+env:RegisterSafeCallback('Settings/clusterDesign', function(self)
 	self:Map(CLUSTER_HANDLE, nil, function(cluster)
-		cluster:GetMainButton():Skin(true)
+		cluster:SetSize(cluster.props.size)
 	end)
-end, env, 'OnDataLoaded', 'Settings/clusterBorderStyle')
+end, env)
