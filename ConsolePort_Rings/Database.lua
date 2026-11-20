@@ -19,6 +19,11 @@ env.Variables = {
 		desc = 'Use press and hold to navigate and use rings. Press, point, release.';
 		note = 'When disabled, you will need to press the accept button to confirm a selection.';
 	};
+	ringHoldToEdit = _{Data.Bool(true);
+		name = 'Hold to Edit';
+		desc = 'Hold a ring binding without moving the stick to open the ring editor.';
+		note = 'When disabled, rings can only be edited from the ConsolePort settings.';
+	};
 	ringStickySelect = _{Data.Bool(false);
 		name = 'Sticky Selection';
 		desc = 'Selecting an item on a ring will stick until another item is chosen.';
