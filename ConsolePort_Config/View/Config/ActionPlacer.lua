@@ -122,8 +122,8 @@ function Row:OnRelease()
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
 		local button = self[i];
 		if button then
-			button.UpdatePrompts = nil;
-			button.OnCancelClick = nil;
+			button.UpdatePrompts = CPActionConfigButton.UpdatePrompts;
+			button.OnCancelClick = CPActionConfigButton.OnCancelClick;
 			button:SetSlotEvent('OnActionSlotEdit')
 			button.SelectedTexture:Hide()
 		end
