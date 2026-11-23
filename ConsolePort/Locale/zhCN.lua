@@ -1668,3 +1668,303 @@ L['When set to zero, always face your movement stick direction.\nWhen set to max
 设置为最大时，永远不要面向你的移动摇杆方向。]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[你的 %s 设备对蓝牙和有线连接有单独的处理方式。
 你正在使用哪一种？]];
+---------------------------------------------------------------
+-- Additional display strings
+---------------------------------------------------------------
+-- Keys are the English text the addon hands to L(), so an untranslated
+-- key still shows English. Covers settings tooltips, dropdown values,
+-- slash-command help and log output that previously bypassed the locale.
+---------------------------------------------------------------
+L['   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Battery Level: %s'] = '   厂商：|cFF00FFFF%s|r，产品：|cFF00FFFF%s|r，配置：%s，电量：%s';
+L['%d: |cFFFFFFFF%s|r'] = '%d：|cFFFFFFFF%s|r';
+L['%s was added to your utility ring. Use: %s'] = '已将 %s 添加到你的工具环。使用：%s';
+L['%s was removed from your utility ring.'] = '已从你的工具环中移除 %s。';
+L['<none>'] = '无';
+L['A simple value (number, string, boolean) to forward to the response handler where the real action page number is calculated.'] = '转发给响应处理器的简单值（数字、字符串、布尔值），由处理器计算真正的动作页面编号。';
+L['Action bar settings have been reset to default.'] = '动作条设置已重置为默认值。';
+L['Action Buttons'] = '动作按钮';
+L['ADD'] = '叠加';
+L['All presets are valid.'] = '所有预设均有效。';
+L['ALT'] = 'Alt';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Shift';
+L['An override bar is active, can use either vehicle UI or an unskinned override bar.'] = '覆盖条处于激活状态，可使用载具界面或未套用外观的覆盖条。';
+L['An override bar is active, used when the specific scenario does not have a vehicle UI.'] = '覆盖条处于激活状态，用于特定场景没有载具界面的情况。';
+L['Arguments'] = '参数';
+L['Around'] = '周围';
+L['Artifact'] = '神器';
+L['BACKGROUND'] = '背景';
+L['Bar'] = '动作条';
+L['Beveled'] = '斜角';
+L['Binding override condition of the element. Accept pairs of a macro condition and an override state, or a single override state.'] = '元素的快捷键覆盖条件。接受宏条件与覆盖状态组成的成对值，或单个覆盖状态。';
+L['Bindings'] = '快捷键';
+L['Bindings are removed from the element.'] = '快捷键从元素中移除。';
+L['Bindings are set to the element when it is hidden.'] = '元素隐藏时为其设置快捷键。';
+L['Bindings are set to the element when it is shown.'] = '元素显示时为其设置快捷键。';
+L['Bindings are set to the element.'] = '快捷键被设置到元素。';
+L['BLEND'] = '混合';
+L['Bluetooth set to %s for %s.'] = '蓝牙状态已设为 %s（%s）。';
+L['BOTTOM'] = '下方';
+L['BOTTOMLEFT'] = '左下';
+L['BOTTOMRIGHT'] = '右下';
+L['Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.'] = '要切换到的按钮集，其中 n 为修饰键编号。可以组合多个修饰键。';
+L['Button that emulates the |cff0070ddAlt|r key. Hold this button to swap all your binding sets.'] = '模拟 |cff0070ddAlt|r 键的按钮。按住此按钮可切换你所有的快捷键集。';
+L['Button that emulates the |cff0070ddCtrl|r key. Hold this button to swap your binding set.'] = '模拟 |cff0070ddCtrl|r 键的按钮。按住此按钮可切换你的快捷键集。';
+L['Button that emulates the |cff0070ddShift|r key. Hold this button to swap your binding set.'] = '模拟 |cff0070ddShift|r 键的按钮。按住此按钮可切换你的快捷键集。';
+L['Button that emulates |cff0070ddLeft Click|r while controlling the mouse cursor.'] = '在控制鼠标光标时模拟 |cff0070dd左键单击|r 的按钮。';
+L['Button that emulates |cff0070ddRight Click|r while controlling the mouse cursor.'] = '在控制鼠标光标时模拟 |cff0070dd右键单击|r 的按钮。';
+L['CENTER'] = '居中';
+L['Changes the opacity of the element based on the condition.'] = '根据条件更改元素的不透明度。';
+L['Class'] = '职业';
+L['Collage'] = '拼贴';
+L['Cone'] = '锥形';
+L['Config was applied for your %s device.'] = '已为你的 %s 设备应用配置。';
+L['Connected devices:'] = '已连接的设备：';
+L['ConsolePort: upgrading action bar layout...'] = 'ConsolePort：正在升级动作条布局...';
+L['CTRL'] = 'Ctrl';
+L['CTRL-SHIFT'] = 'Ctrl-Shift';
+L['Custom'] = '自定义';
+L['Deadzone'] = '死区';
+L['Default'] = '默认';
+L['Device test concluded.'] = '设备测试已结束。';
+L['DIALOG'] = '对话框';
+L['Disabled'] = '已禁用';
+L['Double scale.'] = '双倍比例。';
+L['DOWN'] = '下';
+L['Dragonriding'] = '驭龙术';
+L['Dynamic'] = '动态';
+L['Dynamic page number, matching the global page number.'] = '动态页面编号，与全局页面编号一致。';
+L['Dynamic will use the button set that does not conflict with your |cff0070ddL[Target Unit Frames (Hold)]|r binding.'] = '动态模式会使用与你的 |cff0070ddL[Target Unit Frames (Hold)]|r 快捷键不冲突的按钮集。';
+L['E.g. |cff0070dd[group:party] party1-4, player [] player|r watches your party while grouped, otherwise only yourself.'] = '例如 |cff0070dd[group:party] party1-4, player [] player|r 在组队时监视你的小队，否则只监视你自己。';
+L['Either'] = '任意';
+L['Empty condition, always true.'] = '空条件，始终为真。';
+L['Enabled'] = '已启用';
+L['Expired ring %s removed from %s.'] = '已将过期的环 %s 从 %s 中移除。';
+L['Explicit'] = '显式';
+L['Failed to add new ring with name %s, because it already exists.'] = '无法添加名为 %s 的新环，因为它已存在。';
+L['File condition of the texture. Accepts pairs of a macro condition and an atlas name or texture path, or a single atlas name or texture path.'] = '纹理的文件条件。接受宏条件与图集名称或纹理路径组成的成对值，或单个图集名称或纹理路径。';
+L['Follow'] = '跟随';
+L['Frame %s was added under %s.'] = '已将框架 %s 添加到 %s 下。';
+L['Frame %s was registered to %s, but does not exist yet.'] = '框架 %s 已注册到 %s，但尚不存在。';
+L['Frame %s was removed from %s.'] = '已将框架 %s 从 %s 中移除。';
+L['Frame %s was reset.'] = '框架 %s 已重置。';
+L['Frame owner %s is not eligble. Reason: %s'] = '框架所有者 %s 不符合条件。原因：%s';
+L['Front'] = '正面';
+L['Fully opaque.'] = '完全不透明。';
+L['Fully transparent.'] = '完全透明。';
+L['Gamepad'] = '手柄';
+L['Global condition for the visibility of the action bar. This is shared across all action bars.'] = '动作条可见性的全局条件。此设置由所有动作条共享。';
+L['Global condition of the action bar page. Accepts pairs of a macro condition and a page number, or a single page number.'] = '动作条页面的全局条件。接受宏条件与页面编号组成的成对值，或单个页面编号。';
+L['Global post-processing in Lua of the action bar page condition. This is shared across all action bars and systems. Restricted environment API only.'] = '用 Lua 对动作条页面条件进行全局后续处理。此设置由所有动作条和系统共享，仅限受限环境 API。';
+L['Gyro X'] = '陀螺仪 X';
+L['Gyro Y'] = '陀螺仪 Y';
+L['Half scale.'] = '一半比例。';
+L['Half visible.'] = '半透明。';
+L['Height condition of the texture. Accepts pairs of a macro condition and a height, or a single height.'] = '纹理的高度条件。接受宏条件与高度组成的成对值，或单个高度。';
+L['Hide the action bar(s).'] = '隐藏动作条。';
+L['Hide the element.'] = '隐藏元素。';
+L['HIGH'] = '高';
+L['Hold Shift + Left Click to move.'] = '按住 Shift + 左键单击以移动。';
+L['HORIZONTAL'] = '水平';
+L['Implicit'] = '隐式';
+L['Incompatible with %s.'] = '与 %s 不兼容。';
+L['Invalid item removed from %s in slot %d.'] = '已从 %s 的槽位 %d 中移除无效物品。';
+L['Invalid layout data, ignoring changes.'] = '布局数据无效，已忽略更改。';
+L['Invalid spell removed from %s in slot %d.'] = '已从 %s 的槽位 %d 中移除无效法术。';
+L['KBM'] = '键鼠';
+L['Keep Character Centered'] = '保持角色居中';
+L['Keyboard command buttons were restored to your saved choices.'] = '键盘命令按钮已恢复为你保存的选择。';
+L['Keyboard dictionary has been reset to default.'] = '键盘字典已重置为默认值。';
+L['Keyboard dictionary has been wiped.'] = '键盘字典已清空。';
+L['Keyboard layout has been updated.'] = '键盘布局已更新。';
+L['Large'] = '大';
+L['Layout "%s" does not exist.'] = '布局“%s”不存在。';
+L['LEFT'] = '左';
+L['Left Stick X'] = '左摇杆 X';
+L['Left Stick Y'] = '左摇杆 Y';
+L['Left Trigger'] = '左扳机';
+L['LOW'] = '低';
+L['MEDIUM'] = '中';
+L['Modifier condition of the element. Accepts pairs of a macro condition and a modifier.'] = '元素的修饰键条件。接受宏条件与修饰键组成的成对值。';
+L['Module selection now lives in the AddOns list; your modules were restored there.'] = '模块选择现在位于插件列表中；你的模块已在那里恢复。';
+L['MONOCHROME'] = '单色';
+L['No active config found.'] = '未找到活动配置。';
+L['No connected devices found.'] = '未找到已连接的设备。';
+L['NoCombat'] = '战斗中禁用';
+L['Normal'] = '正常';
+L['Normal scale.'] = '正常比例。';
+L['On Press'] = '按下时';
+L['Opacity condition of the element. Accepts pairs of a macro condition and an opacity in percentage, or a single opacity value.'] = '元素的不透明度条件。接受宏条件与不透明度百分比组成的成对值，或单个不透明度值。';
+L['OUTLINE'] = '描边';
+L['Page condition of the element. Accepts pairs of a macro condition and a page identifier, or a single page number.'] = '元素的页面条件。接受宏条件与页面标识符组成的成对值，或单个页面编号。';
+L['Page number to forward to the response handler.'] = '要转发给响应处理器的页面编号。';
+L['Ping'] = '延迟';
+L['Player is in a pet battle.'] = '玩家正在宠物对战中。';
+L['Possess bar is visible, such as Mind Control or Eyes of the Beast.'] = '控制条可见，例如精神控制或野兽之眼。';
+L['Prefix for matching a modifier being held.'] = '用于匹配正在按住的修饰键的前缀。';
+L['Preset %s cannot be modified.'] = '预设 %s 无法修改。';
+L['Preset %s has been applied.'] = '预设 %s 已应用。';
+L['Preset %s has been created.'] = '预设 %s 已创建。';
+L['Preset %s has been deleted.'] = '预设 %s 已删除。';
+L['Preset %s is not a valid layout.'] = '预设 %s 不是有效布局。';
+L['Preset icon cannot be empty.'] = '预设图标不能为空。';
+L['Preset key %s already exists.'] = '预设键 %s 已存在。';
+L['Preset key cannot be empty.'] = '预设键不能为空。';
+L['Preset key is unchanged.'] = '预设键未更改。';
+L['Preset name cannot be empty.'] = '预设名称不能为空。';
+L['Raid cursor scan failed due to combat lockdown. Waiting for combat to end...'] = '团队光标扫描因战斗锁定失败。正在等待战斗结束...';
+L['Reduce Camera Motion'] = '减少镜头晃动';
+L['Removed bindings that cannot be used: %s'] = '已移除无法使用的快捷键：%s';
+L['Requires |cff0070ddL[Button Set]|r > |cff0070ddL[Custom]|r to control each button individually.'] = '需要将 |cff0070ddL[Button Set]|r 设为 |cff0070ddL[Custom]|r 才能单独控制每个按钮。';
+L['Resolves to the current override or vehicle page.'] = '解析为当前的覆盖页面或载具页面。';
+L['RGB'] = 'RGB';
+L['Right'] = '右';
+L['RIGHT'] = '右';
+L['Right Stick X'] = '右摇杆 X';
+L['Right Stick Y'] = '右摇杆 Y';
+L['Right Trigger'] = '右扳机';
+L['Rings settings have been reset to default.'] = '环设置已重置为默认值。';
+L['Scale condition of the element. Accepts pairs of a macro condition and a scale in percentage, or a single scale value.'] = '元素的缩放条件。接受宏条件与缩放百分比组成的成对值，或单个缩放值。';
+L['Scales the element to the applicable scale.'] = '将元素缩放到适用的比例。';
+L['Selected page 1 (default)'] = '已选择页面 1（默认）';
+L['Selected page 2'] = '已选择页面 2';
+L['Selected page 3'] = '已选择页面 3';
+L['Selected page 4'] = '已选择页面 4';
+L['Selected page 5'] = '已选择页面 5';
+L['Selected page 6'] = '已选择页面 6';
+L['Sends the resulting page to the response handler for post-processing.'] = '将结果页面发送给响应处理器进行后续处理。';
+L['Sets or unsets applicable bindings to the element.'] = '为元素设置或取消设置适用的快捷键。';
+L['Sets the height of the texture to the applicable value.'] = '将纹理的高度设置为适用的值。';
+L['Sets the resulting page to the action headers, which in turn update the action buttons.'] = '将结果页面设置到动作条标题，标题再更新动作按钮。';
+L['Sets the visibility of all action bar components based on the result of the condition.'] = '根据条件结果设置所有动作条组件的可见性。';
+L['Sets the width of the texture to the applicable value.'] = '将纹理的宽度设置为适用的值。';
+L['Settings have been reset to default.'] = '设置已重置为默认值。';
+L['SHIFT'] = 'Shift';
+L['Shorthand for no modifiers.'] = '无修饰键的简写。';
+L['Shorthand for the Alt modifier.'] = 'Alt 修饰键的简写。';
+L['Shorthand for the Ctrl modifier.'] = 'Ctrl 修饰键的简写。';
+L['Shorthand for the Shift modifier.'] = 'Shift 修饰键的简写。';
+L['Show Buffs'] = '显示增益';
+L['Show Debuffs'] = '显示减益';
+L['Show the action bar(s).'] = '显示动作条。';
+L['Show the element.'] = '显示元素。';
+L['Shows or hides the element based on the condition.'] = '根据条件显示或隐藏元素。';
+L['Shows the applicable atlas or texture file. A value containing a slash is a texture path, anything else is an atlas name.'] = '显示适用的图集或纹理文件。包含斜杠的值是纹理路径，其他值视为图集名称。';
+L['Skipped layout element %s: %s'] = '已跳过布局元素 %s：%s';
+L['Snap'] = '吸附';
+L['Stance/Form 1'] = '姿态/形态 1';
+L['Stance/Form 2'] = '姿态/形态 2';
+L['Stance/Form 3'] = '姿态/形态 3';
+L['Stance/Form 4'] = '姿态/形态 4';
+L['States'] = '状态';
+L['Static page number to swap to.'] = '要切换到的静态页面编号。';
+L['Swaps the buttons to show the applicable modifier.'] = '切换按钮以显示适用的修饰键。';
+L['Swaps the buttons to the applicable page, with the formula:\nslotID = (page - 1) * slots + offset + i'] = [[将按钮切换到适用的页面，公式为：
+slotID = (page - 1) * slots + offset + i]];
+L['Target Unit Frames (Hold)'] = '目标单位框架（按住）';
+L['Temporarily shapeshifted, but not forms or stances that have their own action bar.'] = '临时变形，但不包括拥有独立动作条的形态或姿态。';
+L['That button is reserved for %s.'] = '该按钮已保留给 %s。';
+L['The import data contains some outdated content. It will not be imported.'] = '导入数据包含一些过时的内容，将不会被导入。';
+L['The import data is invalid.'] = '导入数据无效。';
+L['The resulting page number to set on the action headers.'] = '要设置到动作条标题的结果页面编号。';
+L['The resulting value from the condition handler.'] = '条件处理器返回的结果值。';
+L['The same modifier twice is its doubled bar, reached by double tapping it.'] = '同一修饰键写两次表示其双倍动作条，通过双击该修饰键进入。';
+L['THICKOUTLINE'] = '粗描边';
+L['This action will remove all your saved settings and reload your interface.'] = '此操作将清除你所有已保存的设置并重新加载界面。';
+L['Timeout'] = '超时';
+L['Tints the texture with the applicable color.'] = '用适用的颜色为纹理着色。';
+L['To interact with a target, use the binding %s.'] = '要与目标互动，请使用快捷键 %s。';
+L['TOP'] = '上方';
+L['TOPLEFT'] = '左上';
+L['TOPRIGHT'] = '右上';
+L['TouchPad X'] = '触摸板 X';
+L['TouchPad Y'] = '触摸板 Y';
+L['Unknown command |cFF00FFFF%s|r.'] = '未知命令 |cFF00FFFF%s|r。';
+L['UP'] = '上';
+L['Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r'] = '用法：|cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
+L['Validating preset %s...'] = '正在验证预设 %s...';
+L['Value %s set at %s.'] = '在 %s 处设置了值 %s。';
+L['Value found for %s:'] = '找到 %s 的值：';
+L['Value not found for %s.'] = '未找到 %s 的值。';
+L['Variable |cFFFFFFFF%s|r reset to default.'] = '变量 |cFFFFFFFF%s|r 已重置为默认值。';
+L['Variable |cFFFFFFFF%s|r updated to:'] = '变量 |cFFFFFFFF%s|r 已更新为：';
+L['Vehicle UI is active.'] = '载具界面处于激活状态。';
+L['Vertex color condition of the texture. Accepts pairs of a macro condition and a hexadecimal color, or a single color.'] = '纹理的顶点颜色条件。接受宏条件与十六进制颜色组成的成对值，或单个颜色。';
+L['VERTICAL'] = '垂直';
+L['Visibility condition of the element. Accepts pairs of a macro condition and a visibility state, or a single visibility state.'] = '元素的可见性条件。接受宏条件与可见性状态组成的成对值，或单个可见性状态。';
+L['When Untargeted'] = '无目标时';
+L['Width condition of the texture. Accepts pairs of a macro condition and a width, or a single width.'] = '纹理的宽度条件。接受宏条件与宽度组成的成对值，或单个宽度。';
+L['Your gamepad configuration has changed.'] = '你的手柄配置已更改。';
+---------------------------------------------------------------
+-- Block entries (multi-line values)
+---------------------------------------------------------------
+L['  |cFF00FFFF%s|r |cFF00FF00%s|r \n- |cFFFFFFFF%s|r'] = [[  |cFF00FFFF%s|r |cFF00FF00%s|r 
+- |cFFFFFFFF%s|r]];
+L['Error while compiling:\n%s'] = [[编译时出错：
+%s]];
+L['Failed to load %s. Reason: %s\nPlease check your installation.'] = [[无法加载 %s。原因：%s
+请检查你的安装。]];
+L['Failed to set binding %s to %s.\nPlease report this bug using in-game customer support.\nSteps to resolve for now:\n1. Backup bindings.\n2. Exit the game completely.\n3. Remove WTF/Account/%s/bindings-cache.wtf.\n4. Restart the game and restore bindings from backup.'] = [[无法将快捷键 %s 设置为 %s。
+请通过游戏内客户支持报告此错误。
+目前的解决步骤：
+1. 备份快捷键。
+2. 完全退出游戏。
+3. 删除 WTF/Account/%s/bindings-cache.wtf。
+4. 重启游戏并从备份恢复快捷键。]];
+L['Invalid item removed from %s:\nID: %s\nLink: %s'] = [[已从 %s 中移除无效物品：
+ID：%s
+链接：%s]];
+L['Invalid raid cursor filter:\n%s\nThe default filter has been applied.'] = [[团队光标过滤器无效：
+%s
+已应用默认过滤器。]];
+L['Invalid spell removed from %s:\nID: %s\nLink: %s'] = [[已从 %s 中移除无效法术：
+ID：%s
+链接：%s]];
+L['Method execution failed in %s handler:\n%s'] = [[%s 处理器中的方法执行失败：
+%s]];
+L['Raid cursor filter failed a test:\n%s\nThe default filter has been applied.'] = [[团队光标过滤器未通过测试：
+%s
+已应用默认过滤器。]];
+L['Script execution failed in %s handler:\n%s'] = [[%s 处理器中的脚本执行失败：
+%s]];
+L['Takes the format of...\n|cff0070dd[condition] angle; nil|r\n...where each condition/angle is separated by a semicolon, and "nil" clears the override.'] = [[格式为...
+|cff0070dd[条件] 角度; nil|r
+...其中每个条件/角度以分号分隔，"nil" 表示清除覆盖。]];
+L['Takes the format of...\n|cff0070dd[condition] bindingID; nil|r\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.'] = [[格式为...
+|cff0070dd[条件] 绑定ID; nil|r
+...其中每个条件/绑定以分号分隔，"nil" 表示清除覆盖。]];
+L['Takes the format of...\n|cFF3FC7EB[condition] Preset Name; nil|r\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[格式为...
+|cFF3FC7EB[条件] 预设名称; nil|r
+
+自动保存的预设命名为“角色（专精）服务器”，在经典版本中使用职业代替专精。
+
+条件满足时，预设会在战斗外加载。角色预设优先于设备预设。]];
+L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r 是当前正在检查的框架。
+|cff0070ddunit|r 是该框架当前的单位标识。]];
+
+---------------------------------------------------------------
+-- Loadout tree element names
+---------------------------------------------------------------
+-- Preset child keys and interface names are the labels drawn in the
+-- loadout tree; the tree substitutes them where it renders.
+---------------------------------------------------------------
+L['Cluster'] = '集群';
+L['Petring'] = '宠物环';
+L['Watchbar'] = '监视条';
+L['Vehicle'] = '载具';
+L['VehicleL'] = '左载具';
+L['VehicleR'] = '右载具';
+L['Crossbar'] = '十字栏';
+L['Center'] = '居中';
+L['Group'] = '分组';
+L['Nomod'] = '无修饰键';
+L['CtrlShift'] = 'Ctrl+Shift';
+L['GlyphLayer'] = '字形层';
+L['GlyphShift'] = 'Shift 字形';
+L['TextureAtlas'] = '图集纹理';
+L['TextureID'] = '纹理 ID';
+L['TexturePath'] = '纹理路径';
+L['DividerMid'] = '中分隔符';
+L['DividerLeft'] = '左分隔符';
+L['DividerRight'] = '右分隔符';
+L['Player action bar setup.'] = '玩家动作条配置。';
