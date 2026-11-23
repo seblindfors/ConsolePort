@@ -562,11 +562,11 @@ end
 function CPClusterBar:OnDriverChanged()
 	local driver = env('clusterFullStateModifier') and env.Const.Cluster.ModDriver
 		or db('Gamepad/Index/Modifier/Driver');
-	self:RegisterModifierDriver(driver, [[
+	self:RegisterModifierDriver(db('Gamepad/Index/Modifier/LayeredDriver')..driver, [[
 		self:SetAttribute('state', newstate)
 		control:ChildUpdate('state', newstate)
 		cursor::OwnerChanged(self:GetName())
-	]])
+	]], db.Layers:GetActiveLayer())
 end
 
 function CPClusterBar:UpdateClusters(clusters)

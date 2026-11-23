@@ -1,35 +1,57 @@
 # ConsolePort Coding Standards
 
-> Reference document for AI agents and contributors working on the ConsolePort addon suite.
-> ConsolePort is a World of Warcraft gamepad addon written in Lua/XML against the WoW API.
+> For AI agents and contributors. ConsolePort: World of Warcraft gamepad addon suite, Lua/XML against the WoW API.
 
 ---
 
-## Table of Contents
+## 0. Binding Rules
 
-1. [Project Architecture](#1-project-architecture)
-2. [File Organization](#2-file-organization)
-3. [Naming Conventions](#3-naming-conventions)
-4. [Formatting & Style](#4-formatting--style)
-5. [The `db` Object & Data Access](#5-the-db-object--data-access)
-6. [Event System](#6-event-system)
-7. [Mixin & OOP Patterns](#7-mixin--oop-patterns)
-8. [Variable / Settings Definitions](#8-variable--settings-definitions)
-9. [Secure Environment Code](#9-secure-environment-code)
-10. [Error Handling](#10-error-handling)
-11. [Idioms & Patterns](#11-idioms--patterns)
-12. [Localization](#12-localization)
-13. [XML Templates](#13-xml-templates)
-14. [Multi-Version Support](#14-multi-version-support)
-15. [Driver Registration](#15-driver-registration)
+**Never call the global `RegisterStateDriver` or `RegisterAttributeDriver` for a driver that
+could contain `[mod:]`.** The input layer controller owns every modifier condition: the engine
+resolves `[mod:]` against modifiers physically held and cannot see a latched or doubled layer.
+Route through the controller; it classifies the driver and hands native-only conditions back
+to the engine:
+
+```lua
+db.Layers:RegisterAttributeDriver(frame, 'alpha', driver)
+db.Layers:UnregisterAttributeDriver(frame, 'alpha')
+```
+
+Drivers built only from native conditions (`[vehicleui]`, `[combat]`, `[group]`) may use the
+global functions. Macro condition vocabulary: `ConsolePort/Utils/Macro.lua` (`CPAPI.ConvertDriver`,
+`ParseDriver`, `MapDriver`, `ClassifyDriver`, `IsModSubset`).
+
+**Nothing outside the controller writes an override binding.** Engine keeps one binding per key
+per tier, newest writer wins, so two frames on one key fight over recency. Controller holds every
+claim and writes the engine. Claimant names itself and a level; highest level holds the key,
+newest on tie; release surfaces the next claim:
+
+```lua
+-- insecure
+db.Layers:Claim(frame, 'NAV', key, 'click', target, mouseButton)
+db.Layers:Claim(frame, 'OVERRIDE', key, 'binding', action)
+db.Layers:Release(frame, key)
+db.Layers:ReleaseAll(frame)
+
+-- restricted, with layers = self:GetFrameRef('Layers')
+layers::Claim(OWNER, 'MODAL', key, 'click', OWNER, button)
+layers::ReleaseAll(OWNER)
+```
+
+| Level | Holds | Engine tier |
+|---|---|---|
+| `BASE` | the controller's own binding row | low |
+| `OVERRIDE` | conditional replacements of the row: interact, unit menu triggers | low |
+| `NAV` | cursors: raid, secure, interface | priority |
+| `MODAL` | rings, menus, unit hotkeys, quick menu | priority |
+
+Owners and click targets are frame names: frame handles do not survive `RunAttribute`.
 
 ---
 
 ## 1. Project Architecture
 
-### Addon Suite Structure
-
-ConsolePort is a **suite of addons** sharing a single core. Each sub-addon is a separate WoW addon with its own `.toc` file.
+Suite of addons sharing one core. Each sub-addon has its own `.toc`.
 
 | Addon | Loads | Purpose |
 |---|---|---|
@@ -42,17 +64,13 @@ ConsolePort is a **suite of addons** sharing a single core. Each sub-addon is a 
 | `ConsolePort_Rings` | Always | Ring menus / utility rings |
 | `ConsolePort_World` | Always | World interaction features |
 
-### Three Global Entry Points
+Three globals:
 
-All code communicates through three globals:
+- **`ConsolePort`** — public API frame, `ConsolePort/API.lua`. External addons call e.g. `ConsolePort:GetBindings()`.
+- **`db`** — internal database (`RelaTable`). Every file: `local _, db = ...;`. Path get/set, event callbacks, table utils, subsystem registration.
+- **`CPAPI`** — global utility table, available before any addon file loads: `CreateEventHandler`, `LinkEnv`, `Popup`, `Prop`, `Bool`, etc.
 
-- **`ConsolePort`** — The public API frame. External addons call methods on this object (e.g. `ConsolePort:GetBindings()`). Defined in `ConsolePort/API.lua`.
-- **`db`** — The internal database (a `RelaTable` instance). Accessed in every file via `local _, db = ...;`. Provides path-based get/set, event callbacks, table utilities, and subsystem registration.
-- **`CPAPI`** — Global utility table of functions, mixins, and constants. Available before any addon file loads. Contains helpers like `CreateEventHandler`, `LinkEnv`, `Popup`, `Prop`, `Bool`, etc.
-
-### MVC-ish Sub-Addon Layout
-
-Each sub-addon follows a loose Model–Controller–View structure, plus optional `Widget/` and `Assets/` directories:
+Sub-addon layout, loose Model–Controller–View plus optional `Widget/` and `Assets/`:
 
 ```
 ConsolePort_Bar/
@@ -63,23 +81,19 @@ ConsolePort_Bar/
 └── Assets/         # Textures, atlases
 ```
 
-### Core Addon Load Order
-
-Defined in `ConsolePort.toc` — order matters:
+Core load order, `ConsolePort.toc`:
 
 ```
 Libs → XML → API.lua → Utils → Model → Controller → Widget → View
 ```
 
-Sub-addon internal order is declared directly in the `.toc` file (files listed top-to-bottom). Within the core addon, each directory uses a `__manifest.xml` to declare its own load order.
+Sub-addons list files top-to-bottom in `.toc`. Core directories each declare order in `__manifest.xml`.
 
 ---
 
 ## 2. File Organization
 
-### Manifests
-
-The core addon uses `__manifest.xml` files (double-underscore prefix) in each directory to declare load order:
+Core manifests:
 
 ```xml
 <Ui>
@@ -90,19 +104,11 @@ The core addon uses `__manifest.xml` files (double-underscore prefix) in each di
 </Ui>
 ```
 
-Sub-addons list files directly in their `.toc`, sometimes with nested `.xml` files for component subdirectories (e.g. `Widget/Button/Button.xml`).
+Sub-addons list files in `.toc`, with nested `.xml` per component directory (e.g. `Widget/Bar/Bar.xml`).
 
-### File Naming
+Naming: **PascalCase** files and directories (`Database.lua`, `Templates.xml`, `Controller/`). Locale files by code (`enUS.lua`, `zhCN.lua`). Manifests `__manifest.xml`. Sub-addon directory = TOC name (`ConsolePort_Bar/`).
 
-- **PascalCase** for Lua and XML files: `Database.lua`, `Button.lua`, `Templates.xml`
-- **PascalCase** for directories: `Controller/`, `Model/`, `View/`, `Widget/`
-- **Locale files** use locale codes: `enUS.lua`, `zhCN.lua`
-- **Manifest files** use `__manifest.xml` (double underscore)
-- **Sub-addon directories** match their TOC name: `ConsolePort_Bar/`, `ConsolePort_Cursor/`
-
-### File Preamble
-
-Every Lua file begins by destructuring the addon varargs:
+Preamble, every Lua file:
 
 ```lua
 local _, db = ...;
@@ -113,7 +119,7 @@ Or with CPAPI:
 local CPAPI, _, db = CPAPI, ...;
 ```
 
-Frequently followed by upvalue caching of globals:
+Then upvalue caching:
 ```lua
 local getmetatable, setmetatable = getmetatable, setmetatable;
 local CreateFrame, Mixin = CreateFrame, Mixin;
@@ -123,60 +129,29 @@ local CreateFrame, Mixin = CreateFrame, Mixin;
 
 ## 3. Naming Conventions
 
-### Variables
-
 | Context | Convention | Examples |
 |---|---|---|
-| Local variables | `camelCase` | `activeDevice`, `classColor`, `totalFree`, `freeSlots` |
-| Local references to classes/handlers | `PascalCase` | `local Cursor`, `local HotkeyHandler`, `local PowerLevel` |
+| Local variables | `camelCase` | `activeDevice`, `classColor`, `freeSlots` |
+| Local refs to classes/handlers | `PascalCase` | `local Cursor`, `local HotkeyHandler` |
 | Constants | `UPPER_SNAKE_CASE` | `MOUSEOVER_THROTTLE`, `LCLICK_BINDING` |
 | Hex constants | Hex literals | `0x0`, `0x1`, `0x2` |
-
-### Functions
-
-| Context | Convention | Examples |
-|---|---|---|
 | Methods on objects/mixins | `PascalCase` | `SetIcon`, `OnDataLoaded`, `GetBindings` |
 | CPAPI functions | `CPAPI.PascalCase` | `CPAPI.CreateEventHandler`, `CPAPI.LinkEnv` |
 | WoW event handlers | Match event name | `function Handler:UPDATE_BINDINGS()` |
-| Private/internal helpers | `camelCase` or `local function` | `local function clearLockedState()` |
-
-### Frames
-
-| Context | Convention | Examples |
-|---|---|---|
+| Private helpers | `camelCase` / `local function` | `local function clearLockedState()` |
 | Global frames | `ConsolePort` prefix | `ConsolePortCursor`, `ConsolePortMenu` |
-| Child frames | `$parent` prefix | `$parentHotkeyHandler`, `$parentDataHandler` |
+| Child frames | `$parent` prefix | `$parentHotkeyHandler` |
 | Templates | `CP<Name>Template` | `CPFrameTemplate`, `CPUnitHotkeyTemplate` |
-
-### Mixins
-
-| Context | Convention | Examples |
-|---|---|---|
-| Widget/UI mixins | `CP<Name>Mixin` | `CPGradientMixin`, `CPButtonCatcherMixin`, `CPIndexPoolMixin` |
-| Concrete implementations | `CP<Name>` (no Mixin suffix) | `CPActionButton` |
+| Widget/UI mixins | `CP<Name>Mixin` | `CPGradientMixin`, `CPIndexPoolMixin` |
+| Concrete implementations | `CP<Name>` | `CPActionButton` |
 | API-level mixins | `CPAPI.<Name>Mixin` | `CPAPI.EventMixin`, `CPAPI.SecureExportMixin` |
-
-### Settings Variable IDs
-
-`camelCase` identifiers, often domain-prefixed:
-
-- `UIpointerAnimation`, `UIenableCursor`, `UIleaveCombatDelay` — Cursor module
-- `gameMenuScale`, `gameMenuShowMenu` — Menu module
-- `ringAutoExtra`, `ringScale` — Rings module
-- `keyboardScale`, `keyboardEnable` — Keyboard module
+| Settings variable IDs | `camelCase`, domain prefix | `UIenableCursor`, `gameMenuScale`, `ringScale`, `keyboardEnable` |
 
 ---
 
 ## 4. Formatting & Style
 
-### Indentation
-
-**Tabs** for indentation. Spaces only for alignment after tabs (e.g. aligning `=` signs across multiple declarations).
-
-### Aligned Assignments
-
-Multiple related declarations are visually aligned:
+**Tabs** indent. Spaces only for alignment after tabs. Related declarations align:
 
 ```lua
 local MOUSEOVER_THROTTLE = 0.1;
@@ -190,9 +165,7 @@ CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 ```
 
-### Semicolons
-
-Semicolons are used **selectively**, not after every statement. They serve as **paragraph markers** — signaling the end of a logical stanza:
+**Semicolons** are paragraph markers, ending a logical stanza, not every statement:
 
 ```lua
 -- Semicolons USED:
@@ -209,14 +182,12 @@ widget:SetAttribute('owner', owner)    -- chained setup calls
 db:Register('Input', InputAPI)         -- registration calls
 ```
 
-**Inside table constructors**, semicolons are used as field separators (instead of commas) for inline table literals:
+Inside table constructors, semicolons separate fields:
 
 ```lua
 {hide = true; Data.String('Divider')};
 {point = 'BOTTOM'; relPoint = 'BOTTOM'; y = 16;};
 ```
-
-Multiline table fields also use trailing semicolons:
 
 ```lua
 env.Toplevel = {
@@ -227,9 +198,7 @@ env.Toplevel = {
 };
 ```
 
-### Parentheses in Conditionals
-
-Conditions often use parentheses with **inner spaces** for emphasis:
+**Conditionals**: parentheses with inner spaces for emphasis; simple conditions may omit:
 
 ```lua
 if ( type(predicate) == 'number' ) then
@@ -237,30 +206,20 @@ if ( widget and widget:GetAttribute('owner') == owner ) then
 if ( old == value ) then return end;
 ```
 
-Simple conditions may omit them:
-
 ```lua
 if not widget then return false; end
 if self[callback] then
 ```
 
-### Whitespace
+**Whitespace**: spaces around binary operators (`=`, `==`, `~=`, `+`, `..`, `and`, `or`); none inside call parentheses `SetSize(64, 64)`; spaces inside conditional parentheses `( expr )`.
 
-- Spaces around binary operators: `=`, `==`, `~=`, `+`, `-`, `*`, `/`, `..`, `and`, `or`
-- No spaces inside function call parentheses: `SetSize(64, 64)`
-- Spaces inside conditional parentheses: `( expr )`
-
-### Comments
-
-**Section headers** use exactly 63 dashes:
+**Comments**: section headers exactly 63 dashes; informal `@param` / `@return`; short trailing inline comments; `---@class` occasional, not systematic.
 
 ```lua
 ---------------------------------------------------------------
 -- Section Title
 ---------------------------------------------------------------
 ```
-
-**Function documentation** uses informal `@param` / `@return` inside block comments:
 
 ```lua
 ---------------------------------------------------------------
@@ -270,22 +229,16 @@ if self[callback] then
 -- @return mod: modifier (string)
 ```
 
-**Inline comments** are short, trailing:
-
 ```lua
 'PLAYER_REGEN_DISABLED'; -- enter combat
 'PLAYER_REGEN_ENABLED';  -- leave combat
 ```
 
-**Lua annotations** are minimal — occasional `---@class` for type hinting, but not systematic.
-
 ---
 
 ## 5. The `db` Object & Data Access
 
-### Path-Based Access
-
-The database uses `__call` metamethod for path traversal (via RelaTable):
+`__call` path traversal via RelaTable:
 
 ```lua
 db('Settings/useCharacterSettings')           -- getter (explicit path)
@@ -293,9 +246,7 @@ db('Settings/useCharacterSettings', true)      -- setter (2 args = set)
 db('Actionbar/Action/'..index)                 -- dynamic path traversal
 ```
 
-### Settings Shorthand: `db('varName')`
-
-The most common usage is `db('varName')` **without** a path prefix. This is a shorthand getter for settings:
+**Settings shorthand `db('varName')`**, no path prefix, is the idiomatic read:
 
 ```lua
 local delay = db('UIleaveCombatDelay')          -- returns user setting or default
@@ -304,18 +255,15 @@ header:SetScale(db('radialScale'))              -- numeric setting
 local color = db('radialNormalColor')           -- string setting
 ```
 
-**How it works:** When `db('varName')` is called with a single key (no `/` path separator), `Database:Get` looks up `db['varName']` directly. Since settings aren't stored as top-level keys on `db`, this returns `nil`, which triggers the fallback to `db:GetDefault('varName')`. The `GetDefault` method reads from `db.default`, which is set to a proxy chain:
+Single key without `/`: `Database:Get` reads `db['varName']`, finds nil, falls back to `db:GetDefault('varName')`, which reads `db.default`, a `CPAPI.Proxy` chain:
 
 ```
 CharacterSettings → GlobalSettings → Defaults
 ```
 
-This chain (built with `CPAPI.Proxy`) means:
-1. If the user has a **per-character override**, that's returned
-2. Otherwise, if there's a **global saved setting**, that's returned
-3. Otherwise, the **registered default** from `Data.Bool(true)` / `Data.Range(1.0, ...)` etc. is returned (via `Field:Get()`)
+Per-character override, else global saved setting, else registered default from `Data.Bool(true)` / `Data.Range(1.0, ...)` via `Field:Get()`.
 
-**The shorthand is idiomatic and preferred** — always use `db('varName')` to read settings, never manually traverse `db.Settings.varName`. The full path form `db('Settings/varName')` is reserved for **writes** (setters):
+Always read with `db('varName')`, never `db.Settings.varName`. Full path form is for writes:
 
 ```lua
 -- GETTER: shorthand (reads through proxy chain with defaults)
@@ -325,9 +273,7 @@ local enabled = db('UIenableCursor')
 db('Settings/UIenableCursor', true)
 ```
 
-### Subsystem Registration
-
-Handlers register themselves on `db` to become accessible by path:
+**Subsystem registration** makes handlers reachable by path (`db.Hotkeys`, `db.Stack`, `db.Input`):
 
 ```lua
 db:Register('Hotkeys', HotkeyHandler)
@@ -335,42 +281,21 @@ db:Register('Stack', StackHandler)
 db:Register('Input', InputAPI)
 ```
 
-After registration, they're accessible as `db.Hotkeys`, `db.Stack`, `db.Input`.
+**`db.table`**: `copy(t)` shallow copy · `merge(dst, src)` deep merge · `spairs(t, comp)` sorted pairs · `mpairs(t)` modifier-ordered pairs · `mixin(obj, ...)` mixin with script hooking · `ripairs(t)` reverse ipairs · `map(t, fn)` map.
 
-### Table Utilities
-
-`db.table` provides extended table operations:
-
-- `db.table.copy(t)` — shallow copy
-- `db.table.merge(dst, src)` — deep merge
-- `db.table.spairs(t, comp)` — sorted pairs
-- `db.table.mpairs(t)` — modifier-ordered pairs
-- `db.table.mixin(obj, ...)` — mixin with script hooking
-- `db.table.ripairs(t)` — reverse ipairs
-- `db.table.map(t, fn)` — map transform
-
-### Sub-Addon Database Bootstrapping
-
-Sub-addons use `CPAPI.LinkEnv(...)` to get their environment:
+**Sub-addon bootstrap**:
 
 ```lua
 local _, Data, env, db, name = CPAPI.LinkEnv(...);
 ```
 
-This provides:
-- `_` — the `CPAPI.Define` function (dual-purpose: section header or settings wrapper)
-- `Data` — the field type factories (`Data.Bool`, `Data.Range`, etc.)
-- `env` — scoped environment table with `env.db` and `env.L`
-- `db` — the global database reference
-- `name` — addon name string
+`_` = `CPAPI.Define` (section header or settings wrapper) · `Data` = field type factories · `env` = scoped env with `env.db` and `env.L` · `db` = global database · `name` = addon name.
 
 ---
 
 ## 6. Event System
 
-### Three Layers
-
-**Layer 1 — WoW Events:** Standard frame event registration via `EventMixin`:
+**Layer 1, WoW events** via `EventMixin`; auto-dispatches to same-named methods on `self`:
 
 ```lua
 local Handler = CPAPI.CreateEventHandler({'Frame', '$parentName', parent}, {
@@ -383,9 +308,7 @@ function Handler:UPDATE_BINDINGS()
 end
 ```
 
-`EventMixin` auto-dispatches events to same-named methods on `self`.
-
-**Layer 2 — DB Callbacks:** Path-based custom events via RelaTable:
+**Layer 2, DB callbacks**, path-based via RelaTable:
 
 ```lua
 -- Register
@@ -409,25 +332,16 @@ db:TriggerEvent('Settings/'..varID, db(varID))
 db:UnregisterCallback('OnNewBindings', self)
 ```
 
-**Layer 3 — Local Environment Events:** Sub-addons scope events to their `env`:
+**Layer 3, local env events**, scoped to the sub-addon `env`:
 
 ```lua
 LibStub('RelaTable')(name, env);
 env:TriggerEvent('OnButtonFocus', self, true)
 ```
 
-### Common Event Names
+Common events: `OnDataLoaded` settings ready · `OnVariablesChanged` · `OnNewBindings` · `OnIconsChanged` · `Settings/<varName>` per-variable change · `Gamepad/Active` device changed.
 
-- `OnDataLoaded` — settings ready
-- `OnVariablesChanged` — variables table modified
-- `OnNewBindings` — gamepad bindings updated
-- `OnIconsChanged` — icon style changed
-- `Settings/<varName>` — automatic per-variable change events
-- `Gamepad/Active` — active device changed
-
-### OnDataLoaded Convention
-
-Handlers that need settings implement `OnDataLoaded`. Return `CPAPI.BurnAfterReading` to self-destruct (one-time init):
+**OnDataLoaded**: handlers needing settings implement it. Return `CPAPI.BurnAfterReading` for one-time init, `CPAPI.KeepMeForLater` to persist:
 
 ```lua
 function DataAPI:OnDataLoaded()
@@ -436,15 +350,11 @@ function DataAPI:OnDataLoaded()
 end
 ```
 
-Return `CPAPI.KeepMeForLater` when the handler should persist for re-invocation.
-
 ---
 
 ## 7. Mixin & OOP Patterns
 
-### Mixin Definition
-
-Global mixins are defined as plain tables, then methods are added:
+Global mixins are plain tables with methods added:
 
 ```lua
 CPActionButtonMixin = {}
@@ -458,7 +368,7 @@ function CPActionButtonMixin:OnLoad()
 end
 ```
 
-### Mixin Composition
+Composition:
 
 ```lua
 -- Blizzard's CreateFromMixins for inheritance
@@ -474,9 +384,7 @@ CPAPI.Specialize(frame, CPActionButtonMixin)
 db.table.mixin(widget, InputMixin)  -- also hooks OnClick, OnEnter, etc.
 ```
 
-### Event Handler Creation
-
-**Frame-based event handler** (most common):
+Frame-based event handler (most common):
 
 ```lua
 local Handler = CPAPI.CreateEventHandler({'Frame', '$parentName', parent}, {
@@ -486,23 +394,21 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentName', parent}, {
 db:Register('Handler', Handler)
 ```
 
-**Data-only handler** (no frame, just `OnDataLoaded`):
+Data-only handler (no frame, just `OnDataLoaded`):
 
 ```lua
 local Handler = CPAPI.DataHandler({})
 db:Register('Handler', Handler)
 ```
 
-### Property Auto-Generation
+Property generation:
 
 ```lua
 CPAPI.Prop(owner, 'Scale', 1.0)   -- creates owner:GetScale() / owner:SetScale(v)
 CPAPI.Bool(owner, 'Enabled', true) -- creates owner:IsEnabled() / owner:SetEnabled(v)
 ```
 
-### Callable Tables
-
-Tables with `__call` metamethods are used for factory patterns:
+Callable tables (`__call`) for factories:
 
 ```lua
 db:Register('Nav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {
@@ -520,9 +426,7 @@ db:Register('Nav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {
 
 ## 8. Variable / Settings Definitions
 
-### Declaration Pattern
-
-Each sub-addon registers its settings in `Database.lua`:
+Each sub-addon registers settings in `Database.lua`:
 
 ```lua
 local _, Data, env = CPAPI.LinkEnv(...)
@@ -547,8 +451,6 @@ ConsolePort:AddVariables({
 })
 ```
 
-### Field Types
-
 | Factory | Creates | Parameters |
 |---|---|---|
 | `Data.Bool(default)` | Boolean toggle | `default` |
@@ -564,25 +466,13 @@ ConsolePort:AddVariables({
 | `Data.Mutable(type, values)` | Dynamic key-value | `type factory`, `values` |
 | `Data.Point(default)` | Anchor point | `{ point, relPoint, x, y }` |
 
-### Variable Metadata
-
-| Key | Type | Purpose |
-|---|---|---|
-| `name` | string | Display name in config UI |
-| `desc` | string | Description text |
-| `note` | string | Additional notes |
-| `deps` | table | Dependency conditions (`{ otherVar = expectedValue }`) |
-| `advd` | bool | Advanced option flag |
-| `hide` | bool | Hidden option flag |
-| `list` | string | Grouping label |
+Metadata keys: `name` display name · `desc` description · `note` extra note · `deps` `{ otherVar = expectedValue }` · `advd` advanced flag · `hide` hidden flag · `list` grouping label.
 
 ---
 
 ## 9. Secure Environment Code
 
-### Overview
-
-WoW's secure/restricted environment requires special handling. ConsolePort uses a pattern where secure body strings are stored in an `Env` table and injected via `CreateEnvironment`:
+Secure bodies live in an `Env` table, injected via `CreateEnvironment`:
 
 ```lua
 Handler.Env = {
@@ -597,11 +487,9 @@ Handler.Env = {
 Handler:CreateEnvironment()
 ```
 
-### Conventions
-
-- Secure bodies use `[[ ]]` multiline strings exclusively
-- The `self::FunctionName()` syntax is a custom dispatch convention (calls `self:RunAttribute("FunctionName", ...)`)
-- Constants are injected via `:format()` or `:gsub()`:
+- Secure bodies: `[[ ]]` only.
+- `self::FunctionName()` = custom dispatch, calls `self:RunAttribute("FunctionName", ...)`.
+- Constants injected via `:format()` or `:gsub()`:
 
 ```lua
 ClearAndHide = ([[
@@ -609,7 +497,7 @@ ClearAndHide = ([[
 ]]):format(CPAPI.ActionTypeRelease);
 ```
 
-- Sub-headers precede each secure body definition:
+- Sub-header before each secure body:
 
 ```lua
     -----------------------------------------------------------
@@ -621,9 +509,7 @@ ClearAndHide = ([[
     ]];
 ```
 
-### Scoped Blocks for Helpers
-
-Use `do...end` blocks to create lexical scopes for local variables and helper functions that support secure handlers:
+`do...end` blocks scope helpers that support secure handlers:
 
 ```lua
 do  local HasScript, GetScript = Scan.HasScript, Scan.GetScript;
@@ -638,9 +524,7 @@ end
 
 ## 10. Error Handling
 
-### `assert` — Precondition Validation
-
-Used with descriptive messages for programmer errors:
+`assert` for programmer errors, with message:
 
 ```lua
 assert(not self.ObjectPool, 'Frame pool already exists.')
@@ -649,9 +533,7 @@ assert(direction == 'VERTICAL' or direction == 'HORIZONTAL', 'Valid: VERTICAL, H
 assert(activeDevice, ('Device %s does not exist in registry.'):format(name or '<nil>'))
 ```
 
-### `pcall` — Recoverable Failures
-
-Used where failure is expected (e.g. Blizzard API inconsistencies):
+`pcall` where failure is expected (Blizzard API inconsistencies):
 
 ```lua
 local isEventValid = pcall(tester.RegisterEvent, tester, event)
@@ -659,17 +541,13 @@ if (pcall(self.SetLight, self, enabled, lightValues)) then
 EventUtil.ContinueOnAddOnLoaded(addOn, GenerateClosure(pcall, script))
 ```
 
-### `error()` — Malformed Data
-
-Reserved for data integrity violations:
+`error()` for data integrity violations:
 
 ```lua
 error('Malformed table: field "'..child..'" does not exist in definition.')
 ```
 
-### Safe Callback Pattern
-
-Combat lockdown protection through `db:RegisterSafeCallback`:
+Combat lockdown: `db:RegisterSafeCallback` queues during combat, runs on `PLAYER_REGEN_ENABLED`:
 
 ```lua
 -- Automatically queued during combat, executed on PLAYER_REGEN_ENABLED
@@ -680,16 +558,12 @@ db:RegisterSafeCallback('Settings/interactButton', handler.OnDataLoaded, handler
 
 ## 11. Idioms & Patterns
 
-### Ternary via `and`/`or`
-
-The dominant pattern for conditional expressions:
+Ternary via `and`/`or`:
 
 ```lua
 local delay = db('UIleaveCombatDelay') * (UnitIsDead('player') and 2 or 1)
 icon:SetDesaturated(not file and true or false)
 ```
-
-Multi-level:
 
 ```lua
 script =
@@ -697,9 +571,7 @@ script =
     ((down == false) and 'OnMouseUp');
 ```
 
-### `GenerateClosure` — Partial Application
-
-Preferred over inline anonymous functions when partially applying arguments:
+`GenerateClosure` over inline closures for partial application:
 
 ```lua
 GenerateClosure(InputProxy, 'PADDUP')
@@ -708,9 +580,7 @@ GenerateClosure(pcall, script)
 GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
 ```
 
-### Upvalue Caching
-
-Frequently used globals/API calls are cached as locals at file top:
+Upvalue caching at file top:
 
 ```lua
 local CreateFrame, Mixin = CreateFrame, Mixin;
@@ -718,15 +588,13 @@ local getmetatable, setmetatable = getmetatable, setmetatable;
 local InCombatLockdown = InCombatLockdown;
 ```
 
-### Guard Clauses
-
-Files that require optional APIs use early returns:
+Guard clause for optional APIs:
 
 ```lua
 if not SpellFlyout then return end;
 ```
 
-### `C_Timer.After` for Deferred Execution
+Deferred execution:
 
 ```lua
 C_Timer.After(delay, function()
@@ -735,13 +603,9 @@ C_Timer.After(delay, function()
 end)
 ```
 
-### String Construction
+Strings: `:format()` for parameters `('CP-Input-%s'):format(id)` · `..` for simple concat `'Settings/'..varID` · `[[ ]]` only for secure bodies and backslash paths.
 
-- `:format()` preferred for parameterized strings: `('CP-Input-%s'):format(id)`
-- `..` for simple concatenation: `'Settings/'..varID`
-- `[[ ]]` reserved for secure bodies and file paths with backslashes
-
-### Version-Conditional Feature Detection
+Version-conditional detection:
 
 ```lua
 -- Guard clause for missing API
@@ -756,15 +620,13 @@ end
 CPAPI.IsRetailVersion = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 ```
 
-The `or nil` pattern ensures the value is `nil` (not `false`) so it can be used in dynamic table insertions where `false` would create an entry.
+`or nil` yields `nil`, never `false`, so dynamic table insertion skips the entry.
 
 ---
 
 ## 12. Localization
 
-### Locale Table
-
-Strings live in `ConsolePort/Locale/enUS.lua` (fallback) with optional overrides per-locale. The Locale object is registered on `db` and accessible as `db.Locale` or `env.L`:
+Strings in `ConsolePort/Locale/enUS.lua` (fallback), per-locale overrides. Locale object: `db.Locale` or `env.L`:
 
 ```lua
 -- In locale definition files (enUS.lua, zhCN.lua, etc.)
@@ -775,16 +637,9 @@ L.NAME_TOGGLE_BINDINGS   = 'Toggle Bindings';
 L.FORMAT_BINDING_CURRENT = '%s is currently bound to %s.';
 ```
 
-### Naming Convention
+Keys: `L.DESC_*` descriptions · `L.NAME_*` display names · `L.FORMAT_*` format strings · `L.DISC_*` disclaimers.
 
-- `L.DESC_*` — Descriptions
-- `L.NAME_*` — Display names
-- `L.FORMAT_*` — Format strings with `%s` placeholders
-- `L.DISC_*` — Disclaimers
-
-### Locale Literals: `L'text'`
-
-The most distinctive localization pattern in ConsolePort is the **locale literal** syntax using Lua's single-argument function call shorthand:
+**Locale literal `L'text'`**:
 
 ```lua
 self:AddCommand(L'Place on action bar', 'MapActionBar')
@@ -796,22 +651,9 @@ handle:AddHint(leftClick, L'Place in slot')
 handle:AddHint(rightClick, keyChord and L'Cancel and clear cursor' or L'Clear slot or binding')
 ```
 
-**How it works:** `L` is the Locale table, which has a `__call` metamethod and an `__index` fallback. When you write `L'text'`, Lua treats it as `L('text')` (function call with a string literal argument). The `__call` metamethod:
+`L` has `__call` and `__index`. `L'text'` = `L('text')`: looks up `self['text']`; translated string if a locale file defined it, else `__index` returns the key itself, so English passes through. Supports `:format(...)` via `L('Format string %s', arg)` and nested `L[inner]` refs inside format strings.
 
-1. Looks up the key in the locale table: `self['text']`
-2. If the key exists (was defined in a locale file like `zhCN.lua`), returns the translated string
-3. If the key **doesn't** exist, `__index` returns the key itself — so `L'Pick up'` returns `'Pick up'` in English, acting as a **no-op passthrough**
-4. Supports `:format(...)` for parameterized strings: `L('Format string %s', arg)`
-5. Supports nested locale references via `L[inner]` syntax within format strings
-
-This pattern means:
-- **All user-facing string literals should be wrapped in `L'...'`** to mark them as localizable
-- The English text IS the lookup key — no separate key management needed
-- Untranslated strings gracefully fall back to their English text
-- The `L'literal'` form (single quotes, no parentheses) is preferred for simple strings
-- Use `L('format %s', arg)` with parentheses only when format arguments are needed
-
-### Usage in Code
+Rules: wrap every user-facing literal in `L'...'`. English text is the key. `L'literal'` for plain strings; `L('format %s', arg)` only with format args.
 
 ```lua
 -- Simple literal (preferred for plain text)
@@ -831,12 +673,7 @@ local text = env.L.NAME_TOGGLE_BINDINGS;
 
 ## 13. XML Templates
 
-### Template Naming
-
-- `CP<Purpose>Template` for virtual templates: `CPFrameTemplate`
-- `CP<Purpose>` for single-use types: `CPAtlas`
-
-### Template Structure
+`CP<Purpose>Template` for virtual templates (`CPFrameTemplate`); `CP<Purpose>` for single-use types (`CPAtlas`).
 
 ```xml
 <Frame name="CPFrameTemplate" virtual="true" mixin="CPFrameMixin">
@@ -850,20 +687,11 @@ local text = env.L.NAME_TOGGLE_BINDINGS;
 </Frame>
 ```
 
-### Patterns
-
-- `virtual="true"` — all templates are virtual
-- `mixin="..."` — associates a Lua mixin
-- `KeyValues` — declarative default configuration
-- `parentKey` / `parentArray` — automatic child-to-parent attachment
-- `inherit="prepend"` — on `OnLoad` when mixin should run before children
-- Inheritance chains for complex chrome: base → extension → final specialization
+All templates `virtual="true"` · `mixin="..."` binds the Lua mixin · `KeyValues` declarative defaults · `parentKey` / `parentArray` child-to-parent attachment · `inherit="prepend"` on `OnLoad` when mixin runs before children · inheritance chains base → extension → specialization.
 
 ---
 
 ## 14. Multi-Version Support
-
-### Version Flags
 
 ```lua
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
@@ -871,11 +699,7 @@ CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC or nil;
 CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
 ```
 
-The `or nil` ensures these evaluate to `true` or `nil` (never `false`), enabling use in conditional table construction.
-
-### Wrapper Functions
-
-CPAPI wrappers abstract version-specific APIs:
+`true` or `nil`, never `false`, for conditional table construction. CPAPI wrappers abstract version APIs:
 
 ```lua
 function CPAPI.GetSpecialization()
@@ -887,56 +711,7 @@ function CPAPI.GetSpecialization()
 end
 ```
 
-### Conditional Settings
-
 ```lua
 hide = CPAPI.IsRetailVersion;  -- hide on retail, show on classic
 note = CPAPI.IsRetailVersion and 'Only available in Classic.';
 ```
-
----
-
-## 15. Driver Registration
-
-**Never call the global `RegisterStateDriver` or `RegisterAttributeDriver` for a driver that
-could contain `[mod:]`.** The input layer controller owns every modifier condition, because
-the engine resolves those against the modifiers physically held and cannot see a latched or
-doubled layer. Route them through the controller instead, which classifies the driver and
-hands anything with a native condition in it back to the engine:
-
-```lua
-db.Layers:RegisterAttributeDriver(frame, 'alpha', driver)
-db.Layers:UnregisterAttributeDriver(frame, 'alpha')
-```
-
-Drivers built entirely from native conditions (`[vehicleui]`, `[combat]`, `[group]`) may use
-the global functions directly. The macro condition vocabulary itself lives in
-`ConsolePort/Utils/Macro.lua`: `CPAPI.ConvertDriver`, `ParseDriver`, `MapDriver`,
-`ClassifyDriver`, `IsModSubset`.
-
-**Nothing outside the controller writes an override binding.** The engine keeps one binding
-per key per tier and lets the newest writer win, so two frames binding the same key fight
-over recency. The controller holds every claim and writes the engine itself. A claimant
-names itself and a level; the highest level holds the key, newest on a tie, and releasing
-surfaces the next claim:
-
-```lua
--- insecure
-db.Layers:Claim(frame, 'NAV', key, 'click', target, mouseButton)
-db.Layers:Claim(frame, 'OVERRIDE', key, 'binding', action)
-db.Layers:Release(frame, key)
-db.Layers:ReleaseAll(frame)
-
--- restricted, with layers = self:GetFrameRef('Layers')
-layers::Claim(OWNER, 'MODAL', key, 'click', OWNER, button)
-layers::ReleaseAll(OWNER)
-```
-
-| Level | Holds | Engine tier |
-|---|---|---|
-| `BASE` | the controller's own binding row | low |
-| `OVERRIDE` | conditional replacements of the row: interact, unit menu triggers | low |
-| `NAV` | cursors: raid, secure, interface | priority |
-| `MODAL` | rings, menus, unit hotkeys, quick menu | priority |
-
-Owners and click targets are frame names, since frame handles do not survive `RunAttribute`.

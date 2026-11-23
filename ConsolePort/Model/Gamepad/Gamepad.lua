@@ -26,6 +26,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 			Layered = {}; -- combos only the input layer controller resolves
 			Cvars   = {}; -- modsim -> cvar name
 			Driver  = NM; -- state driver for all active modifiers
+			LayeredDriver = NM; -- clauses for the layered combos, to lead a driver
 		};
 		Atlas = {
 			[NM]    = {[32] = {}; [64] = {}}; -- Generic button labels
@@ -298,6 +299,7 @@ for _, setting in ipairs({'layersTapLatch', 'layersDoubleBar', 'layersOrdered'})
 		self:ReindexModifiers()
 		self:ClearBlockedBindings()
 		db.Layers:RefreshStates()
+		db:TriggerEvent('OnModifierChanged')
 	end, GamepadAPI)
 end
 
@@ -422,7 +424,7 @@ function GamepadAPI:ReindexModifiers()
 		end
 	end
 	map.Active, map.Driver = self:GetActiveModifiers()
-	self:ReindexLayers(map)
+	map.LayeredDriver = self:ReindexLayers(map)
 
 	for mod, btn in pairs(map.Key) do
 		for active, inputs in pairs(map.Active) do
@@ -460,9 +462,10 @@ end
 -- Layers the controller resolves but the engine never composes, so
 -- they join Active only after the driver has been built from it.
 -- @param map : the modifier index, mid rebuild
+-- @return driver : clauses for the added layers, most specific first
 function GamepadAPI:ReindexLayers(map)
 	local ordered, doubled = db('layersOrdered'), db('layersDoubleBar');
-	if not ( ordered or doubled ) then return end;
+	if not ( ordered or doubled ) then return NM end;
 
 	local prefixes = {};
 	for prefix in db.table.spairs(map.Prefix) do
@@ -509,6 +512,21 @@ function GamepadAPI:ReindexLayers(map)
 		end
 		Permute(NM)
 	end
+
+	local layers, driver = {}, {};
+	for layer in pairs(map.Layered) do
+		layers[#layers + 1] = layer;
+	end
+	table.sort(layers, function(a, b)
+		if ( #a ~= #b ) then
+			return #a > #b;
+		end
+		return a < b;
+	end)
+	for i, layer in ipairs(layers) do
+		driver[i] = ('[mod:%s] %s; '):format(layer, layer);
+	end
+	return table.concat(driver);
 end
 
 function GamepadAPI:GetActiveModifiers()
