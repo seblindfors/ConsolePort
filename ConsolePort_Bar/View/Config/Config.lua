@@ -162,8 +162,16 @@ function Settings:OnShow()
 	self:MarkDirty()
 
 	local sortedGroups, layoutIndex = {}, CreateCounter();
+	local groupTitles = {}; -- Localized header text, keyed by the raw group ID.
+	-- The group ID is "<main> | <head>". The halves are locale keys (or client
+	-- constants), but the composed string never is, so translate each part.
+	-- rawget skips the format pass in L, which would choke on a stray %.
+	local function Localize(text)
+		return text and rawget(L, text) or text;
+	end
 	foreach(env.Variables, function(var, data)
-		local group = ('%s | %s'):format(data.main or SETTINGS, data.head or MISCELLANEOUS);
+		local main, head = data.main or SETTINGS, data.head or MISCELLANEOUS;
+		local group = ('%s | %s'):format(main, head);
 
 		if data.hide then
 			local widget = self:GetObjectByIndex(group..':'..data.name)
@@ -172,7 +180,9 @@ function Settings:OnShow()
 
 		if not sortedGroups[group] then
 			sortedGroups[group] = {}
+			groupTitles[group] = ('%s | %s'):format(Localize(main), Localize(head));
 		end
+
 		sortedGroups[group][data.name] = {
 			varID = var;
 			field = data;
@@ -181,6 +191,7 @@ function Settings:OnShow()
 
 	for group, set in db.table.spairs(sortedGroups) do
 		local header = self:CreateHeader(group)
+		header.Text:SetText(groupTitles[group] or group)
 		header.layoutIndex = layoutIndex()
 		if not self.hiddenGroups[group] then
 			self:DrawGroup(group, set, layoutIndex)

@@ -95,7 +95,7 @@ function PowerLevel:OnEnter()
 
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	GameTooltip:SetText(('%s: %s'):format(desc, info.color:WrapTextInColorCode(info.name)))
-	GameTooltip:AddLine('Hold Shift + Left Click to move.')
+	GameTooltip:AddLine(L'Hold Shift + Left Click to move.')
 	GameTooltip:Show()
 end
 
