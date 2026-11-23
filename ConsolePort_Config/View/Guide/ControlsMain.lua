@@ -756,7 +756,7 @@ local SchemeContent = {}; do
 			end;
 		};
 		{ -- 4.3 Follow stick
-			text      = FOLLOW or 'Follow';
+			text      = FOLLOW or L'Follow';
 			desc      = L.CONTROLS_MOVEMENT_FOLLOW_DESC;
 			stick     = 'Movement';
 			subscribe = GetMovementSubs();
