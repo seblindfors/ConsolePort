@@ -18,7 +18,7 @@ function Context:OnTimedContextTrigger(button)
 end
 
 function Context:IsTimedContextValid()
-	return not InCombatLockdown() and self.maxInputLen < .1;
+	return db('ringHoldToEdit') and not InCombatLockdown() and self.maxInputLen < .1;
 end
 
 function Context:GetTimeUntilHints()
