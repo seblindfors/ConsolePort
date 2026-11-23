@@ -260,6 +260,34 @@ if CPAPI.IsModernVersion then -- Modern spellbook/talents
 			end)
 		end;
 
+		-- Spellbook items: strip the action bar highlights and the pet bar update.
+		if SpellBookItemMixin.ShowSpellBookTooltip then
+			Scripts.OnEnter[ SpellBookItemButtonMixin.OnEnter ] = function(self)
+				local item = self:GetParent()
+				FlyoutButtonMixin.OnEnter(self)
+				if item.isFiller then
+					item:OnFillerEnter()
+				end
+				if not item:HasValidData() then return end;
+
+				item:ShowSpellBookTooltip()
+				if not item.isUnlearned then
+					item.Button.IconHighlight:Show()
+					item.Backplate:SetAlpha(item.hoverBackplateAlpha)
+				end
+			end;
+			Scripts.OnLeave[ SpellBookItemButtonMixin.OnLeave ] = function(self)
+				local item = self:GetParent()
+				FlyoutButtonMixin.OnLeave(self)
+				if not item:HasValidData() and not item.isFiller then return end;
+
+				item.Button.IconHighlight:Hide()
+				item.Button.IconHighlight:SetAlpha(item.iconHighlightHoverAlpha)
+				item.Backplate:SetAlpha(item.defaultBackplateAlpha)
+				GameTooltip:Hide()
+			end;
+		end
+
 		_('ConsolePort_Menu', function()
 			ConsolePortSpellMenu:HookScript('OnShow', function()
 				if PlayerSpellsFrame:IsShown() then
