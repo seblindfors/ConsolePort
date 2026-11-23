@@ -3,6 +3,7 @@
 ---------------------------------------------------------------
 local env, db = CPAPI.GetEnv(...);
 local UnitIsOtherPlayersBattlePet = UnitIsOtherPlayersBattlePet or nop;
+local NAME_PART_KEY = CPAPI.IsCamelotVersion and 'surname' or 'server';
 local UnitMenu = db:Register('UnitMenu', CPAPI.EventHandler(Mixin(ConsolePortUnitMenu, UnitPopupManager, {
 	LayoutFrames = {};
 	ButtonFrames = {};
@@ -94,7 +95,7 @@ end
 
 function UnitMenu:AddAdditionalContextData(contextData)
 	---@see UnitPopupShared.lua:UnitPopupManager:OpenMenu
-	contextData.name, contextData.server = UnitNameUnmodified(contextData.unit);
+	contextData.name, contextData[NAME_PART_KEY] = UnitNameUnmodified(contextData.unit);
 	contextData.playerLocation = UnitPopupSharedUtil.TryCreatePlayerLocation(contextData);
 	if not CPAPI.IsSecret(UnitGUID(contextData.unit)) then
 		contextData.accountInfo = UnitPopupSharedUtil.GetBNetAccountInfo(contextData);
