@@ -162,8 +162,15 @@ function BindingCatcher:TryComposeLayer(button)
 	if ( not modifier or not env.db.Layers:UsesTapGestures() ) then
 		return false;
 	end
-	self.sequence = self.sequence or {};
-	self.sequence[#self.sequence + 1] = modifier;
+	local sequence = self.sequence or {};
+	sequence[#sequence + 1] = modifier;
+	local layer, reason = env.db.Layers:ComposeLayer(sequence)
+	if not layer then
+		sequence[#sequence] = nil;
+		CPAPI.Log(BindingCatcher.Reasons[reason] or BindingCatcher.Reasons.unknown)
+		return true;
+	end
+	self.sequence = sequence;
 	self:ResetCancelTimer()
 	return true;
 end
