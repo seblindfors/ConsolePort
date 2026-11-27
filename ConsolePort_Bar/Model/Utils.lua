@@ -8,11 +8,24 @@ env.UIHandler  = CPAPI.CreateEventHandler({'Frame'}, {
 	'PLAYER_REGEN_ENABLED';
 }); local db, L, UIHandler = env.db, env.db.Locale, env.UIHandler;
 
+env.OptionalBlizzardBars = {
+	MultiBarRight = 'hideMultiBarRight';
+	MultiBarLeft  = 'hideMultiBarLeft';
+	MultiBar5     = 'hideMultiBar5';
+	MultiBar6     = 'hideMultiBar6';
+	MultiBar7     = 'hideMultiBar7';
+};
+
 UIHandler:Hide()
 function UIHandler:OnDataLoaded()
 	self:HideBlizzard()
 	env.Manager:CacheActionButtons(self)
 	env:TriggerEvent('OnEnvLoaded')
+	for bar, setting in pairs(env.OptionalBlizzardBars) do
+		env:RegisterSafeCallback('Settings/'..setting, function(handler, hidden)
+			if hidden then handler:HideMultiBar(bar) end
+		end, self)
+	end
 	return CPAPI.BurnAfterReading;
 end
 

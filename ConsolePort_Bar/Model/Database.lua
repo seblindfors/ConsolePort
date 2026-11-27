@@ -159,6 +159,34 @@ env:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	---------------------------------------------------------------
+	_('Blizzard Bars', ACTIONBARS_LABEL);
+	---------------------------------------------------------------
+	hideMultiBarRight = _{Data.Bool(false);
+		name = 'Hide Action Bar 4';
+		desc = 'Hide Blizzard\'s action bar 4 instead of leaving it on screen next to the gamepad bars.';
+		note = 'Showing it again requires a reload.';
+	};
+	hideMultiBarLeft = _{Data.Bool(false);
+		name = 'Hide Action Bar 5';
+		desc = 'Hide Blizzard\'s action bar 5 instead of leaving it on screen next to the gamepad bars.';
+		note = 'Showing it again requires a reload.';
+	};
+	hideMultiBar5 = _{Data.Bool(false);
+		name = 'Hide Action Bar 6';
+		desc = 'Hide Blizzard\'s action bar 6 instead of leaving it on screen next to the gamepad bars.';
+		note = 'Showing it again requires a reload.';
+	};
+	hideMultiBar6 = _{Data.Bool(false);
+		name = 'Hide Action Bar 7';
+		desc = 'Hide Blizzard\'s action bar 7 instead of leaving it on screen next to the gamepad bars.';
+		note = 'Showing it again requires a reload.';
+	};
+	hideMultiBar7 = _{Data.Bool(false);
+		name = 'Hide Action Bar 8';
+		desc = 'Hide Blizzard\'s action bar 8 instead of leaving it on screen next to the gamepad bars.';
+		note = 'Showing it again requires a reload.';
+	};
+	---------------------------------------------------------------
 	_('Page Hotkeys', 'Action Buttons');
 	---------------------------------------------------------------
 	LABhotkeyColor = _{Data.Color(CreateColor( 0.75, 0.75, 0.75 ));
