@@ -4,14 +4,15 @@ local IsSecret, SmoothStep = CPAPI.IsSecret, env.SmoothStep;
 local GetTime, Lerp, UnitExists = GetTime, Lerp, UnitExists;
 local cos, sin, floor, max, rad = math.cos, math.sin, math.floor, math.max, math.rad;
 ---------------------------------------------------------------
-local CLUSTER_DESIGN       = env.Const.ClusterDesign;
-local PET_STATUS_TEXTURE   = env.GetAsset([[Textures\PetRing\StatusFill]]);
-local PET_STATE_MASK       = env.GetAsset([[Textures\PetRing\StateMask]]);
-local PET_STATE_OUTLINE    = env.GetAsset([[Textures\PetRing\StateOutline]]);
-local PET_STATE_PULSE      = env.GetAsset([[Textures\PetRing\StatePulse]]);
-local PET_COOLDOWN_SWIPE   = env.GetAsset([[Textures\PetRing\CooldownSwipe]]);
+local CLUSTER, CLUSTER_DESIGN = env.Const.Cluster, env.Const.ClusterDesign;
+local ASSETS               = CLUSTER.Assets;
+local PET_STATUS_TEXTURE   = ASSETS.PetStatusFill;
+local PET_STATE_MASK       = ASSETS.PetStateMask;
+local PET_STATE_OUTLINE    = ASSETS.PetStateOutline;
+local PET_STATE_PULSE      = ASSETS.PetStatePulse;
+local PET_COOLDOWN_SWIPE   = ASSETS.PetCooldownSwipe;
 local PET_HALF_PLANE_MASK  = env.GetAsset([[Textures\Masks\PetPowerMask]]);
-local PET_RING_TEXTURE_SET = [[Textures\PetRing\%s]];
+local PET_RING_TEXTURE_SET = CLUSTER.AssetFormats.PetRing;
 local MASK_WRAP_MODE       = 'CLAMPTOBLACKADDITIVE';
 ---------------------------------------------------------------
 local SLOT_RADIUS              = 68;
@@ -22,18 +23,18 @@ local ICON_LEVELS_BELOW_WHEEL  = 3;
 local SWIPE_LEVELS_BELOW_WHEEL = 2;
 local GLOW_LEVELS_BELOW_WHEEL  = 1;
 local COOLDOWN_SIZE            = 48;
-local COOLDOWN_SHADE_ALPHA     = 163 / 255;
+local COOLDOWN_SHADE_ALPHA     = CLUSTER.CooldownShadeAlpha;
 local SWIPE_ATLAS_GRID_SIZE    = 4;
-local TEXTURED_RIM_BRIGHTNESS  = 0.86;
+local TEXTURED_RIM_BRIGHTNESS  = CLUSTER.RimBrightness;
 local PUSHED_RIM_BRIGHTNESS    = 0.6;
 local HOVER_RIM_ALPHA          = 0.55;
 local UPDATE_INTERVAL          = 0.1;
 ---------------------------------------------------------------
 local AUTOCAST_GLOW         = {1; 240 / 255; 77 / 255;};
-local ACTIVE_GLOW           = {1; 214 / 255; 125 / 255;};
+local ACTIVE_GLOW           = {CLUSTER.AmberColor:GetRGB()};
 local ACTION_GLOW           = {1; 0.93; 0.72;};
-local GLOW_FADE_IN          = 0.18;
-local GLOW_FADE_OUT         = 0.38;
+local GLOW_FADE_IN          = CLUSTER.GlowFadeIn;
+local GLOW_FADE_OUT         = CLUSTER.GlowFadeOut;
 local PULSE_DURATION        = 0.48;
 local PULSE_PEAK_PROGRESS   = 0.23;
 local PULSE_MIN_SIZE        = 10.4;
@@ -45,26 +46,24 @@ local ACTION_PULSE_DEBOUNCE = 0.12;
 local getCombatEvent = not CPAPI.IsModernVersion and CombatLogGetCurrentEventInfo;
 
 local function getPetRingTextures(style)
-	local path = env.GetAsset(PET_RING_TEXTURE_SET, style);
 	return {
-		Portrait = path .. 'Portrait';
-		Wheel    = path .. 'Wheel';
-		Status   = path .. 'Status';
-		Slot     = path .. 'Slot';
+		Portrait = PET_RING_TEXTURE_SET:format(style, 'Portrait');
+		Wheel    = PET_RING_TEXTURE_SET:format(style, 'Wheel');
+		Status   = PET_RING_TEXTURE_SET:format(style, 'Status');
+		Slot     = PET_RING_TEXTURE_SET:format(style, 'Slot');
 	};
 end
 
-local ROUND_SILVER_TEXTURES   = getPetRingTextures('RoundSilver');
-local BEVELED_SILVER_TEXTURES = getPetRingTextures('BeveledSilver');
-local GOLD_TEXTURES           = getPetRingTextures('Gold');
+local PET_RING_TEXTURES = {};
+do  local texturesByStyle = {};
+	for design, info in pairs(CLUSTER.Designs) do
+		local style = info.PetRing;
+		texturesByStyle[style] = texturesByStyle[style] or getPetRingTextures(style);
+		PET_RING_TEXTURES[design] = texturesByStyle[style];
+	end
+end
 
-local PET_RING_TEXTURES = {
-	[CLUSTER_DESIGN.Original]     = ROUND_SILVER_TEXTURES;
-	[CLUSTER_DESIGN.OriginalGold] = GOLD_TEXTURES;
-	[CLUSTER_DESIGN.Hex]          = GOLD_TEXTURES;
-	[CLUSTER_DESIGN.Squared]      = GOLD_TEXTURES;
-	[CLUSTER_DESIGN.Beveled]      = BEVELED_SILVER_TEXTURES;
-};
+local ROUND_SILVER_TEXTURES = PET_RING_TEXTURES[CLUSTER_DESIGN.Original];
 
 ---------------------------------------------------------------
 -- Client capabilities
@@ -319,7 +318,7 @@ end
 
 function CPPetRingButton:UpdateEmptySlotColor(goldBorders)
 	if self.hasPetAction then return end;
-	local color = goldBorders and env.Const.Cluster.GoldEmptySlotColor or self.ActiveIconVertex;
+	local color = goldBorders and CLUSTER.GoldEmptySlotColor or self.ActiveIconVertex;
 	self.icon:SetVertexColor(color:GetRGBA())
 end
 
@@ -575,9 +574,9 @@ function CPPetRing:OnVariableChanged()
 
 	local background = self.Background.Background;
 	if goldBorders then
-		background:SetVertexColor(env.Const.Cluster.GoldEmptySlotColor:GetRGBA())
+		background:SetVertexColor(CLUSTER.GoldEmptySlotColor:GetRGBA())
 	else
-		background:SetVertexColor(0.5, 0.5, 0.5, 1)
+		background:SetVertexColor(CLUSTER.EmptySlotColor:GetRGBA())
 	end
 	for _, button in ipairs(self.Buttons) do
 		setRimTexture(button.Rim, textures.Wheel, rimR, rimG, rimB, a)
