@@ -162,7 +162,11 @@ Layers.Env = {
 	-----------------------------------------------------------
 	-- Only one row is live: the engine looks up the canonical chord of
 	-- whatever is held. Written at the low priority tier, so a transient
-	-- overlay wins while it is up.
+	-- overlay wins while it is up. One walk over the sources in order
+	-- of precedence, first claim per button wins: registered clicks,
+	-- then the player's bindings for the layer, and when strict, the
+	-- unmodified layer's buttons, which the engine would otherwise fire
+	-- for the held modifier, are claimed on the void button instead.
 	-- @param chord : key prefix the engine will look up
 	-- @param layer : binding set to resolve it against
 	ApplyRow = [[
@@ -183,6 +187,8 @@ Layers.Env = {
 			for button, entry in pairs(set or EMPTY) do
 				if ( not ROW[button] and not CLAIMED[button] ) then
 					if void then
+						-- Leave aliases and combinations the player bound
+						-- themselves, since the chord can differ from the layer.
 						local key = chord..button;
 						if ( not EMULATED[button] and not ALIAS[key]
 							and not ( ownStored and ownStored[button] )
