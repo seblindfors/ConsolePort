@@ -1673,3 +1673,297 @@ L['When set to zero, always face your movement stick direction.\nWhen set to max
 최대로 설정하면 이동 스틱 방향을 절대 바라보지 않습니다.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[%s 장치는 블루투스와 유선 연결을 별도로 처리합니다.
 어느 것을 사용 중이십니까?]];
+---------------------------------------------------------------
+-- Additional display strings
+---------------------------------------------------------------
+L['   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Battery Level: %s'] = '   제조사: |cFF00FFFF%s|r, 제품: |cFF00FFFF%s|r, 구성: %s, 배터리 레벨: %s';
+L['%s was added to your utility ring. Use: %s'] = '%s이(가) 도구 원형 메뉴에 추가되었습니다. 사용: %s';
+L['%s was removed from your utility ring.'] = '%s이(가) 도구 원형 메뉴에서 제거되었습니다.';
+L['<none>'] = '<없음>';
+L['A doubled modifier is a bar of its own and cannot be combined with others.'] = '이중 조합키는 자체 단축바를 가지며 다른 조합키와 조합할 수 없습니다.';
+L['A simple value (number, string, boolean) to forward to the response handler where the real action page number is calculated.'] = '실제 행동 단축바 페이지 번호가 계산되는 응답 처리기로 전달할 단순 값(숫자, 문자열, 불리언)입니다.';
+L['Action Buttons'] = '행동 단축 버튼';
+L['Action bar settings have been reset to default.'] = '행동 단축바 설정이 기본값으로 재설정되었습니다.';
+L['All presets are valid.'] = '모든 프리셋이 유효합니다.';
+L['An override bar is active, can use either vehicle UI or an unskinned override bar.'] = '재정의 단축바가 활성 상태이며, 차량 UI 또는 스킨이 없는 재정의 단축바를 사용할 수 있습니다.';
+L['An override bar is active, used when the specific scenario does not have a vehicle UI.'] = '재정의 단축바가 활성 상태이며, 해당 시나리오에 차량 UI가 없을 때 사용됩니다.';
+L['Arguments'] = '인수';
+L['Around'] = '주변';
+L['Artifact'] = '유물';
+L['Bar'] = '단축바';
+L['Beveled'] = '경사형';
+L['Binding override condition of the element. Accept pairs of a macro condition and an override state, or a single override state.'] = '요소의 단축키 재정의 조건입니다. 매크로 조건과 재정의 상태의 쌍 또는 단일 재정의 상태를 받습니다.';
+L['Bindings are removed from the element.'] = '요소에서 단축키가 제거됩니다.';
+L['Bindings are set to the element when it is hidden.'] = '요소가 숨겨질 때 단축키가 요소에 설정됩니다.';
+L['Bindings are set to the element when it is shown.'] = '요소가 표시될 때 단축키가 요소에 설정됩니다.';
+L['Bindings are set to the element.'] = '단축키가 요소에 설정됩니다.';
+L['Bluetooth set to %s for %s.'] = '블루투스가 %s(으)로 설정되었습니다. 장치: %s';
+L['Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.'] = '전환할 버튼 세트이며, n은 조합키 번호입니다. 여러 조합키를 조합할 수 있습니다.';
+L['Button that emulates the |cff0070ddAlt|r key. Hold this button to swap all your binding sets.'] = '|cff0070ddAlt|r 키를 에뮬레이트하는 버튼입니다. 이 버튼을 누르고 있으면 모든 단축키 세트가 전환됩니다.';
+L['Button that emulates the |cff0070ddCtrl|r key. Hold this button to swap your binding set.'] = '|cff0070ddCtrl|r 키를 에뮬레이트하는 버튼입니다. 이 버튼을 누르고 있으면 단축키 세트가 전환됩니다.';
+L['Button that emulates the |cff0070ddShift|r key. Hold this button to swap your binding set.'] = '|cff0070ddShift|r 키를 에뮬레이트하는 버튼입니다. 이 버튼을 누르고 있으면 단축키 세트가 전환됩니다.';
+L['Button that emulates |cff0070ddLeft Click|r while controlling the mouse cursor.'] = '마우스 커서를 제어하는 동안 |cff0070dd마우스 좌클릭|r을 에뮬레이트하는 버튼입니다.';
+L['Button that emulates |cff0070ddRight Click|r while controlling the mouse cursor.'] = '마우스 커서를 제어하는 동안 |cff0070dd마우스 우클릭|r을 에뮬레이트하는 버튼입니다.';
+L['Camera'] = '카메라';
+L['Center'] = '중앙';
+L['Changes the opacity of the element based on the condition.'] = '조건에 따라 요소의 불투명도를 변경합니다.';
+L['Class'] = '직업';
+L['Cluster'] = '클러스터';
+L['Collage'] = '콜라주';
+L['Cone'] = '원뿔';
+L['Config was applied for your %s device.'] = '%s 장치에 구성이 적용되었습니다.';
+L['Connected devices:'] = '연결된 장치:';
+L['ConsolePort: upgrading action bar layout...'] = 'ConsolePort: 행동 단축바 레이아웃을 업그레이드하는 중...';
+L['Crossbar'] = '크로스바';
+L['CtrlShift'] = 'Ctrl+Shift';
+L['Custom'] = '사용자 설정';
+L['Deadzone'] = '데드존';
+L['Device test concluded.'] = '장치 테스트가 종료되었습니다.';
+L['Disabled'] = '사용 안 함';
+L['DividerLeft'] = '왼쪽 구분 기호';
+L['DividerMid'] = '중앙 구분 기호';
+L['DividerRight'] = '오른쪽 구분 기호';
+L['Double scale.'] = '두 배 배율.';
+L['Dragonriding'] = '하늘비행';
+L['Dynamic'] = '동적';
+L['Dynamic page number, matching the global page number.'] = '전역 페이지 번호와 일치하는 동적 페이지 번호입니다.';
+L['Dynamic will use the button set that does not conflict with your |cff0070ddL[Target Unit Frames (Hold)]|r binding.'] = '동적은 |cff0070ddL[Target Unit Frames (Hold)]|r 단축키와 충돌하지 않는 버튼 세트를 사용합니다.';
+L['E.g. |cff0070dd[group:party] party1-4, player [] player|r watches your party while grouped, otherwise only yourself.'] = '예: |cff0070dd[group:party] party1-4, player [] player|r 조건은 파티 중에는 파티원을, 그렇지 않으면 자신만 감시합니다.';
+L['Either'] = '둘 중 하나';
+L['Empty condition, always true.'] = '빈 조건이며 항상 참입니다.';
+L['Enabled'] = '사용함';
+L['Expired ring %s removed from %s.'] = '만료된 원형 메뉴 %s이(가) %s에서 제거되었습니다.';
+L['Explicit'] = '명시적';
+L['Faction'] = '진영';
+L['Failed to add new ring with name %s, because it already exists.'] = '이름이 %s인 원형 메뉴가 이미 있어 새 원형 메뉴를 추가하지 못했습니다.';
+L['File condition of the texture. Accepts pairs of a macro condition and an atlas name or texture path, or a single atlas name or texture path.'] = '텍스처의 파일 조건입니다. 매크로 조건과 아틀라스 이름 또는 텍스처 경로의 쌍, 또는 단일 아틀라스 이름이나 텍스처 경로를 받습니다.';
+L['Frame %s was added under %s.'] = '프레임 %s이(가) %s 아래에 추가되었습니다.';
+L['Frame %s was registered to %s, but does not exist yet.'] = '프레임 %s이(가) %s에 등록되었지만 아직 존재하지 않습니다.';
+L['Frame %s was removed from %s.'] = '프레임 %s이(가) %s에서 제거되었습니다.';
+L['Frame %s was reset.'] = '프레임 %s이(가) 재설정되었습니다.';
+L['Frame owner %s is not eligble. Reason: %s'] = '프레임 소유자 %s은(는) 사용할 수 없습니다. 사유: %s';
+L['Friendly'] = '아군';
+L['Front'] = '전방';
+L['Fully opaque.'] = '완전히 불투명.';
+L['Fully transparent.'] = '완전히 투명.';
+L['Gamepad'] = '게임패드';
+L['Global condition for the visibility of the action bar. This is shared across all action bars.'] = '행동 단축바 표시에 대한 전역 조건입니다. 모든 행동 단축바가 공유합니다.';
+L['Global condition of the action bar page. Accepts pairs of a macro condition and a page number, or a single page number.'] = '행동 단축바 페이지의 전역 조건입니다. 매크로 조건과 페이지 번호의 쌍 또는 단일 페이지 번호를 받습니다.';
+L['Global post-processing in Lua of the action bar page condition. This is shared across all action bars and systems. Restricted environment API only.'] = '행동 단축바 페이지 조건을 Lua로 처리하는 전역 후처리입니다. 모든 행동 단축바와 시스템이 공유합니다. 제한된 환경 API만 사용할 수 있습니다.';
+L['GlyphLayer'] = '레이어 글리프';
+L['GlyphShift'] = 'Shift 글리프';
+L['Group'] = '그룹';
+L['Gyro'] = '자이로';
+L['Gyro X'] = '자이로 X';
+L['Gyro Y'] = '자이로 Y';
+L['Half scale.'] = '절반 배율.';
+L['Half visible.'] = '절반만 보임.';
+L['Height condition of the texture. Accepts pairs of a macro condition and a height, or a single height.'] = '텍스처의 높이 조건입니다. 매크로 조건과 높이의 쌍 또는 단일 높이를 받습니다.';
+L['Hide the action bar(s).'] = '행동 단축바를 숨깁니다.';
+L['Hide the element.'] = '요소를 숨깁니다.';
+L['Hold Shift + Left Click to move.'] = 'Shift + 마우스 좌클릭을 누른 채로 이동합니다.';
+L['Hostile'] = '적대적';
+L['Implicit'] = '암시적';
+L['Invalid item removed from %s in slot %d.'] = '%s의 %d번 칸에서 유효하지 않은 아이템이 제거되었습니다.';
+L['Invalid layout data, ignoring changes.'] = '레이아웃 데이터가 유효하지 않아 변경 사항을 무시합니다.';
+L['Invalid spell removed from %s in slot %d.'] = '%s의 %d번 칸에서 유효하지 않은 주문이 제거되었습니다.';
+L['Keep Character Centered'] = '캐릭터 중앙에 두기';
+L['Keyboard command buttons were restored to your saved choices.'] = '키보드 명령 버튼이 저장된 선택으로 복원되었습니다.';
+L['Keyboard dictionary has been reset to default.'] = '키보드 사전이 기본값으로 재설정되었습니다.';
+L['Keyboard dictionary has been wiped.'] = '키보드 사전이 지워졌습니다.';
+L['Keyboard layout has been updated.'] = '키보드 레이아웃이 업데이트되었습니다.';
+L['Large'] = '큼';
+L['Layout "%s" does not exist.'] = '레이아웃 "%s"이(가) 존재하지 않습니다.';
+L['Left Stick X'] = '왼쪽 스틱 X';
+L['Left Stick Y'] = '왼쪽 스틱 Y';
+L['Left Trigger'] = '왼쪽 트리거';
+L['Modifier condition of the element. Accepts pairs of a macro condition and a modifier.'] = '요소의 조합키 조건입니다. 매크로 조건과 조합키의 쌍을 받습니다.';
+L['Module selection now lives in the AddOns list; your modules were restored there.'] = '모듈 선택은 이제 애드온 목록에서 이루어지며, 사용하던 모듈은 그곳에 복원되었습니다.';
+L['No active config found.'] = '활성 구성을 찾을 수 없습니다.';
+L['No connected devices found.'] = '연결된 장치를 찾을 수 없습니다.';
+L['NoCombat'] = '비전투 시';
+L['Nomod'] = '조합키 없음';
+L['Normal'] = '일반';
+L['Normal scale.'] = '일반 배율.';
+L['Off'] = '끄기';
+L['Opacity condition of the element. Accepts pairs of a macro condition and an opacity in percentage, or a single opacity value.'] = '요소의 불투명도 조건입니다. 매크로 조건과 백분율 불투명도의 쌍 또는 단일 불투명도 값을 받습니다.';
+L['Page condition of the element. Accepts pairs of a macro condition and a page identifier, or a single page number.'] = '요소의 페이지 조건입니다. 매크로 조건과 페이지 식별자의 쌍 또는 단일 페이지 번호를 받습니다.';
+L['Page number to forward to the response handler.'] = '응답 처리기로 전달할 페이지 번호입니다.';
+L['Petring'] = '소환수 원형 메뉴';
+L['Ping'] = '신호';
+L['Player'] = '플레이어';
+L['Player action bar setup.'] = '플레이어 행동 단축바 설정.';
+L['Player is in a pet battle.'] = '플레이어가 애완동물 대결 중입니다.';
+L['Possess bar is visible, such as Mind Control or Eyes of the Beast.'] = '정신 지배나 야수의 눈처럼 빙의 단축바가 표시되는 상태입니다.';
+L['Prefix for matching a modifier being held.'] = '누르고 있는 조합키와 일치시키기 위한 접두사입니다.';
+L['Preset %s cannot be modified.'] = '프리셋 %s은(는) 수정할 수 없습니다.';
+L['Preset %s has been applied.'] = '프리셋 %s이(가) 적용되었습니다.';
+L['Preset %s has been created.'] = '프리셋 %s이(가) 생성되었습니다.';
+L['Preset %s has been deleted.'] = '프리셋 %s이(가) 삭제되었습니다.';
+L['Preset %s is not a valid layout.'] = '프리셋 %s은(는) 유효한 레이아웃이 아닙니다.';
+L['Preset icon cannot be empty.'] = '프리셋 아이콘은 비워 둘 수 없습니다.';
+L['Preset key %s already exists.'] = '프리셋 키 %s이(가) 이미 존재합니다.';
+L['Preset key cannot be empty.'] = '프리셋 키는 비워 둘 수 없습니다.';
+L['Preset key is unchanged.'] = '프리셋 키가 변경되지 않았습니다.';
+L['Preset name cannot be empty.'] = '프리셋 이름은 비워 둘 수 없습니다.';
+L['Raid cursor scan failed due to combat lockdown. Waiting for combat to end...'] = '전투 잠금으로 인해 공격대 커서 스캔에 실패했습니다. 전투가 끝나기를 기다리는 중...';
+L['Redirect'] = '라우팅';
+L['Reduce Camera Motion'] = '카메라 움직임 완화';
+L['Removed bindings that cannot be used: %s'] = '사용할 수 없는 단축키가 제거되었습니다: %s';
+L['Requires |cff0070ddL[Button Set]|r > |cff0070ddL[Custom]|r to control each button individually.'] = '각 버튼을 개별적으로 제어하려면 |cff0070ddL[Button Set]|r > |cff0070ddL[Custom]|r 설정이 필요합니다.';
+L['Resolves to the current override or vehicle page.'] = '현재 재정의 또는 차량 페이지로 결정됩니다.';
+L['Right'] = '오른쪽';
+L['Right Stick X'] = '오른쪽 스틱 X';
+L['Right Stick Y'] = '오른쪽 스틱 Y';
+L['Right Trigger'] = '오른쪽 트리거';
+L['Rings settings have been reset to default.'] = '원형 메뉴 설정이 기본값으로 재설정되었습니다.';
+L['Scale condition of the element. Accepts pairs of a macro condition and a scale in percentage, or a single scale value.'] = '요소의 배율 조건입니다. 매크로 조건과 백분율 배율의 쌍 또는 단일 배율 값을 받습니다.';
+L['Scales the element to the applicable scale.'] = '요소를 해당하는 배율로 조정합니다.';
+L['Selected page 1 (default)'] = '선택된 페이지 1 (기본값)';
+L['Selected page 2'] = '선택된 페이지 2';
+L['Selected page 3'] = '선택된 페이지 3';
+L['Selected page 4'] = '선택된 페이지 4';
+L['Selected page 5'] = '선택된 페이지 5';
+L['Selected page 6'] = '선택된 페이지 6';
+L['Sends the resulting page to the response handler for post-processing.'] = '결과 페이지를 후처리를 위해 응답 처리기로 보냅니다.';
+L['Sets or unsets applicable bindings to the element.'] = '해당하는 단축키를 요소에 설정하거나 해제합니다.';
+L['Sets the height of the texture to the applicable value.'] = '텍스처의 높이를 해당하는 값으로 설정합니다.';
+L['Sets the resulting page to the action headers, which in turn update the action buttons.'] = '결과 페이지를 행동 헤더에 설정하며, 행동 헤더가 행동 단축 버튼을 갱신합니다.';
+L['Sets the visibility of all action bar components based on the result of the condition.'] = '조건의 결과에 따라 모든 행동 단축바 구성 요소의 표시 여부를 설정합니다.';
+L['Sets the width of the texture to the applicable value.'] = '텍스처의 너비를 해당하는 값으로 설정합니다.';
+L['Settings have been reset to default.'] = '설정이 기본값으로 재설정되었습니다.';
+L['Shorthand for no modifiers.'] = '조합키 없음의 줄임 표기입니다.';
+L['Shorthand for the Alt modifier.'] = 'Alt 조합키의 줄임 표기입니다.';
+L['Shorthand for the Ctrl modifier.'] = 'Ctrl 조합키의 줄임 표기입니다.';
+L['Shorthand for the Shift modifier.'] = 'Shift 조합키의 줄임 표기입니다.';
+L['Show Buffs'] = '강화 지속효과 표시';
+L['Show Debuffs'] = '약화 지속효과 표시';
+L['Show the action bar(s).'] = '행동 단축바를 표시합니다.';
+L['Show the element.'] = '요소를 표시합니다.';
+L['Shows or hides the element based on the condition.'] = '조건에 따라 요소를 표시하거나 숨깁니다.';
+L['Shows the applicable atlas or texture file. A value containing a slash is a texture path, anything else is an atlas name.'] = '해당하는 아틀라스 또는 텍스처 파일을 표시합니다. 슬래시가 포함된 값은 텍스처 경로이고, 그 외에는 아틀라스 이름입니다.';
+L['Skipped layout element %s: %s'] = '레이아웃 요소 %s을(를) 건너뛰었습니다: %s';
+L['Snap'] = '스냅';
+L['Stance/Form 1'] = '태세/변신 1';
+L['Stance/Form 2'] = '태세/변신 2';
+L['Stance/Form 3'] = '태세/변신 3';
+L['Stance/Form 4'] = '태세/변신 4';
+L['States'] = '상태';
+L['Static page number to swap to.'] = '전환할 고정 페이지 번호입니다.';
+L['Swaps the buttons to show the applicable modifier.'] = '해당하는 조합키를 표시하도록 버튼을 전환합니다.';
+L['Tapping the same modifier twice needs the Doubled Bar option enabled.'] = '같은 조합키를 두 번 탭하려면 이중 단축바 옵션을 활성화해야 합니다.';
+L['Temporarily shapeshifted, but not forms or stances that have their own action bar.'] = '일시적으로 변신한 상태이며, 자체 행동 단축바가 있는 변신이나 태세는 제외됩니다.';
+L['TextureAtlas'] = '아틀라스 텍스처';
+L['TextureID'] = '텍스처 ID';
+L['TexturePath'] = '텍스처 경로';
+L['That button is reserved for %s.'] = '해당 버튼은 %s 전용으로 예약되어 있습니다.';
+L['The import data contains some outdated content. It will not be imported.'] = '가져올 데이터에 오래된 내용이 포함되어 있어 가져오지 않습니다.';
+L['The import data is invalid.'] = '가져올 데이터가 유효하지 않습니다.';
+L['The resulting page number to set on the action headers.'] = '행동 헤더에 설정할 결과 페이지 번호입니다.';
+L['The resulting value from the condition handler.'] = '조건 처리기의 결과 값입니다.';
+L['The same modifier twice is its doubled bar, reached by double tapping it.'] = '같은 조합키를 두 번 쓰면 해당 조합키의 이중 단축바이며, 두 번 탭하여 사용합니다.';
+L['This action will remove all your saved settings and reload your interface.'] = '이 작업은 저장된 모든 설정을 삭제하고 인터페이스를 다시 불러옵니다.';
+L['Those modifiers do not form a layer that can be bound.'] = '해당 조합키들은 단축키를 지정할 수 있는 레이어를 이루지 않습니다.';
+L['Timeout'] = '시간 초과';
+L['Tints the texture with the applicable color.'] = '텍스처를 해당하는 색상으로 물들입니다.';
+L['TouchPad X'] = '터치패드 X';
+L['TouchPad Y'] = '터치패드 Y';
+L['Unknown command |cFF00FFFF%s|r.'] = '알 수 없는 명령어 |cFF00FFFF%s|r.';
+L['Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r'] = '사용법: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
+L['Validating preset %s...'] = '프리셋 %s 검증 중...';
+L['Value %s set at %s.'] = '값 %s이(가) %s에 설정되었습니다.';
+L['Value found for %s:'] = '%s에서 찾은 값:';
+L['Value not found for %s.'] = '%s에서 값을 찾을 수 없습니다.';
+L['Variable |cFFFFFFFF%s|r reset to default.'] = '변수 |cFFFFFFFF%s|r이(가) 기본값으로 재설정되었습니다.';
+L['Variable |cFFFFFFFF%s|r updated to:'] = '변수 |cFFFFFFFF%s|r이(가) 다음 값으로 변경되었습니다:';
+L['Vehicle'] = '차량';
+L['Vehicle UI is active.'] = '차량 UI가 활성 상태입니다.';
+L['VehicleL'] = '왼쪽 차량';
+L['VehicleR'] = '오른쪽 차량';
+L['Vertex color condition of the texture. Accepts pairs of a macro condition and a hexadecimal color, or a single color.'] = '텍스처의 정점 색상 조건입니다. 매크로 조건과 16진수 색상의 쌍 또는 단일 색상을 받습니다.';
+L['Visibility condition of the element. Accepts pairs of a macro condition and a visibility state, or a single visibility state.'] = '요소의 표시 조건입니다. 매크로 조건과 표시 상태의 쌍 또는 단일 표시 상태를 받습니다.';
+L['Watchbar'] = '감시 막대';
+L['Width condition of the texture. Accepts pairs of a macro condition and a width, or a single width.'] = '텍스처의 너비 조건입니다. 매크로 조건과 너비의 쌍 또는 단일 너비를 받습니다.';
+L['Your gamepad configuration has changed.'] = '게임패드 구성이 변경되었습니다.';
+---------------------------------------------------------------
+-- Additional block entries (multi-line values)
+---------------------------------------------------------------
+L['Error while compiling:\n%s'] = [[컴파일 중 오류 발생:
+%s]];
+L['Failed to load %s. Reason: %s\nPlease check your installation.'] = [[%s을(를) 불러오지 못했습니다. 사유: %s
+설치 상태를 확인하십시오.]];
+L['Failed to set binding %s to %s.\nPlease report this bug using in-game customer support.\nSteps to resolve for now:\n1. Backup bindings.\n2. Exit the game completely.\n3. Remove WTF/Account/%s/bindings-cache.wtf.\n4. Restart the game and restore bindings from backup.'] = [[단축키 %s을(를) %s에 설정하지 못했습니다.
+게임 내 고객 지원을 통해 이 버그를 신고해 주십시오.
+임시 해결 방법:
+1. 단축키를 백업합니다.
+2. 게임을 완전히 종료합니다.
+3. WTF/Account/%s/bindings-cache.wtf 파일을 삭제합니다.
+4. 게임을 다시 시작하고 백업에서 단축키를 복원합니다.]];
+L['Invalid item removed from %s:\nID: %s\nLink: %s'] = [[%s에서 유효하지 않은 아이템이 제거되었습니다:
+ID: %s
+링크: %s]];
+L['Invalid raid cursor filter:\n%s\nThe default filter has been applied.'] = [[유효하지 않은 공격대 커서 필터:
+%s
+기본 필터가 적용되었습니다.]];
+L['Invalid spell removed from %s:\nID: %s\nLink: %s'] = [[%s에서 유효하지 않은 주문이 제거되었습니다:
+ID: %s
+링크: %s]];
+L['Method execution failed in %s handler:\n%s'] = [[%s 처리기에서 메서드 실행 실패:
+%s]];
+L['Raid cursor filter failed a test:\n%s\nThe default filter has been applied.'] = [[공격대 커서 필터가 테스트에 실패했습니다:
+%s
+기본 필터가 적용되었습니다.]];
+L['Script execution failed in %s handler:\n%s'] = [[%s 처리기에서 스크립트 실행 실패:
+%s]];
+L['Swaps the buttons to the applicable page, with the formula:\nslotID = (page - 1) * slots + offset + i'] = [[다음 공식에 따라 버튼을 해당하는 페이지로 전환합니다:
+slotID = (page - 1) * slots + offset + i]];
+L['Takes the format of...\n|cFF3FC7EB[condition] Preset Name; nil|r\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[다음 형식을 사용합니다...
+|cFF3FC7EB[조건] 프리셋 이름; nil|r
+
+자동 저장된 프리셋의 이름은 "캐릭터 (전문화) 서버" 형식이며, 클래식에서는 전문화 대신 직업을 사용합니다.
+
+프리셋은 조건이 충족되면 전투 중이 아닐 때 불러옵니다. 캐릭터 프리셋이 장치 프리셋보다 우선합니다.]];
+L['Takes the format of...\n|cff0070dd[condition] angle; nil|r\n...where each condition/angle is separated by a semicolon, and "nil" clears the override.'] = [[다음 형식을 사용합니다...
+|cff0070dd[조건] 각도; nil|r
+...각 조건/각도는 세미콜론으로 구분하며, "nil"은 재정의를 해제합니다.]];
+L['Takes the format of...\n|cff0070dd[condition] bindingID; nil|r\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.'] = [[다음 형식을 사용합니다...
+|cff0070dd[조건] bindingID; nil|r
+...각 조건/단축키는 세미콜론으로 구분하며, "nil"은 재정의를 해제합니다.]];
+L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r: 현재 검사 중인 프레임입니다.
+|cff0070ddunit|r: 해당 프레임의 현재 유닛 ID입니다.]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = '더하기';
+L['BACKGROUND'] = '배경';
+L['BLEND'] = '혼합';
+L['BOTTOM'] = '하단';
+L['BOTTOMLEFT'] = '좌측 하단';
+L['BOTTOMRIGHT'] = '우측 하단';
+L['CENTER'] = '중앙';
+L['DIALOG'] = '대화 상자';
+L['DOWN'] = '아래';
+L['FULLSCREEN'] = '전체 화면';
+L['FULLSCREEN_DIALOG'] = '전체 화면 대화 상자';
+L['HIGH'] = '높음';
+L['HORIZONTAL'] = '가로';
+L['KBM'] = '키보드 및 마우스';
+L['LEFT'] = '왼쪽';
+L['LOW'] = '낮음';
+L['MEDIUM'] = '중간';
+L['MONOCHROME'] = '단색';
+L['OUTLINE'] = '외곽선';
+L['RIGHT'] = '오른쪽';
+L['THICKOUTLINE'] = '굵은 외곽선';
+L['TOOLTIP'] = '툴팁';
+L['TOP'] = '상단';
+L['TOPLEFT'] = '좌측 상단';
+L['TOPRIGHT'] = '우측 상단';
+L['UP'] = '위';
+L['VERTICAL'] = '세로';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Ctrl';
+L['SHIFT'] = 'Shift';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Shift';
+L['CTRL-SHIFT'] = 'Ctrl-Shift';

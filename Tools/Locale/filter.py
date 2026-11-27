@@ -9,9 +9,6 @@
 #   3. Breadcrumb composites — strings shaped like `A|cff...| | |rB(|cff... | |rC)*`,
 #      assembled at runtime from atomic parts. The parts are extracted separately,
 #      so the composite would be redundant work.
-#   4. All-caps short identifiers (<= 24 chars, ALL_CAPS only) — these are
-#      typically API enum values like CENTER, HORIZONTAL, OUTLINE that should
-#      not be translated even when they show up as labels.
 #
 # Each dropped entry is written to a `rejected` map with the rule that caught it,
 # so review is auditable.
@@ -41,16 +38,8 @@ GLOBALSTRING_LINE = re.compile(
 # Embedded fallback values — only the ones I directly observed in this addon's
 # runtime collector output. The full list comes from GlobalStrings.lua.
 FALLBACK_GLOBALS = {
-    # Anchors / orientation
-    "CENTER", "TOP", "BOTTOM", "LEFT", "RIGHT",
-    "TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT",
-    "HORIZONTAL", "VERTICAL",
-    # Font flags / blend modes
-    "OUTLINE", "THICKOUTLINE", "MONOCHROME", "BLEND", "ADD",
     # Modifier keys (SHIFT_KEY_TEXT etc. resolve to these single tokens on enUS)
     "SHIFT", "CTRL", "ALT", "NONE",
-    # Magnitude
-    "LOW", "MEDIUM", "HIGH",
     # Common labels from FrameXML
     "Interface", "Bindings", "System", "Targeting",
     "Edit", "Dynamic", "Always", "Never",
@@ -72,8 +61,6 @@ MARKUP = re.compile(
 # We match the general form: literal text, then one or more separator+text
 # segments where the separator uses a |c...|r wrap around " | ".
 BREADCRUMB_SEP = re.compile(r"\|c[fF0-9a-fA-F]{8} \| \|r")
-
-ALL_CAPS = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
 # Curated locale key names. L('KEY', ...) is a lookup of a curated entry, not
 # a translatable English string. The value lives in Locale/enUS.lua and is
@@ -126,10 +113,6 @@ def is_breadcrumb(s: str) -> bool:
     return True
 
 
-def is_all_caps_short(s: str) -> bool:
-    return len(s) <= 24 and bool(ALL_CAPS.match(s))
-
-
 def filter_entries(
     entries: dict[str, list[dict]],
     globals_set: set[str],
@@ -145,8 +128,6 @@ def filter_entries(
             rule = "locale_key_lookup"
         elif text in globals_set:
             rule = "wow_global"
-        elif is_all_caps_short(text):
-            rule = "all_caps_enum"
         elif is_pure_markup(text):
             rule = "pure_markup"
         elif is_breadcrumb(text):
