@@ -1,33 +1,51 @@
 local env, db = CPAPI.GetEnv(...)
-local FadeIn, FadeOut = db.Alpha.FadeIn, db.Alpha.FadeOut;
-local IsSecret = CPAPI.IsSecret;
+local FadeIn, FadeOut, CancelFade = db.Alpha.FadeIn, db.Alpha.FadeOut, db.Alpha.CancelFade;
+local IsSecret, SmoothStep = CPAPI.IsSecret, env.SmoothStep;
+local GetTime, Lerp, UnitExists = GetTime, Lerp, UnitExists;
+local cos, sin, floor, max, rad = math.cos, math.sin, math.floor, math.max, math.rad;
 ---------------------------------------------------------------
-local PET_STATUS_TEXTURE      = env.GetAsset[[Textures\PetRing\StatusFill]];
-local PET_STATE_MASK          = env.GetAsset[[Textures\PetRing\StateMask]];
-local PET_STATE_OUTLINE       = env.GetAsset[[Textures\PetRing\StateOutline]];
-local PET_STATE_PULSE         = env.GetAsset[[Textures\PetRing\StatePulse]];
-local PET_COOLDOWN_SWIPE      = env.GetAsset[[Textures\PetRing\CooldownSwipe]];
-local HALF_MASK               = env.GetAsset[[Textures\Masks\PetPowerMask]];
-local PET_COOLDOWN_ALPHA      = 163 / 255; -- Fixed black shading for pet slots.
-local COOLDOWN_SIZE           = 48;
-local SWIPE_ATLAS_GRID_SIZE   = 4;
-local TEXTURED_RIM_BRIGHTNESS = 0.86; -- Resting brightness of the gold and beveled rims.
-local UPDATE_INTERVAL         = 0.1; -- Refresh status and check for expired wedge cooldowns ten times per second.
--- Autocast is yellow, an active command is amber, and a pet action briefly flashes pale gold.
-local AUTOCAST_GLOW                 = {1; 240 / 255; 77 / 255;};
-local ACTIVE_GLOW                   = {1; 214 / 255; 125 / 255;};
-local ACTION_GLOW                   = {1; .93; .72;};
--- Outline fades are in seconds. The expanding pulse lasts 0.48 s and peaks 23% of the way through.
-local GLOW_FADE_IN, GLOW_FADE_OUT   = .18, .38;
-local PULSE_DURATION, PULSE_PEAK    = .48, .23;
-local PULSE_MIN_SIZE, PULSE_MAX_SIZE = 10.4, 55; -- Pulse size in UI units before the wedge mask clips it.
--- State changes have a stronger flash than individual casts or attacks.
-local STATE_PULSE_ALPHA, ACTION_PULSE_ALPHA = .72, .54;
-local ACTION_PULSE_INTERVAL         = .12; -- Seconds to suppress duplicate action events.
+local CLUSTER_DESIGN       = env.Const.ClusterDesign;
+local PET_STATUS_TEXTURE   = env.GetAsset([[Textures\PetRing\StatusFill]]);
+local PET_STATE_MASK       = env.GetAsset([[Textures\PetRing\StateMask]]);
+local PET_STATE_OUTLINE    = env.GetAsset([[Textures\PetRing\StateOutline]]);
+local PET_STATE_PULSE      = env.GetAsset([[Textures\PetRing\StatePulse]]);
+local PET_COOLDOWN_SWIPE   = env.GetAsset([[Textures\PetRing\CooldownSwipe]]);
+local PET_HALF_PLANE_MASK  = env.GetAsset([[Textures\Masks\PetPowerMask]]);
+local PET_RING_TEXTURE_SET = [[Textures\PetRing\%s]];
+local MASK_WRAP_MODE       = 'CLAMPTOBLACKADDITIVE';
+---------------------------------------------------------------
+local SLOT_RADIUS              = 68;
+local SLOT_AT_THREE_OCLOCK     = 4;
+local SLOT_OVERLAY_OUTSET      = 6;
+local RIM_MASK_OUTSET          = 2;
+local ICON_LEVELS_BELOW_WHEEL  = 3;
+local SWIPE_LEVELS_BELOW_WHEEL = 2;
+local GLOW_LEVELS_BELOW_WHEEL  = 1;
+local COOLDOWN_SIZE            = 48;
+local COOLDOWN_SHADE_ALPHA     = 163 / 255;
+local SWIPE_ATLAS_GRID_SIZE    = 4;
+local TEXTURED_RIM_BRIGHTNESS  = 0.86;
+local PUSHED_RIM_BRIGHTNESS    = 0.6;
+local HOVER_RIM_ALPHA          = 0.55;
+local UPDATE_INTERVAL          = 0.1;
+---------------------------------------------------------------
+local AUTOCAST_GLOW         = {1; 240 / 255; 77 / 255;};
+local ACTIVE_GLOW           = {1; 214 / 255; 125 / 255;};
+local ACTION_GLOW           = {1; 0.93; 0.72;};
+local GLOW_FADE_IN          = 0.18;
+local GLOW_FADE_OUT         = 0.38;
+local PULSE_DURATION        = 0.48;
+local PULSE_PEAK_PROGRESS   = 0.23;
+local PULSE_MIN_SIZE        = 10.4;
+local PULSE_MAX_SIZE        = 55;
+local STATE_PULSE_ALPHA     = 0.72;
+local ACTION_PULSE_ALPHA    = 0.54;
+local ACTION_PULSE_DEBOUNCE = 0.12;
+---------------------------------------------------------------
 local getCombatEvent = not CPAPI.IsModernVersion and CombatLogGetCurrentEventInfo;
 
 local function getPetRingTextures(style)
-	local path = env.GetAsset([[Textures\PetRing\%s]], style);
+	local path = env.GetAsset(PET_RING_TEXTURE_SET, style);
 	return {
 		Portrait = path .. 'Portrait';
 		Wheel    = path .. 'Wheel';
@@ -36,62 +54,122 @@ local function getPetRingTextures(style)
 	};
 end
 
+local ROUND_SILVER_TEXTURES   = getPetRingTextures('RoundSilver');
+local BEVELED_SILVER_TEXTURES = getPetRingTextures('BeveledSilver');
+local GOLD_TEXTURES           = getPetRingTextures('Gold');
+
 local PET_RING_TEXTURES = {
-	Original = getPetRingTextures('RoundSilver');
-	Beveled  = getPetRingTextures('BeveledSilver');
-	Gold     = getPetRingTextures('Gold');
+	[CLUSTER_DESIGN.Original]     = ROUND_SILVER_TEXTURES;
+	[CLUSTER_DESIGN.OriginalGold] = GOLD_TEXTURES;
+	[CLUSTER_DESIGN.Hex]          = GOLD_TEXTURES;
+	[CLUSTER_DESIGN.Squared]      = GOLD_TEXTURES;
+	[CLUSTER_DESIGN.Beveled]      = BEVELED_SILVER_TEXTURES;
 };
+
+---------------------------------------------------------------
+-- Client capabilities
+---------------------------------------------------------------
+local setOwnFrameLevel, setCooldownSwipe, disablePixelSnapping;
+do  local probe    = CreateFrame('Cooldown');
+	local Cooldown = getmetatable(probe).__index;
+	local Texture  = getmetatable(probe:CreateTexture()).__index;
+
+	if Cooldown.SetUsingParentLevel then
+		function setOwnFrameLevel(cooldown, level)
+			cooldown:SetUsingParentLevel(false)
+			cooldown:SetFrameLevel(level)
+		end
+	else
+		function setOwnFrameLevel(cooldown, level)
+			cooldown:SetFrameLevel(level)
+		end
+	end
+
+	if Cooldown.SetTexCoordRange then
+		function setCooldownSwipe(cooldown, button, index, level)
+			local column = (index - 1) % SWIPE_ATLAS_GRID_SIZE;
+			local row    = floor((index - 1) / SWIPE_ATLAS_GRID_SIZE);
+			cooldown:ClearAllPoints()
+			cooldown:SetPoint('CENTER', button)
+			cooldown:SetSize(COOLDOWN_SIZE, COOLDOWN_SIZE)
+			setOwnFrameLevel(cooldown, level)
+			cooldown:SetSwipeTexture(PET_COOLDOWN_SWIPE, 0, 0, 0, COOLDOWN_SHADE_ALPHA)
+			cooldown:SetTexCoordRange(
+				{x = column / SWIPE_ATLAS_GRID_SIZE; y = row / SWIPE_ATLAS_GRID_SIZE;},
+				{x = (column + 1) / SWIPE_ATLAS_GRID_SIZE; y = (row + 1) / SWIPE_ATLAS_GRID_SIZE;})
+			cooldown:SetDrawSwipe(true)
+		end
+	else
+		function setCooldownSwipe(cooldown)
+			cooldown:SetDrawSwipe(false)
+		end
+	end
+
+	if Texture.SetTexelSnappingBias and Texture.SetSnapToPixelGrid then
+		function disablePixelSnapping(region)
+			region:SetTexelSnappingBias(0)
+			region:SetSnapToPixelGrid(false)
+		end
+	else
+		disablePixelSnapping = nop;
+	end
+end
+
 ---------------------------------------------------------------
 CPPetRingButton = Mixin({
 ---------------------------------------------------------------
 	ActiveIconVertex   = CreateColor(1.0, 1.0, 1.0);
 	InactiveIconVertex = CreateColor(0.4, 0.4, 0.4);
 }, CPActionButtonMixin);
----------------------------------------------------------------
 
-local function animateStateGlow(glow)
-	local now = GetTime();
-	if glow.fadeStart then
-		local enabled  = glow.color ~= nil;
-		local duration = enabled and GLOW_FADE_IN or GLOW_FADE_OUT;
-		local progress = math.min(1, (now - glow.fadeStart) / duration);
-		glow.Outline:SetAlpha(Lerp(glow.startAlpha, enabled and 1 or 0, env.SmoothStep(progress)))
-		if progress == 1 then glow.fadeStart = nil end;
+---------------------------------------------------------------
+-- State glow
+---------------------------------------------------------------
+local function easeOutQuad(progress)
+	return 1 - (1 - progress) ^ 2;
+end
+
+local function stopGlowPulse(glow)
+	glow.pulseStart, glow.pulseColor, glow.pulseAlpha = nil, nil, nil;
+	glow.Pulse:Hide()
+	glow:SetScript('OnUpdate', nil)
+end
+
+local function animateGlowPulse(glow)
+	local progress = (GetTime() - glow.pulseStart) / PULSE_DURATION;
+	if ( progress >= 1 ) then
+		return stopGlowPulse(glow);
 	end
-	if glow.pulseStart then
-		local progress = (now - glow.pulseStart) / PULSE_DURATION;
-		if progress >= 1 then
-			glow.pulseStart, glow.pulseColor = nil, nil;
-			glow.Pulse:Hide()
-		else
-			local intensity = progress < PULSE_PEAK and env.SmoothStep(progress / PULSE_PEAK)
-				or env.SmoothStep((1 - progress) / (1 - PULSE_PEAK));
-			-- Quadratic ease-out makes the pulse expand quickly, then settle against the rim.
-			local size  = Lerp(PULSE_MIN_SIZE, PULSE_MAX_SIZE, 1 - (1 - progress) ^ 2);
-			local alpha = glow.pulseColor == ACTION_GLOW and ACTION_PULSE_ALPHA or STATE_PULSE_ALPHA;
-			glow.Pulse:SetSize(size, size)
-			glow.Pulse:SetAlpha(alpha * intensity)
-		end
-	end
-	if not (glow.fadeStart or glow.pulseStart) then
-		glow:SetScript('OnUpdate', nil)
-	end
+	local intensity = progress < PULSE_PEAK_PROGRESS
+		and SmoothStep(progress / PULSE_PEAK_PROGRESS)
+		or  SmoothStep((1 - progress) / (1 - PULSE_PEAK_PROGRESS));
+	local size = Lerp(PULSE_MIN_SIZE, PULSE_MAX_SIZE, easeOutQuad(progress));
+	glow.Pulse:SetSize(size, size)
+	glow.Pulse:SetAlpha(glow.pulseAlpha * intensity)
+end
+
+local function playGlowPulse(glow, color, peakAlpha)
+	glow.pulseStart, glow.pulseColor, glow.pulseAlpha = GetTime(), color, peakAlpha;
+	glow.Pulse:SetVertexColor(unpack(color))
+	glow.Pulse:Show()
+	glow:SetScript('OnUpdate', animateGlowPulse)
+	animateGlowPulse(glow)
 end
 
 local function createStateGlow(button)
 	local wheel = button:GetParent().Ring;
 	local glow  = CreateFrame('Frame', nil, button);
 	glow:SetAllPoints(button)
-	glow:SetFrameLevel(wheel:GetFrameLevel() - 1)
-	-- Both wedge textures use the right-hand slot in the wheel's coordinate space.
+	glow:SetFrameLevel(wheel:GetFrameLevel() - GLOW_LEVELS_BELOW_WHEEL)
+
 	local mask = glow:CreateMaskTexture(nil, 'ARTWORK');
 	mask:SetAllPoints(wheel.Mask)
-	mask:SetTexture(PET_STATE_MASK, 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
+	mask:SetTexture(PET_STATE_MASK, MASK_WRAP_MODE, MASK_WRAP_MODE)
 	mask:SetRotation(button.wedgeRotation)
 
 	local outline = glow:CreateTexture(nil, 'ARTWORK', nil, 1);
 	outline:SetAllPoints(wheel.Mask)
-	outline:SetTexture(PET_STATE_OUTLINE, 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
+	outline:SetTexture(PET_STATE_OUTLINE, MASK_WRAP_MODE, MASK_WRAP_MODE)
 	outline:SetRotation(button.wedgeRotation)
 	outline:SetBlendMode('BLEND')
 	outline:SetAlpha(0)
@@ -107,54 +185,100 @@ local function createStateGlow(button)
 	return glow;
 end
 
-local function playGlowPulse(glow, color)
-	glow.pulseStart, glow.pulseColor = GetTime(), color;
-	glow.Pulse:SetVertexColor(unpack(color))
-	glow.Pulse:Show()
-	glow:SetScript('OnUpdate', animateStateGlow)
-	animateStateGlow(glow)
-end
-
 function CPPetRingButton:PlayActionPulse()
 	if not self:IsVisible() then return end;
-	local now = GetTime();
-	-- A cast can be reported by both the unit event and the classic combat log.
-	if self.lastActionPulse and now - self.lastActionPulse < ACTION_PULSE_INTERVAL then return end;
+	local now, last = GetTime(), self.lastActionPulse;
+	if ( last and now - last < ACTION_PULSE_DEBOUNCE ) then return end;
 	self.lastActionPulse = now;
-	playGlowPulse(self.StateGlow or createStateGlow(self), ACTION_GLOW)
+	playGlowPulse(self.StateGlow or createStateGlow(self), ACTION_GLOW, ACTION_PULSE_ALPHA)
 end
 
 function CPPetRingButton:UpdateStateGlow(color, actionChanged)
 	local glow = self.StateGlow;
-	if not (color or glow) then return end;
+	if not ( color or glow ) then return end;
 	glow = glow or createStateGlow(self);
-	if glow.color == color and not actionChanged then return end;
+	if ( glow.color == color and not actionChanged ) then return end;
 	glow.color = color;
 	if color then
 		glow.Outline:SetVertexColor(unpack(color))
 	end
-	if actionChanged or not self:IsVisible() then
-		glow.fadeStart, glow.pulseStart, glow.pulseColor = nil, nil, nil;
-		glow:SetScript('OnUpdate', nil)
-		glow.Outline:SetAlpha(color and 1 or 0)
-		glow.Pulse:Hide()
-		return;
+
+	local outline = glow.Outline;
+	local alpha   = outline:GetAlpha();
+	if ( actionChanged or not self:IsVisible() or IsSecret(alpha) ) then
+		stopGlowPulse(glow)
+		CancelFade(outline)
+		return outline:SetAlpha(color and 1 or 0);
 	end
-	glow.fadeStart, glow.startAlpha = GetTime(), glow.Outline:GetAlpha();
-	glow:SetScript('OnUpdate', animateStateGlow)
-	if color and glow.pulseColor ~= ACTION_GLOW then playGlowPulse(glow, color) end;
+	if not color then
+		return FadeOut(outline, GLOW_FADE_OUT, alpha, 0);
+	end
+	FadeIn(outline, GLOW_FADE_IN, alpha, 1)
+	if ( glow.pulseColor ~= ACTION_GLOW ) then
+		playGlowPulse(glow, color, STATE_PULSE_ALPHA)
+	end
+end
+
+---------------------------------------------------------------
+-- Button setup
+---------------------------------------------------------------
+local function createWedgeRim(button, wheel, slotAngle)
+	local rim = button:CreateTexture(nil, 'BACKGROUND');
+	rim:SetAllPoints(wheel)
+	local halfSlot = slotAngle / 2;
+	for _, halfPlaneRotation in ipairs({-halfSlot; math.pi + halfSlot}) do
+		local mask = button:CreateMaskTexture(nil, 'ARTWORK');
+		mask:SetPoint('TOPLEFT', wheel, 'TOPLEFT', -RIM_MASK_OUTSET, RIM_MASK_OUTSET)
+		mask:SetPoint('BOTTOMRIGHT', wheel, 'BOTTOMRIGHT', RIM_MASK_OUTSET, -RIM_MASK_OUTSET)
+		mask:SetTexture(PET_HALF_PLANE_MASK, MASK_WRAP_MODE, MASK_WRAP_MODE)
+		mask:SetRotation(button.wedgeRotation + halfPlaneRotation)
+		rim:AddMaskTexture(mask)
+	end
+	return rim;
+end
+
+local function moveIconBelowWheel(button, wheel)
+	local iconFrame = CreateFrame('Frame', nil, button);
+	iconFrame:SetAllPoints(button)
+	iconFrame:SetFrameLevel(wheel:GetFrameLevel() - ICON_LEVELS_BELOW_WHEEL)
+
+	local icon = button.icon;
+	icon:SetParent(iconFrame)
+	icon:SetDrawLayer('BACKGROUND')
+	icon:AddMaskTexture(wheel.Mask)
+	icon:SetRotation(button.textureRotation)
+	icon:SetAllPoints()
+end
+
+local function hideAutoCastArt(button, name)
+	local autocastable = button.AutoCastable or _G[name..'AutoCastable'];
+	local shine        = button.Shine or button.AutoCastShine or _G[name..'Shine'];
+	if autocastable then autocastable:Hide() end;
+	if shine then shine:Hide() end;
+	if button.AutoCastOverlay then button.AutoCastOverlay:Hide() end;
+end
+
+local function clearNormalTexture(texture)
+	texture:SetTexture(nil)
+	texture:ClearAllPoints()
+	texture:SetPoint('CENTER', 0, 0)
+end
+
+local function setSlotOverlay(texture, rotation, blendMode)
+	texture:SetPoint('TOPLEFT', -SLOT_OVERLAY_OUTSET, SLOT_OVERLAY_OUTSET)
+	texture:SetPoint('BOTTOMRIGHT', SLOT_OVERLAY_OUTSET, -SLOT_OVERLAY_OUTSET)
+	texture:SetRotation(rotation)
+	texture:SetBlendMode(blendMode)
 end
 
 function CPPetRingButton:Init(i)
-	local radius = 68;
-	-- Slot four is at three o'clock. Advance clockwise by one wedge per slot.
 	local slotAngle = rad(360 / NUM_PET_ACTION_SLOTS);
-	local angle = (i - 4) * slotAngle;
+	local angle     = (i - SLOT_AT_THREE_OCLOCK) * slotAngle;
 
 	self.textureRotation = rad(270) - angle;
-	self.wedgeRotation    = -angle;
+	self.wedgeRotation   = -angle;
 	self:SetAttribute('action', i)
-	self:SetPoint('CENTER', radius * math.cos(angle), -radius * math.sin(angle))
+	self:SetPoint('CENTER', SLOT_RADIUS * cos(angle), -SLOT_RADIUS * sin(angle))
 
 	local name = self:GetName()
 	self.cooldown       = self.cooldown or _G[name..'Cooldown'];
@@ -173,77 +297,22 @@ function CPPetRingButton:Init(i)
 		self.icon:RemoveMaskTexture(self.IconMask)
 	end
 	local wheel = self:GetParent().Ring;
-	-- Keep the wheel art aligned across buttons. Two half-plane masks meet at the
-	-- slot boundaries, so this button's alpha fades exactly its own piece of the rim.
-	local rim = self:CreateTexture(nil, 'BACKGROUND');
-	rim:SetAllPoints(wheel)
-	local halfSlot = slotAngle / 2;
-	for _, rotation in ipairs({-halfSlot; math.pi + halfSlot}) do
-		local mask = self:CreateMaskTexture(nil, 'ARTWORK');
-		-- Extend the rotated mask past the wheel's antialiased outer edge.
-		mask:SetPoint('TOPLEFT', wheel, 'TOPLEFT', -2, 2)
-		mask:SetPoint('BOTTOMRIGHT', wheel, 'BOTTOMRIGHT', 2, -2)
-		mask:SetTexture(HALF_MASK, 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
-		mask:SetRotation(self.wedgeRotation + rotation)
-		rim:AddMaskTexture(mask)
-	end
-	self.Rim = rim;
+	self.Rim = createWedgeRim(self, wheel, slotAngle);
+	moveIconBelowWheel(self, wheel)
+	hideAutoCastArt(self, name)
 
-	-- Stack the icon, swipe, glow, and wheel rim in that order.
-	local iconFrame = CreateFrame('Frame', nil, self);
-	iconFrame:SetAllPoints(self)
-	iconFrame:SetFrameLevel(wheel:GetFrameLevel() - 3)
-	self.icon:SetParent(iconFrame)
-	self.icon:SetDrawLayer('BACKGROUND')
-	self.icon:AddMaskTexture(wheel.Mask)
-	self.icon:SetRotation(self.textureRotation)
-	self.icon:SetAllPoints()
-
-	local autocastable = self.AutoCastable or _G[name..'AutoCastable'];
-	local shine       = self.Shine or self.AutoCastShine or _G[name..'Shine'];
-	if autocastable then autocastable:Hide() end;
-	if shine then shine:Hide() end;
-	if self.AutoCastOverlay then self.AutoCastOverlay:Hide() end;
-
-	self.NormalTexture:SetTexture(nil)
-	self.NormalTexture:ClearAllPoints()
-	self.NormalTexture:SetPoint('CENTER', 0, 0)
-
-	self.NormalTexture2:SetTexture(nil)
-	self.NormalTexture2:ClearAllPoints()
-	self.NormalTexture2:SetPoint('CENTER', 0, 0)
+	clearNormalTexture(self.NormalTexture)
+	clearNormalTexture(self.NormalTexture2)
 
 	self.PushedTexture    = self:GetPushedTexture()
 	self.HighlightTexture = self:GetHighlightTexture()
 	self:GetCheckedTexture():SetTexture(nil)
 
-	self.PushedTexture:SetPoint('TOPLEFT', -6, 6)
-	self.PushedTexture:SetPoint('BOTTOMRIGHT', 6, -6)
-	self.PushedTexture:SetRotation(self.textureRotation)
-	self.PushedTexture:SetBlendMode('BLEND')
-
-	self.HighlightTexture:SetPoint('TOPLEFT', -6, 6)
-	self.HighlightTexture:SetPoint('BOTTOMRIGHT', 6, -6)
-	self.HighlightTexture:SetRotation(self.textureRotation)
-	self.HighlightTexture:SetBlendMode('ADD')
+	setSlotOverlay(self.PushedTexture, self.textureRotation, 'BLEND')
+	setSlotOverlay(self.HighlightTexture, self.textureRotation, 'ADD')
 
 	local cooldown = self.cooldown;
-	local canMask = cooldown.SetTexCoordRange ~= nil;
-	if canMask then
-		-- Each cell covers a 48-unit square centered on its pet action slot.
-		local x = (i - 1) % SWIPE_ATLAS_GRID_SIZE;
-		local y = math.floor((i - 1) / SWIPE_ATLAS_GRID_SIZE);
-		cooldown:ClearAllPoints()
-		cooldown:SetPoint('CENTER', self)
-		cooldown:SetSize(COOLDOWN_SIZE, COOLDOWN_SIZE)
-		if cooldown.SetUsingParentLevel then cooldown:SetUsingParentLevel(false) end;
-		cooldown:SetFrameLevel(wheel:GetFrameLevel() - 2)
-		cooldown:SetSwipeTexture(PET_COOLDOWN_SWIPE, 0, 0, 0, PET_COOLDOWN_ALPHA)
-		cooldown:SetTexCoordRange(
-			{x = x / SWIPE_ATLAS_GRID_SIZE; y = y / SWIPE_ATLAS_GRID_SIZE;},
-			{x = (x + 1) / SWIPE_ATLAS_GRID_SIZE; y = (y + 1) / SWIPE_ATLAS_GRID_SIZE;})
-	end
-	cooldown:SetDrawSwipe(canMask)
+	setCooldownSwipe(cooldown, self, i, wheel:GetFrameLevel() - SWIPE_LEVELS_BELOW_WHEEL)
 	cooldown:SetDrawBling(false)
 	cooldown:SetHideCountdownNumbers(false)
 end
@@ -262,7 +331,8 @@ function CPPetRingButton:OnEnter()
 		GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
 		local bindingText = GetBindingText(GetBindingKey('BONUSACTIONBUTTON'..self:GetID()))
 		if ( bindingText and bindingText ~= '' ) then
-			GameTooltip:SetText(self.tooltipName..NORMAL_FONT_COLOR_CODE..' ('..bindingText..')'..FONT_COLOR_CODE_CLOSE, 1.0, 1.0, 1.0)
+			local binding = NORMAL_FONT_COLOR_CODE..' ('..bindingText..')'..FONT_COLOR_CODE_CLOSE;
+			GameTooltip:SetText(self.tooltipName..binding, 1.0, 1.0, 1.0)
 		else
 			GameTooltip:SetText(self.tooltipName, 1.0, 1.0, 1.0)
 		end
@@ -289,26 +359,64 @@ function CPPetRingButton:OnSizeChanged(width, height)
 	self.NormalTexture2:SetSize(normalX, normalY)
 end
 
+---------------------------------------------------------------
+-- Button state
+---------------------------------------------------------------
+local function hasActionChanged(self, name, texture)
+	if IsSecret(name) or IsSecret(texture) then return false end;
+	local changed = name ~= self.petActionName or texture ~= self.petActionTexture;
+	self.petActionName, self.petActionTexture = name, texture;
+	return changed;
+end
+
+local function showActionIcon(self, texture, isToken)
+	if IsSecret(texture) then
+		self.hasPetAction = true;
+		self.icon:SetDesaturated(false)
+		return self.icon:SetTexture(texture);
+	end
+	self.hasPetAction = not not texture;
+	if IsSecret(isToken) or not isToken then
+		return self:SetIcon(texture);
+	end
+	self:SetIcon(_G[texture])
+end
+
+local function setTooltipName(self, name, isToken)
+	if IsSecret(name) or IsSecret(isToken) then return end;
+	if ( not isToken ) then
+		self.tooltipName = name;
+	else
+		self.tooltipName = _G[name];
+	end
+end
+
+local function showActionState(self, isActive, autoCastAllowed, autoCastEnabled, actionChanged)
+	if IsSecret(isActive) then
+		return self:SetChecked(isActive);
+	end
+	self:SetChecked(not not isActive)
+	if IsSecret(autoCastAllowed) or IsSecret(autoCastEnabled) then return end;
+	local color = autoCastAllowed and autoCastEnabled and AUTOCAST_GLOW or isActive and ACTIVE_GLOW;
+	self:UpdateStateGlow(self.hasPetAction and color or nil, actionChanged)
+end
+
+local function showActionUsable(self, usable)
+	if IsSecret(usable) then return end;
+	local color = usable and self.ActiveIconVertex or self.InactiveIconVertex;
+	self.icon:SetVertexColor(color:GetRGBA())
+end
+
 function CPPetRingButton:Update()
 	local i = self:GetID()
 	local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled = GetPetActionInfo(i)
-	local actionChanged = name ~= self.petActionName or texture ~= self.petActionTexture;
-	self.petActionName, self.petActionTexture = name, texture;
+	local actionChanged = hasActionChanged(self, name, texture);
 	if actionChanged then self.lastActionPulse = nil end;
-	self.hasPetAction = not not texture;
-	if ( not isToken ) then
-		self:SetIcon(texture)
-		self.tooltipName = name;
-	else
-		self:SetIcon(_G[texture])
-		self.tooltipName = _G[name];
-	end
-	self:SetChecked(not not isActive)
-	local color = texture and (autoCastAllowed and autoCastEnabled and AUTOCAST_GLOW or isActive and ACTIVE_GLOW);
-	self:UpdateStateGlow(color or nil, actionChanged)
-	if ( texture ) then
-		local color = GetPetActionSlotUsable(i) and self.ActiveIconVertex or self.InactiveIconVertex;
-		self.icon:SetVertexColor(color:GetRGBA())
+	showActionIcon(self, texture, isToken)
+	setTooltipName(self, name, isToken)
+	showActionState(self, isActive, autoCastAllowed, autoCastEnabled, actionChanged)
+	if self.hasPetAction then
+		showActionUsable(self, GetPetActionSlotUsable(i))
 	else
 		self:UpdateEmptySlotColor(env:IsGoldClusterDesign())
 	end
@@ -319,11 +427,16 @@ function CPPetRingButton:UpdateFade(duration)
 	local show = self:GetParent().showAll or self.cooldownEnd ~= nil;
 	if self.fadeShown == show then return end;
 	self.fadeShown = show;
+	local alpha = self:GetAlpha();
+	if IsSecret(alpha) then
+		CancelFade(self)
+		return self:SetAlpha(show and 1 or 0);
+	end
 	local fade = show and FadeIn or FadeOut;
-	fade(self, duration, self:GetAlpha(), show and 1 or 0)
+	fade(self, duration, alpha, show and 1 or 0)
 end
 
-local function GetCooldownEnd(start, duration, enable, time)
+local function getCooldownEnd(start, duration, enable, time)
 	if IsSecret(start) or IsSecret(duration) or IsSecret(enable) then return end;
 	if not enable or enable == 0 or not start or not duration then return end;
 	if ( start <= 0 or duration <= 0 ) then return end;
@@ -334,7 +447,7 @@ end
 function CPPetRingButton:UpdateCooldown(time)
 	local start, duration, enable = GetPetActionCooldown(self:GetID())
 	CooldownFrame_Set(self.cooldown, start, duration, enable)
-	self.cooldownEnd = GetCooldownEnd(start, duration, enable, time or GetTime())
+	self.cooldownEnd = getCooldownEnd(start, duration, enable, time or GetTime())
 	self:UpdateFade(0.1)
 	if GameTooltip:IsOwned(self) then
 		self:OnEnter()
@@ -351,8 +464,7 @@ local HALF  = PI / 2;
 function CPPetRingPower:SetFillTexture(texture)
 	self.Fill:SetTexture(texture)
 	local width, height = self:GetSize()
-	-- Size the rotating square masks to the diagonal so their corners always cover the ring.
-	local maskSize = math.max(width, height) * SQRT2;
+	local maskSize = max(width, height) * SQRT2;
 	self.HalfMask:SetSize(maskSize, maskSize)
 	self.FillMask:SetSize(maskSize, maskSize)
 end
@@ -414,6 +526,7 @@ function CPPetRing:OnLoad()
 	self:UpdatePowerType()
 	self.Health:SetFillColor(0, 1, 0, 1)
 
+	env:RegisterCallback('OnLoadoutConfigShown', self.OnLoadoutConfigShown, self)
 	env:RegisterCallbacks(self.OnVariableChanged, self,
 		'Settings/borderColor',
 		'Settings/clusterDesign'
@@ -448,19 +561,15 @@ end
 local function setRimTexture(region, texture, r, g, b, a)
 	region:SetTexture(texture)
 	region:SetVertexColor(r, g, b, a)
-	if region.SetTexelSnappingBias and region.SetSnapToPixelGrid then
-		region:SetTexelSnappingBias(0)
-		region:SetSnapToPixelGrid(false)
-	end
+	disablePixelSnapping(region)
 end
 
 function CPPetRing:OnVariableChanged()
 	local goldBorders = env:IsGoldClusterDesign();
-	local beveled     = env('clusterDesign') == env.Const.ClusterDesign.Beveled;
-	local textures    = goldBorders and PET_RING_TEXTURES.Gold or beveled and PET_RING_TEXTURES.Beveled or PET_RING_TEXTURES.Original;
+	local textures    = PET_RING_TEXTURES[env('clusterDesign')] or ROUND_SILVER_TEXTURES;
+	local brightness  = textures == ROUND_SILVER_TEXTURES and 1 or TEXTURED_RIM_BRIGHTNESS;
 	local r, g, b, a  = env:GetColorRGBA('borderColor');
-	local rest = (goldBorders or beveled) and TEXTURED_RIM_BRIGHTNESS or 1;
-	local rimR, rimG, rimB = r * rest, g * rest, b * rest;
+	local rimR, rimG, rimB = r * brightness, g * brightness, b * brightness;
 	setRimTexture(self.Center.InnerBorder, textures.Portrait, rimR, rimG, rimB, a)
 	setRimTexture(self.Center.OuterBorder, textures.Status, rimR, rimG, rimB, a)
 
@@ -472,9 +581,9 @@ function CPPetRing:OnVariableChanged()
 	end
 	for _, button in ipairs(self.Buttons) do
 		setRimTexture(button.Rim, textures.Wheel, rimR, rimG, rimB, a)
-		-- Press darkens the rim to 60% brightness. Hover overlays the rim at 55% of its alpha.
-		setRimTexture(button.PushedTexture, textures.Slot, r * 0.60, g * 0.60, b * 0.60, a)
-		setRimTexture(button.HighlightTexture, textures.Slot, r, g, b, a * 0.55)
+		setRimTexture(button.PushedTexture, textures.Slot,
+			r * PUSHED_RIM_BRIGHTNESS, g * PUSHED_RIM_BRIGHTNESS, b * PUSHED_RIM_BRIGHTNESS, a)
+		setRimTexture(button.HighlightTexture, textures.Slot, r, g, b, a * HOVER_RIM_ALPHA)
 		button:UpdateEmptySlotColor(goldBorders)
 	end
 end
@@ -504,30 +613,32 @@ function CPPetRing:OnLeave()
 	self:UpdateFade()
 end
 
-do local UnitExists = UnitExists;
-	function CPPetRing:OnUpdate(elapsed)
-		self.elapsed = (self.elapsed or 0) + elapsed;
-		if self.elapsed < UPDATE_INTERVAL then return end;
-		self.elapsed = self.elapsed % UPDATE_INTERVAL;
-		if self.props.fade and self.showAll then
-			-- The editor can close or move the ring before mouse focus settles.
-			self:UpdateFade()
+local function updateExpiredCooldowns(self)
+	local time = GetTime();
+	for _, button in ipairs(self.Buttons) do
+		if ( button.cooldownEnd and button.cooldownEnd <= time ) then
+			button:UpdateCooldown(time)
 		end
-		if not self.showAll then
-			local time = GetTime();
-			for _, button in ipairs(self.Buttons) do
-				if button.cooldownEnd and button.cooldownEnd <= time then
-					button:UpdateCooldown(time)
-				end
-			end
-		end
-		if not self.props.status then return end;
-		local unit, powerType = self.unit, self.powerType;
-		if not UnitExists(unit) then return end;
-		self:UpdateHealth(unit)
-		if not powerType then return end;
-		self:UpdatePower(unit, powerType)
 	end
+end
+
+function CPPetRing:OnUpdate(elapsed)
+	self.elapsed = (self.elapsed or 0) + elapsed;
+	if ( self.elapsed < UPDATE_INTERVAL ) then return end;
+	self.elapsed = self.elapsed % UPDATE_INTERVAL;
+	if ( self.props.fade and self.showAll ) then
+		self:UpdateFade()
+	end
+	if not self.showAll then
+		updateExpiredCooldowns(self)
+	end
+	if not self.props.status then return end;
+	local unit, powerType = self.unit, self.powerType;
+	local exists = UnitExists(unit);
+	if IsSecret(exists) or not exists then return end;
+	self:UpdateHealth(unit)
+	if not powerType then return end;
+	self:UpdatePower(unit, powerType)
 end
 
 if CPAPI.IsModernVersion then
@@ -590,15 +701,15 @@ function CPPetRing:Update()
 	end
 end
 
-CPPetRing.PET_BAR_UPDATE               = CPPetRing.Update;
-CPPetRing.PET_BAR_UPDATE_USABLE        = CPPetRing.Update;
-CPPetRing.PET_UI_UPDATE                = CPPetRing.Update;
-CPPetRing.PET_SPECIALIZATION_CHANGED   = CPPetRing.Update;
-CPPetRing.PLAYER_CONTROL_GAINED        = CPPetRing.Update;
-CPPetRing.PLAYER_CONTROL_LOST          = CPPetRing.Update;
+CPPetRing.PET_BAR_UPDATE                = CPPetRing.Update;
+CPPetRing.PET_BAR_UPDATE_USABLE         = CPPetRing.Update;
+CPPetRing.PET_UI_UPDATE                 = CPPetRing.Update;
+CPPetRing.PET_SPECIALIZATION_CHANGED    = CPPetRing.Update;
+CPPetRing.PLAYER_CONTROL_GAINED         = CPPetRing.Update;
+CPPetRing.PLAYER_CONTROL_LOST           = CPPetRing.Update;
 CPPetRing.PLAYER_FARSIGHT_FOCUS_CHANGED = CPPetRing.Update;
-CPPetRing.UNIT_AURA                    = CPPetRing.Update;
-CPPetRing.UNIT_FLAGS                   = CPPetRing.Update;
+CPPetRing.UNIT_AURA                     = CPPetRing.Update;
+CPPetRing.UNIT_FLAGS                    = CPPetRing.Update;
 
 function CPPetRing:UpdateCooldowns()
 	local time = GetTime()
@@ -609,7 +720,7 @@ end
 
 function CPPetRing:UpdatePowerType()
 	local powerType = UnitPowerType(self.unit)
-	if not powerType then return end;
+	if IsSecret(powerType) or not powerType then return end;
 
 	local powerColor = PowerBarColor[powerType];
 	self.powerType = powerType;
@@ -624,10 +735,11 @@ CPPetRing.PET_BAR_UPDATE_COOLDOWN = CPPetRing.UpdateCooldowns;
 CPPetRing.PLAYER_REGEN_ENABLED    = CPPetRing.UpdateCooldowns;
 
 function CPPetRing:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)
-	if unit ~= 'pet' or CPAPI.IsSecret(spellID) or not spellID or spellID <= 0 then return end;
+	if IsSecret(unit) or IsSecret(spellID) then return end;
+	if ( unit ~= 'pet' or not spellID or spellID <= 0 ) then return end;
 	for _, button in ipairs(self.Buttons) do
 		local _, texture, _, _, _, _, petSpellID = GetPetActionInfo(button:GetID());
-		if not CPAPI.IsSecret(petSpellID) and texture and petSpellID == spellID then
+		if ( not IsSecret(petSpellID) and petSpellID == spellID and ( IsSecret(texture) or texture ) ) then
 			button:PlayActionPulse()
 		end
 	end
@@ -635,7 +747,8 @@ end
 
 function CPPetRing:PET_ATTACK_START()
 	for _, button in ipairs(self.Buttons) do
-		if IsPetAttackAction(button:GetID()) then
+		local isAttack = IsPetAttackAction(button:GetID());
+		if ( not IsSecret(isAttack) and isAttack ) then
 			button:PlayActionPulse()
 		end
 	end
@@ -644,8 +757,8 @@ end
 function CPPetRing:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, event, _, source, _, _, _, _, _, _, _, spellID = getCombatEvent();
 	local swing = event == 'SWING_DAMAGE' or event == 'SWING_MISSED';
-	if not (swing or event == 'SPELL_CAST_SUCCESS') then return end;
-	if not source or source ~= UnitGUID('pet') then return end;
+	if not ( swing or event == 'SPELL_CAST_SUCCESS' ) then return end;
+	if ( not source or source ~= UnitGUID('pet') ) then return end;
 	if swing then
 		self:PET_ATTACK_START()
 	else
@@ -662,28 +775,28 @@ end
 ---------------------------------------------------------------
 -- Display
 ---------------------------------------------------------------
+local function hasMouseFocus(self)
+	if self:IsMouseMotionFocus() then return true end;
+	for _, button in ipairs(self.Buttons) do
+		if button:IsMouseMotionFocus() then return true end;
+	end
+	return false;
+end
+
 function CPPetRing:UpdateFade()
 	if not self.props then return end;
-	local editor = env.Config and env.Config.SettingsContainer.ScrollChild.Loadout;
-	local showAll = not self.props.fade or (editor and editor:IsVisible()) or self:IsMouseMotionFocus();
-	if not showAll then
-		for _, button in ipairs(self.Buttons) do
-			if button:IsMouseMotionFocus() then
-				showAll = true;
-				break;
-			end
-		end
-	end
-	if self.showAll == showAll then return end;
+	local showAll = not self.props.fade or self.isLoadoutConfigShown or hasMouseFocus(self);
+	if ( self.showAll == showAll ) then return end;
 	self.showAll = showAll;
 	for _, button in ipairs(self.Buttons) do
 		button:UpdateFade(0.2)
 	end
 end
 
-env:RegisterCallback('OnLoadoutConfigShown', function()
-	env:Map('Petring', nil, CPPetRing.UpdateFade)
-end, CPPetRing)
+function CPPetRing:OnLoadoutConfigShown(shown)
+	self.isLoadoutConfigShown = shown == true;
+	self:UpdateFade()
+end
 
 ---------------------------------------------------------------
 -- Factory
