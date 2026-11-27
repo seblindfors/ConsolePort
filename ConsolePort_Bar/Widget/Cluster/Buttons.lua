@@ -2,6 +2,34 @@ local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local NOMOD, _, _, _, ALT = env.Const.Cluster.ModNames();
 local _, _, CLUSTER_BUTTON, CLUSTER_SHADOW = env.Const.Cluster.Types();
+local CLUSTER_DESIGN = env.Const.ClusterDesign;
+local Const          = env.Const.Cluster;
+---------------------------------------------------------------
+local EQUIPPED_BORDER_COLOR = CreateColor(0, 1, 0, 1);
+local BORDER_TUNING = {
+	RestingBrightness      = Const.RimBrightness;
+	HoverWhiteMix          = 0.20;
+	PressedBrightness      = 0.68;
+	GoldHoverOpacity       = 0.55;
+	BeveledHoverOpacity    = 0.72;
+	ToggledOpacityBonus    = 0.12;
+	ToggledHoverMultiplier = 0.25;
+};
+---------------------------------------------------------------
+local PROC_FLYOUT_PADDING = 1 / 14;
+local PROC_LOOP_PADDING   = 0.2;
+local PROC_INTRO_PADDING  = 0.6;
+local PROC_LOOP_DURATION  = 1;
+local PROC_INTRO_DURATION = 0.4;
+local PROC_SHEET_ROWS     = 4;
+local PROC_SHEET_COLUMNS  = 8;
+local PROC_SHEET_FRAMES   = 30;
+local PROC_PULSE_ALPHA    = 0.6;
+local PROC_PULSE_DURATION = 0.5;
+local PROC_BURST_DURATION = 0.28;
+local PROC_BURST_SCALE    = 1.28;
+local PROC_GLOW_SUBLEVEL  = 6;
+local PROC_BURST_SUBLEVEL = 7;
 
 ---------------------------------------------------------------
 local FlyoutCooldown = {};
@@ -18,7 +46,6 @@ function FlyoutCooldown:OnLoad()
 end
 
 function FlyoutCooldown:UpdateModifierIcons()
-	-- The modifier glyphs share space with the cooldown number.
 	local button = self:GetParent();
 	button:ToggleHotkeys(button.showFlyoutIcons and not button:HasVisibleCooldownNumbers())
 end
@@ -28,7 +55,7 @@ local FlyoutArrow = {};
 ---------------------------------------------------------------
 
 do -- Flyout arrow owner check, report to parent
-	local function checkSpellFlyoutOwnership(self)
+	local function CheckSpellFlyoutOwnership(self)
 		local native, custom = SpellFlyout, env.LAB:GetSpellFlyoutFrame();
 		return (native and native:IsShown() and native:GetParent() == self)
 			or (custom and custom:IsShown() and custom:GetParent() == self)
@@ -36,7 +63,7 @@ do -- Flyout arrow owner check, report to parent
 
 	function FlyoutArrow:Show()
 		local parent = self:GetParent()
-		parent:OnSpellFlyout(checkSpellFlyoutOwnership(parent))
+		parent:OnSpellFlyout(CheckSpellFlyoutOwnership(parent))
 		return CPAPI.Index(self).Show(self)
 	end
 
@@ -121,15 +148,14 @@ function FlyoutButton:ACTIONBAR_SHOWGRID()
 end
 
 local function clearDragHover(button)
-	-- Closing the drag grid can return control to the camera before OnLeave fires.
-	if not button:IsMouseMotionFocus() and not ConsolePort:IsCursorNode(button) then
+	if not ( button:IsMouseMotionFocus() or ConsolePort:IsCursorNode(button) ) then
 		button:OnMouseMotionClear()
 	end
 end
 
 function FlyoutButton:ACTIONBAR_HIDEGRID()
 	self:UpdateAlpha(self.AlphaState.ShowGrid, false)
-	if self.AlphaState.MouseOver(self.alpha, false) ~= self.alpha then
+	if ( self.AlphaState.MouseOver(self.alpha, false) ~= self.alpha ) then
 		CPAPI.Next(clearDragHover, self)
 	end
 end
@@ -168,15 +194,13 @@ function FlyoutButton:UpdateAlpha(closure, state)
 	self.alpha = closure(self.alpha, state);
 	local fadeOut = self.alpha == 0;
 	local alpha = self:GetAlpha();
-	if fadeOut and CPAPI.IsSecret(self.flyoutCooldownZero) then
+	if ( fadeOut and CPAPI.IsSecret(self.flyoutCooldownZero) ) then
 		if not CPAPI.IsSecret(alpha) then db.Alpha.CancelFade(self) end;
 		return self:SetAlphaFromBoolean(self.flyoutCooldownZero, 0, 1);
 	end
 	if CPAPI.IsSecret(alpha) then
-		-- A public visibility reason takes over from the native cooldown display.
 		return self:SetAlpha(fadeOut and 0 or 1, true);
 	end
-	-- A quarter-second fade lets changes of modifier or cooldown state settle visually.
 	if fadeOut then
 		self:FadeOut(0.25, alpha)
 	else
@@ -225,11 +249,10 @@ function MainButton:OnLoad()
 end
 
 function MainButton:OnControllerClick(button, down)
-	if button ~= 'ControllerInput' or not self.texturedBorder then return end;
-	if not (down and self:IsVisible()) then
+	if ( button ~= 'ControllerInput' or not self.texturedBorder ) then return end;
+	if not ( down and self:IsVisible() ) then
 		return self:ClearControllerPress();
 	end
-	-- Bound controller clicks do not use the native mouse press path.
 	self.controllerPressed = true;
 	self:SetButtonState('PUSHED')
 end
@@ -279,23 +302,12 @@ end
 local Button = CreateFromMixins(env.ProxyButton, env.ClusterCooldownMixin, {SetNormalTexture = nop;});
 ---------------------------------------------------------------
 
--- Textured border tuning values range from 0 to 1.
-local BORDER_TUNING = {
-	RestingBrightness      = 0.86; -- Fraction of Border Vertex Color used at rest.
-	HoverWhiteMix          = 0.20; -- Amount of white mixed into the hover tint.
-	PressedBrightness      = 0.68; -- Fraction of the border color used while held.
-	GoldHoverOpacity       = 0.55; -- Strength of the hover highlight on gold designs.
-	BeveledHoverOpacity    = 0.72; -- Strength of the hover highlight on Beveled Silver.
-	ToggledOpacityBonus    = 0.12; -- Extra opacity over hover for the checked border.
-	ToggledHoverMultiplier = 0.25; -- Fraction of normal hover opacity while toggled on.
-	EquippedOpacity        = 1.00; -- Strength of the green equipped-item highlight.
-};
----------------------------------------------------------------
-
 local function updateBorderState(button)
 	if not button.texturedBorder then return end;
 	local pressed      = button:GetButtonState() == 'PUSHED';
-	local hoverAlpha   = env:IsGoldClusterDesign() and BORDER_TUNING.GoldHoverOpacity or BORDER_TUNING.BeveledHoverOpacity;
+	local hoverAlpha   = env:IsGoldClusterDesign()
+		and BORDER_TUNING.GoldHoverOpacity
+		or  BORDER_TUNING.BeveledHoverOpacity;
 	local checkedAlpha = math.min(1, hoverAlpha + BORDER_TUNING.ToggledOpacityBonus);
 	if button:GetChecked() then
 		hoverAlpha = hoverAlpha * BORDER_TUNING.ToggledHoverMultiplier;
@@ -306,12 +318,21 @@ end
 
 local function updateBorderStateAfterMouse(button)
 	if not button.texturedBorder then return end;
-	-- Mouse scripts can run before the native button state changes.
 	CPAPI.Next(updateBorderState, button)
 end
 
 local function updateEquippedBorder(button)
-	button.Border:SetVertexColor(0, 1, 0, BORDER_TUNING.EquippedOpacity)
+	button.Border:SetVertexColor(EQUIPPED_BORDER_COLOR:GetRGBA())
+end
+
+local function clearTexturedBorder(button)
+	button.texturedBorder = nil;
+	if button.controllerPressed then button:ClearControllerPress() end;
+	button.HighlightTexture:SetVertexColor(1, 1, 1, 1)
+	button.PushedTexture:SetVertexColor(1, 1, 1, 1)
+	button.CheckedTexture:SetVertexColor(1, 1, 1, 1)
+	button.HighlightTexture:SetAlpha(1)
+	button.CheckedTexture:SetAlpha(1)
 end
 
 function Button:OnLoad(modifier, layoutData)
@@ -339,7 +360,6 @@ function Button:OnLoad(modifier, layoutData)
 	self:InitializeCooldowns()
 	Mixin(self, modifier == NOMOD and MainButton or FlyoutButton):OnLoad()
 	env:InitializeClusterCast(self)
-	-- LAB calls UpdateLocal after setting the equipped-item border.
 	self.UpdateLocal = updateEquippedBorder;
 	self:UpdateLocal()
 	self.UpdateClusterSkin = env.LIB.Skin.ClusterBar[modifier] or nop;
@@ -359,26 +379,19 @@ end
 
 function Button:SetBorderColor(color)
 	self.borderColor = color;
-	if env('clusterDesign') == env.Const.ClusterDesign.Original then
+	if ( env('clusterDesign') == CLUSTER_DESIGN.Original ) then
 		self.NormalTexture:SetVertexColor(color:GetRGBA())
 		if self.texturedBorder then
-			-- Clear the textured state overrides when returning to the original border.
-			self.texturedBorder = nil;
-			if self.controllerPressed then self:ClearControllerPress() end;
-			self.HighlightTexture:SetVertexColor(1, 1, 1, 1)
-			self.PushedTexture:SetVertexColor(1, 1, 1, 1)
-			self.CheckedTexture:SetVertexColor(1, 1, 1, 1)
-			self.HighlightTexture:SetAlpha(1)
-			self.CheckedTexture:SetAlpha(1)
+			clearTexturedBorder(self)
 		end
 		return;
 	end
 	self.texturedBorder = true;
-	local r, g, b, a  = color:GetRGBA();
-	local rest        = BORDER_TUNING.RestingBrightness;
-	local lighten     = BORDER_TUNING.HoverWhiteMix;
-	local pressed     = BORDER_TUNING.PressedBrightness;
-	local hr, hg, hb  = r + (1 - r) * lighten, g + (1 - g) * lighten, b + (1 - b) * lighten;
+	local r, g, b, a = color:GetRGBA();
+	local rest       = BORDER_TUNING.RestingBrightness;
+	local lighten    = BORDER_TUNING.HoverWhiteMix;
+	local pressed    = BORDER_TUNING.PressedBrightness;
+	local hr, hg, hb = r + (1 - r) * lighten, g + (1 - g) * lighten, b + (1 - b) * lighten;
 	self.NormalTexture:SetVertexColor(r * rest, g * rest, b * rest, a)
 	self.HighlightTexture:SetVertexColor(hr, hg, hb, a)
 	self.PushedTexture:SetVertexColor(r * pressed, g * pressed, b * pressed, a)
@@ -388,12 +401,7 @@ end
 
 ---------------------------------------------------------------
 -- Spell proc glow
--- Main buttons play the intro before the loop. Flyouts pulse during the burst.
 ---------------------------------------------------------------
-local PROC_GLOW_PADDING  = 1 / 14; -- eight pixels around the 112-pixel border art
-local PROC_LOOP_PADDING  = 0.2; -- Per side, relative to the main border size.
-local PROC_INTRO_PADDING = 0.6; -- The intro sheet has a wider halo than the loop.
-
 local function createProcFade(group, texture, toAlpha, duration, smoothing)
 	local fade = group:CreateAnimation('Alpha');
 	fade:SetTarget(texture)
@@ -409,36 +417,32 @@ local function createProcFlipBook(group, texture, duration)
 	flipBook:SetTarget(texture)
 	flipBook:SetOrder(1)
 	flipBook:SetDuration(duration)
-	-- The proc sheets store 30 animation frames in an 8-column, 4-row grid.
-	flipBook:SetFlipBookRows(4)
-	flipBook:SetFlipBookColumns(8)
-	flipBook:SetFlipBookFrames(30)
+	flipBook:SetFlipBookRows(PROC_SHEET_ROWS)
+	flipBook:SetFlipBookColumns(PROC_SHEET_COLUMNS)
+	flipBook:SetFlipBookFrames(PROC_SHEET_FRAMES)
 	flipBook:SetFlipBookFrameWidth(0)
 	flipBook:SetFlipBookFrameHeight(0)
 end
 
 local function createFlyoutProcAnimations(glow, burst, loop, intro)
-	-- The gold loop breathes from full to 60% opacity every half second.
-	glow:SetVertexColor(1, 0.82, 0.42)
-	burst:SetVertexColor(1, 0.94, 0.70)
+	glow:SetVertexColor(Const.ProcGlowColor:GetRGB())
+	burst:SetVertexColor(Const.ProcBurstColor:GetRGB())
 	loop:SetLooping('BOUNCE')
-	createProcFade(loop, glow, 0.6, 0.5, 'IN_OUT')
+	createProcFade(loop, glow, PROC_PULSE_ALPHA, PROC_PULSE_DURATION, 'IN_OUT')
 
-	-- The paler intro expands 28% as it fades over 0.28 seconds.
-	local duration = 0.28;
 	local scale = intro:CreateAnimation('Scale');
 	scale:SetTarget(burst)
 	scale:SetOrder(1)
-	scale:SetDuration(duration)
+	scale:SetDuration(PROC_BURST_DURATION)
 	scale:SetOrigin('CENTER', 0, 0)
 	scale:SetSmoothing('OUT')
-	scale:SetScale(1.28, 1.28)
-	createProcFade(intro, burst, 0, duration, 'OUT')
+	scale:SetScale(PROC_BURST_SCALE, PROC_BURST_SCALE)
+	createProcFade(intro, burst, 0, PROC_BURST_DURATION, 'OUT')
 end
 
 local function createProcGlow(button)
-	local glow  = button:CreateTexture(nil, 'OVERLAY', nil, 6);
-	local burst = button:CreateTexture(nil, 'OVERLAY', nil, 7);
+	local glow  = button:CreateTexture(nil, 'OVERLAY', nil, PROC_GLOW_SUBLEVEL);
+	local burst = button:CreateTexture(nil, 'OVERLAY', nil, PROC_BURST_SUBLEVEL);
 	glow:SetBlendMode('ADD')
 	burst:SetBlendMode('ADD')
 	glow:Hide()
@@ -448,10 +452,9 @@ local function createProcGlow(button)
 	local loop   = button:CreateAnimationGroup();
 	local intro  = button:CreateAnimationGroup();
 	if isMain then
-		-- Main buttons play the 0.4-second reveal once, then repeat the one-second loop.
 		loop:SetLooping('REPEAT')
-		createProcFlipBook(loop, glow, 1)
-		createProcFlipBook(intro, burst, 0.4)
+		createProcFlipBook(loop, glow, PROC_LOOP_DURATION)
+		createProcFlipBook(intro, burst, PROC_INTRO_DURATION)
 	else
 		createFlyoutProcAnimations(glow, burst, loop, intro)
 	end
@@ -462,7 +465,7 @@ local function createProcGlow(button)
 			loop:Play()
 		end
 	end)
-	button.procGlow, button.procGlowLoop = glow, loop;
+	button.procGlow,      button.procGlowLoop  = glow,  loop;
 	button.procGlowBurst, button.procGlowIntro = burst, intro;
 end
 
@@ -475,7 +478,7 @@ local function setProcGlowBounds(glow, border, padding)
 end
 
 local function setProcFlipBookTexture(region, texture)
-	if region.procTexture ~= texture then
+	if ( region.procTexture ~= texture ) then
 		region:SetTexture(texture)
 		region.procTexture = texture;
 	end
@@ -489,19 +492,18 @@ local function showProcGlow(button)
 	local border  = button.SpellHighlightTexture or button.NormalTexture;
 	local texture = button.procGlowTexture;
 	local isMain  = button.mod == NOMOD;
-	setProcGlowBounds(glow, border, isMain and PROC_LOOP_PADDING or PROC_GLOW_PADDING)
-	setProcGlowBounds(burst, border, isMain and PROC_INTRO_PADDING or PROC_GLOW_PADDING)
+	setProcGlowBounds(glow, border, isMain and PROC_LOOP_PADDING or PROC_FLYOUT_PADDING)
+	setProcGlowBounds(burst, border, isMain and PROC_INTRO_PADDING or PROC_FLYOUT_PADDING)
 	if isMain then
 		setProcFlipBookTexture(glow, texture.Loop)
 		setProcFlipBookTexture(burst, texture.Start)
 	else
 		glow:SetTexture(texture)
 		burst:SetTexture(texture)
-		-- Wedge glows follow the same rotation and mirroring as the border.
 		glow:SetTexCoord(border:GetTexCoord())
 		burst:SetTexCoord(border:GetTexCoord())
 	end
-	if not (glow:IsShown() or burst:IsShown()) then
+	if not ( glow:IsShown() or burst:IsShown() ) then
 		burst:Show()
 		button.procGlowIntro:Play()
 		if not isMain then

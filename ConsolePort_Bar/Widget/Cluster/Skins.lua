@@ -2,20 +2,43 @@ local env = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local Skins = {}; env.LIB.Skin.ClusterBar = Skins;
 ---------------------------------------------------------------
-local SkinUtility          = env.LIB.SkinUtility;
-local ASSETS               = env.Const.Cluster.Assets;
+local SkinUtility    = env.LIB.SkinUtility;
+local Const          = env.Const.Cluster;
+local Assets         = Const.Assets;
+local AssetFormats   = Const.AssetFormats;
+local Designs        = Const.Designs;
+local CLUSTER_DESIGN = env.Const.ClusterDesign;
 ---------------------------------------------------------------
-local CLUSTER_DESIGN      = env.Const.ClusterDesign;
-local FLYOUT_PARTS        = {M1 = 'FlyoutSide'; M2 = 'FlyoutSide'; M3 = 'FlyoutMiddle';};
-local FLYOUT_MODIFIERS    = {M1 = 'Shift'; M2 = 'Ctrl'; M3 = 'ShiftCtrl';};
-local FULL_TEX_COORDS     = {0; 1; 0; 1;};
-local MIDDLE_MASK_INSET   = 1 / 46; -- one pixel per side at the default flyout size
-local COOLDOWN_MASK_PATH  = [[Textures\Masks\Cooldowns\%s]];
+local FULL_TEX_COORDS        = {0; 1; 0; 1;};
+local MIDDLE_MASK_INSET      = 1 / 46;
+local CAST_FILL_NATIVE_SIZE  = 46;
+local MAIN_EDGE_SCALE        = 1.2;
+local SHAPED_MAIN_EDGE_SCALE = 1.25;
+local MAIN_PART, FLYOUT_PART = 'Main', 'Flyout';
+local ROUND_SHAPE            = 'Round';
+local WEDGE_SHAPE            = '%s_%s';
+local ROUND_SILVER           = Designs[CLUSTER_DESIGN.Original].Directory;
+local BEVELED_SILVER         = Designs[CLUSTER_DESIGN.Beveled].Directory;
+local ROUND_GOLD             = Designs[CLUSTER_DESIGN.OriginalGold].Directory;
+---------------------------------------------------------------
+local SetUsingParentLevel    = UIParent.SetUsingParentLevel or nop;
+local disablePixelSnapping   = nop;
 
-local function getClusterBorderTextures(design, part)
-	local path      = env.GetAsset([[Textures\Cluster\%s\%s]], design, part);
-	local normal    = path .. '';
-	local highlight = path .. 'Highlight';
+do local probe = UIParent:CreateTexture();
+	if ( probe.SetTexelSnappingBias and probe.SetSnapToPixelGrid ) then
+		function disablePixelSnapping(texture)
+			texture:SetTexelSnappingBias(0)
+			texture:SetSnapToPixelGrid(false)
+		end
+	end
+end
+
+---------------------------------------------------------------
+-- Textures by design
+---------------------------------------------------------------
+local function getClusterBorderTextures(directory, part)
+	local normal    = AssetFormats.Border:format(directory, part);
+	local highlight = AssetFormats.BorderHighlight:format(directory, part);
 	return {
 		NormalTexture         = normal;
 		Border                = highlight;
@@ -28,68 +51,72 @@ local function getClusterBorderTextures(design, part)
 	};
 end
 
-local goldMainTextures = getClusterBorderTextures('RoundGold', 'Main');
-
-local function getSilverMainTextures(design, pushHighlight)
-	local textures = getClusterBorderTextures(design, 'Main');
+local function getSilverMainTextures(directory, pushHighlight)
+	local textures = getClusterBorderTextures(directory, MAIN_PART);
 	if pushHighlight then
 		textures.PushedTexture = textures.HighlightTexture;
 	end
-	textures.Flash = env.GetAsset([[Textures\Button\Hilite2x]]);
-	textures.SpellHighlightTexture = env.GetAsset([[Textures\Button\Hilite2x.png]]);
+	textures.Flash                 = Assets.SilverFlash;
+	textures.SpellHighlightTexture = Assets.SilverSpellHighlight;
 	return textures;
 end
 
 local function getRoundSilverFlyoutTextures(part)
-	local textures = getClusterBorderTextures('RoundSilver', part);
+	local textures = getClusterBorderTextures(ROUND_SILVER, part);
 	textures.Border = textures.NormalTexture;
 	return textures;
 end
 
-local silverTextures = {
-	[CLUSTER_DESIGN.Original] = {
-		Main         = getSilverMainTextures('RoundSilver', true);
-		FlyoutSide   = getRoundSilverFlyoutTextures('FlyoutSide');
-		FlyoutMiddle = getRoundSilverFlyoutTextures('FlyoutMiddle');
+local function getProcFlipBook(shape)
+	return {
+		Start = AssetFormats.ProcStart:format(shape);
+		Loop  = AssetFormats.ProcLoop:format(shape);
 	};
-	[CLUSTER_DESIGN.Beveled] = {
-		Main         = getSilverMainTextures('BeveledSilver');
-		FlyoutSide   = getClusterBorderTextures('BeveledSilver', 'FlyoutSide');
-		FlyoutMiddle = getClusterBorderTextures('BeveledSilver', 'FlyoutMiddle');
-	};
-};
-
-local function getProcFlipBook(asset)
-	local path = env.GetAsset([[Textures\Cluster\Glow\Flipbooks\%s]], asset);
-	return {Start = path .. 'Start'; Loop = path .. 'Loop';};
 end
 
-local roundProcGlow = getProcFlipBook('Round');
-
-local function getShapeSkins(design, asset, orientation)
-	local slots = {Shadow = env.GetAsset([[Textures\Cluster\%s\Shadow%s]], design, orientation);};
-	for _, slot in ipairs({'Main'; 'Flyout';}) do
-		local isMain = slot == 'Main';
+local function getShapeSkins(directory, asset, orientation)
+	local slots = {Shadow = AssetFormats.ShapeShadow:format(directory, orientation);};
+	for _, slot in ipairs({MAIN_PART; FLYOUT_PART;}) do
+		local isMain = slot == MAIN_PART;
 		slots[slot] = {
-			Border       = getClusterBorderTextures(design, slot .. orientation);
-			Mask         = env.GetAsset([[Textures\Cluster\Shapes\%s%sMask]], asset, slot);
-			MaskShape    = asset .. slot;
-			ProcGlow     = isMain and getProcFlipBook(asset) or env.GetAsset([[Textures\Cluster\Glow\%sFlyout]], asset);
+			Border    = getClusterBorderTextures(directory, slot .. orientation);
+			Mask      = AssetFormats.ShapeMask:format(asset, slot);
+			MaskShape = asset .. slot;
+			ProcGlow  = isMain and getProcFlipBook(asset) or AssetFormats.ProcFlyout:format(asset);
 		};
 	end
 	return slots;
 end
 
+local goldMainTextures = getClusterBorderTextures(ROUND_GOLD, MAIN_PART);
+local roundProcGlow    = getProcFlipBook(ROUND_SHAPE);
+
+local silverTextures = {
+	[CLUSTER_DESIGN.Original] = {
+		Main         = getSilverMainTextures(ROUND_SILVER, true);
+		FlyoutSide   = getRoundSilverFlyoutTextures('FlyoutSide');
+		FlyoutMiddle = getRoundSilverFlyoutTextures('FlyoutMiddle');
+	};
+	[CLUSTER_DESIGN.Beveled] = {
+		Main         = getSilverMainTextures(BEVELED_SILVER);
+		FlyoutSide   = getClusterBorderTextures(BEVELED_SILVER, 'FlyoutSide');
+		FlyoutMiddle = getClusterBorderTextures(BEVELED_SILVER, 'FlyoutMiddle');
+	};
+};
+
 local shapeSkins = {};
-for _, shape in pairs(env.Const.Cluster.GoldShapes) do
-	local design = shape.Asset .. 'Gold';
-	local slots  = getShapeSkins(design, shape.Asset, shape.HorizontalAsset and 'Vertical' or '');
+for design, shape in pairs(Const.GoldShapes) do
+	local directory = Designs[design].Directory;
+	local slots     = getShapeSkins(directory, shape.Asset, shape.HorizontalAsset and 'Vertical' or '');
 	if shape.HorizontalAsset then
-		slots.Horizontal = getShapeSkins(design, shape.HorizontalAsset, 'Horizontal');
+		slots.Horizontal = getShapeSkins(directory, shape.HorizontalAsset, 'Horizontal');
 	end
 	shapeSkins[shape] = slots;
 end
 
+---------------------------------------------------------------
+-- Skin helpers
+---------------------------------------------------------------
 local function setBorders(self, textures, coords, texSize)
 	for key, file in pairs(textures) do
 		local texture = self[key];
@@ -98,10 +125,7 @@ local function setBorders(self, textures, coords, texSize)
 			if coords then
 				texture:SetTexCoord(unpack(coords))
 			end
-			if texture.SetTexelSnappingBias and texture.SetSnapToPixelGrid then
-				texture:SetTexelSnappingBias(0)
-				texture:SetSnapToPixelGrid(false)
-			end
+			disablePixelSnapping(texture)
 			texture:ClearAllPoints()
 			if texSize then
 				texture:SetPoint('CENTER', 0, 0)
@@ -117,7 +141,6 @@ local function setBorders(self, textures, coords, texSize)
 	self.CheckedTexture:SetBlendMode('ADD')
 	self.PushedTexture:SetDrawLayer('OVERLAY', 2)
 	self.CheckedTexture:SetDrawLayer('OVERLAY', 1)
-	-- LAB uses Border for equipped items.
 	self.Border:SetBlendMode('BLEND')
 	self.Border:SetDrawLayer('OVERLAY', 1)
 	self.Border:SetDesaturated(true)
@@ -130,7 +153,6 @@ local function setBorders(self, textures, coords, texSize)
 end
 
 local function raiseButtonName(button)
-	-- Put macro text above the hover border, using the native text frame when available.
 	local overlay = button.TextOverlayContainer or button.clusterTextOverlay;
 	if not overlay then
 		overlay = CreateFrame('Frame', nil, button);
@@ -160,7 +182,6 @@ local function initializeSkinLayers(button, mask, background)
 	local iconLevel = button:GetFrameLevel();
 	button:SetFrameLevel(iconLevel + 2)
 
-	-- Keep native border states on the button, above the icon and both timers.
 	local iconFrame = CreateFrame('Frame', nil, button);
 	iconFrame:SetAllPoints(button)
 	iconFrame:SetFrameLevel(iconLevel)
@@ -171,20 +192,19 @@ local function initializeSkinLayers(button, mask, background)
 	background:SetParent(iconFrame)
 	background:SetDrawLayer('BACKGROUND', -8)
 	background:SetAllPoints(button.icon)
-	background:SetTexture(ASSETS.EmptyIcon)
+	background:SetTexture(Assets.EmptyIcon)
 	background:AddMaskTexture(mask)
 	background:SetDesaturated(true)
 
 	local effectLevel = iconLevel + 1;
 	button:SetCooldownFrameLevel(effectLevel)
-	local cast  = button.SpellCastAnimFrame;
+	local cast = button.SpellCastAnimFrame;
 	if not cast then return end;
-	if cast.SetUsingParentLevel then cast:SetUsingParentLevel(false) end;
+	SetUsingParentLevel(cast, false)
 	cast:SetFrameLevel(effectLevel)
 	local fill, burst = cast.Fill, cast.EndBurst;
 	fill.CastFill:RemoveMaskTexture(fill.FillMask)
 	burst.GlowRing:RemoveMaskTexture(burst.EndMask)
-	-- Anchor the tint to the visible icon so rounded and wedge buttons get the same coverage.
 	fill.InnerGlowTexture:ClearAllPoints()
 	fill.InnerGlowTexture:SetAllPoints(mask)
 	fill.InnerGlowTexture:AddMaskTexture(mask)
@@ -193,79 +213,73 @@ local function initializeSkinLayers(button, mask, background)
 end
 
 local function setBackgroundColor(background, goldBorders)
-	if goldBorders then
-		background:SetVertexColor(env.Const.Cluster.GoldEmptySlotColor:GetRGBA())
-	else
-		background:SetVertexColor(0.5, 0.5, 0.5, 1)
-	end
+	local color = goldBorders and Const.GoldEmptySlotColor or Const.EmptySlotColor;
+	background:SetVertexColor(color:GetRGBA())
 end
 
 ---------------------------------------------------------------
 -- Skins by modifier slot
 ---------------------------------------------------------------
-for mod, data in pairs(env.Const.Cluster.Layout) do
+for mod, data in pairs(Const.Layout) do
 	local prefix          = data.Prefix;
 	local coords          = data.Coords;
 	local borderScale     = data.TexSize or 1;
-	local borderPart      = FLYOUT_PARTS[prefix] or 'Main';
+	local borderPart      = data.Part;
 	local goldByDirection = {};
-	local procGlow        = prefix and env.GetAsset([[Textures\Cluster\Glow\%s]], prefix == 'M3' and 'M3' or 'M1')
-		or roundProcGlow;
+	local procGlow        = prefix and AssetFormats.ProcWedge:format(data.Glow) or roundProcGlow;
 	if prefix then
-		for direction in pairs(env.Const.Cluster.Directions) do
+		for direction in pairs(Const.Directions) do
 			local directionName = direction:sub(1, 1) .. direction:sub(2):lower();
-			local part          = 'Flyout' .. FLYOUT_MODIFIERS[prefix] .. directionName;
-			goldByDirection[direction] = getClusterBorderTextures('RoundGold', part);
+			goldByDirection[direction] = getClusterBorderTextures(ROUND_GOLD, data.GoldPart .. directionName);
 		end
 	end
 
 	Skins[mod] = function(self)
-		local direction = self.direction;
-		local slots     = shapeSkins[self.clusterShape];
-		local design    = env('clusterDesign');
-		-- Turn the hex so the side flyouts meet a flat edge of the main button.
-		if ( slots and slots.Horizontal and (self.clusterDirection == 'LEFT' or self.clusterDirection == 'RIGHT') ) then
+		local direction    = self.direction;
+		local slots        = shapeSkins[self.clusterShape];
+		local design       = env('clusterDesign');
+		local isHorizontal = self.clusterDirection == 'LEFT' or self.clusterDirection == 'RIGHT';
+		if ( slots and slots.Horizontal and isHorizontal ) then
 			slots = slots.Horizontal;
 		end
 		local shape = slots and (prefix and slots.Flyout or slots.Main);
-		local size = self:GetWidth();
+		local size  = self:GetWidth();
 
-		local mask = SkinUtility.GetIconMask(self);
+		local mask        = SkinUtility.GetIconMask(self);
 		local goldBorders = env:IsGoldClusterDesign();
-		local gold = not prefix and goldMainTextures or goldByDirection[direction or 'DOWN'];
-		local silver = silverTextures[design] or silverTextures[CLUSTER_DESIGN.Original];
-		local borders = shape and shape.Border or goldBorders and gold or silver[borderPart];
-		local maskShape = shape and shape.MaskShape or direction and prefix .. '_' .. direction or 'Round';
-		local swipe = env.GetAsset(COOLDOWN_MASK_PATH, maskShape);
+		local gold        = not prefix and goldMainTextures or goldByDirection[direction or 'DOWN'];
+		local silver      = silverTextures[design] or silverTextures[CLUSTER_DESIGN.Original];
+		local borders     = shape and shape.Border or goldBorders and gold or silver[borderPart];
+		local maskShape   = shape and shape.MaskShape
+			or direction and WEDGE_SHAPE:format(prefix, direction)
+			or ROUND_SHAPE;
+		local swipe       = AssetFormats.CooldownMask:format(maskShape);
 
-		-- A directed flyout uses the same silhouette for its icon and cooldown.
-		-- Round-design wedges reach the texture boundary and need transparent clamping.
 		if direction then
 			local wrap = not shape and 'CLAMPTOBLACKADDITIVE' or nil;
 			mask:SetTexture(swipe, wrap, wrap)
-		elseif shape or not prefix then
-			mask:SetTexture(shape and shape.Mask or ASSETS.MainMask)
+		elseif ( shape or not prefix ) then
+			mask:SetTexture(shape and shape.Mask or Assets.MainMask)
 		end
 		self:SetCooldownSwipeTexture(swipe)
 
 		if ( data.Shadow and self.Shadow ) then
 			self.Shadow:SetShapeTexture(slots and slots.Shadow)
 		end
-		local tcoords = shape and FULL_TEX_COORDS or coords or direction and data[direction].Coords;
-		setBorders(self, borders, tcoords, not shape and size * borderScale or nil)
-		-- The Round Silver middle wedge's mask extends past its smaller rim.
+		local tcoords   = shape and FULL_TEX_COORDS or coords or direction and data[direction].Coords;
 		local insetMask = prefix == 'M3' and design == CLUSTER_DESIGN.Original;
+		setBorders(self, borders, tcoords, not shape and size * borderScale or nil)
 		anchorMask(self, mask, insetMask)
 		env:SetClusterPulseShape(self, maskShape)
+
 		local background = SkinUtility.GetSlotBackground(self);
 		initializeSkinLayers(self, mask, background)
 		setBackgroundColor(background, goldBorders)
-		-- Enlarge the streak so its bright tip reaches the round or polygonal main rim.
-		self:LayoutCooldowns(mask, not prefix and (shape and 1.25 or 1.2), maskShape)
+		self:LayoutCooldowns(mask, not prefix and (shape and SHAPED_MAIN_EDGE_SCALE or MAIN_EDGE_SCALE), maskShape)
+
 		local maskWidth = mask:GetWidth();
-		if self.SpellCastAnimFrame and maskWidth > 0 then
-			-- Blizzard's fill travels across a roughly 46-pixel icon.
-			self.SpellCastAnimFrame:SetScale(maskWidth / 46)
+		if ( self.SpellCastAnimFrame and maskWidth > 0 ) then
+			self.SpellCastAnimFrame:SetScale(maskWidth / CAST_FILL_NATIVE_SIZE)
 		end
 		raiseButtonName(self)
 		self:SetProcGlowTexture(shape and shape.ProcGlow or procGlow)

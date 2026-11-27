@@ -4,8 +4,20 @@ local _, env = ...;
 local Presets = {}; env.Presets = Presets;
 local Interface = env.Interface;
 local CLUSTER_DESIGN = env.Const.ClusterDesign;
-local clusterDesignNames = env.Variables.clusterDesign[1]:GetOptions();
+local Designs = env.Const.Cluster.Designs;
+local merge = env.db.table.merge;
 ---------------------------------------------------------------
+
+local function GetDesignPresetName(design)
+	return env.L('Cluster - %s', Designs[design].Name);
+end
+
+local function DesignPreset(design, layout)
+	local preset = merge(CopyTable(Presets.Default), layout or {});
+	preset.name = GetDesignPresetName(design);
+	preset.settings.clusterDesign = design;
+	return preset;
+end
 
 ---------------------------------------------------------------
 -- Toolbar presets
@@ -42,7 +54,7 @@ local AllModifiers = env.RunTimeFilter({
 local Handle = Interface.ClusterHandle(); -- reuse one handle instance and warp it
 
 Presets.Default = {
-	name       = env.L('Cluster - %s', clusterDesignNames[CLUSTER_DESIGN.Original]);
+	name       = GetDesignPresetName(CLUSTER_DESIGN.Original);
 	desc       = 'A cluster bar with a toolbar below it.';
 	visibility = env.Const.ManagerVisibility;
 	settings   = { clusterDesign = CLUSTER_DESIGN.Original };
@@ -91,24 +103,22 @@ Presets.Default = {
 	};
 };
 
--- Start each design from the default cluster layout.
-for id, design in pairs({
-	ClusterBeveledSilver = CLUSTER_DESIGN.Beveled;
-	ClusterRoundGold     = CLUSTER_DESIGN.OriginalGold;
-	ClusterHexGold       = CLUSTER_DESIGN.Hex;
-	ClusterSquaredGold   = CLUSTER_DESIGN.Squared;
-}) do
-	local preset = CopyTable(Presets.Default)
-	preset.name = env.L('Cluster - %s', clusterDesignNames[design]);
-	preset.settings.clusterDesign = design;
-	if design == CLUSTER_DESIGN.Squared then
-		preset.children.Cluster.width = 1230;
-		local buttons = preset.children.Cluster.children;
-		buttons.PADLTRIGGER.pos.x, buttons.PADRTRIGGER.pos.x = 410, -410;
-		buttons.PADLSHOULDER.pos.x, buttons.PADRSHOULDER.pos.x = 478, -478;
-	end
-	Presets[id] = preset;
-end
+Presets.ClusterBeveledSilver = DesignPreset(CLUSTER_DESIGN.Beveled);
+Presets.ClusterRoundGold     = DesignPreset(CLUSTER_DESIGN.OriginalGold);
+Presets.ClusterHexGold       = DesignPreset(CLUSTER_DESIGN.Hex);
+Presets.ClusterSquaredGold   = DesignPreset(CLUSTER_DESIGN.Squared, {
+	children = {
+		Cluster = {
+			width    = 1230;
+			children = {
+				PADLSHOULDER = { pos = { x =  478 } };
+				PADRSHOULDER = { pos = { x = -478 } };
+				PADLTRIGGER  = { pos = { x =  410 } };
+				PADRTRIGGER  = { pos = { x = -410 } };
+			};
+		};
+	};
+});
 
 Presets.Orthodox = {
 	name       = env.L'Cluster - Orthodox';

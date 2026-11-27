@@ -26,27 +26,56 @@ env.Const.ValidPoints    = CPAPI.Enum(
 	'RIGHT',  'TOPRIGHT', 'BOTTOMRIGHT'
 );
 
-local CLUSTER_DESIGN = {
-	Original     = 1;
-	OriginalGold = 2;
-	Hex          = 3;
-	Squared      = 4;
-	Beveled      = 5;
-};
-env.Const.ClusterDesign = CLUSTER_DESIGN;
+env.Const.ClusterDesign = CPAPI.Enum('Original', 'OriginalGold', 'Hex', 'Squared', 'Beveled');
 
--- Keep saved design IDs stable when changing the selector order.
-local CLUSTER_DESIGN_ORDER = {
-	[CLUSTER_DESIGN.Original]     = 1;
-	[CLUSTER_DESIGN.Beveled]      = 2;
-	[CLUSTER_DESIGN.OriginalGold] = 3;
-	[CLUSTER_DESIGN.Hex]          = 4;
-	[CLUSTER_DESIGN.Squared]      = 5;
+local CLUSTER_DESIGN  = env.Const.ClusterDesign;
+local CLUSTER_DESIGNS = {
+	[CLUSTER_DESIGN.Original] = {
+		Name      = env.L'Round Silver';
+		Directory = 'RoundSilver';
+		PetRing   = 'RoundSilver';
+		Order     = 1;
+	};
+	[CLUSTER_DESIGN.Beveled] = {
+		Name      = env.L'Beveled Silver';
+		Directory = 'BeveledSilver';
+		PetRing   = 'BeveledSilver';
+		Order     = 2;
+	};
+	[CLUSTER_DESIGN.OriginalGold] = {
+		Name      = env.L'Round Gold';
+		Directory = 'RoundGold';
+		PetRing   = 'Gold';
+		Order     = 3;
+		IsGold    = true;
+	};
+	[CLUSTER_DESIGN.Hex] = {
+		Name      = env.L'Hex Gold';
+		Directory = 'HexGold';
+		PetRing   = 'Gold';
+		Order     = 4;
+		IsGold    = true;
+	};
+	[CLUSTER_DESIGN.Squared] = {
+		Name      = env.L'Squared Gold';
+		Directory = 'SquaredGold';
+		PetRing   = 'Gold';
+		Order     = 5;
+		IsGold    = true;
+	};
 };
+
+local CLUSTER_DESIGN_NAMES = {};
+for design, info in pairs(CLUSTER_DESIGNS) do
+	CLUSTER_DESIGN_NAMES[design] = info.Name;
+end
+
+local COOLDOWN_SHADE_ALPHA = 163 / 255;
+local COOLDOWN_SHADE_COLOR = CreateColor(0, 0, 0, COOLDOWN_SHADE_ALPHA);
 
 function env:IsGoldClusterDesign()
-	local design = self('clusterDesign');
-	return design == CLUSTER_DESIGN.OriginalGold or design == CLUSTER_DESIGN.Hex or design == CLUSTER_DESIGN.Squared;
+	local design = CLUSTER_DESIGNS[self('clusterDesign')];
+	return design ~= nil and design.IsGold == true;
 end
 
 env.Const.PageDescription =  {
@@ -282,12 +311,11 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Enable all modifier states for the cluster, including unmapped modifiers.';
 		advd = true;
 	};
-	-- A3 is the default alpha byte for black cooldown and GCD shading.
-	clusterSwipeColor = _{Data.Color('a3000000');
+	clusterSwipeColor = _{Data.Color(COOLDOWN_SHADE_COLOR);
 		name = L'Cooldown Swipe Color';
 		desc = L'Color and opacity of regular cooldown and swing timer shading.';
 	};
-	clusterGcdSwipeColor = _{Data.Color('a3000000');
+	clusterGcdSwipeColor = _{Data.Color(COOLDOWN_SHADE_COLOR);
 		name = L'Global Cooldown Swipe Color';
 		desc = L'Color and opacity of the global cooldown shading on cluster buttons.';
 	};
@@ -295,17 +323,10 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Border Vertex Color';
 		desc = 'Color of the vertices on the border of buttons.';
 	};
-	clusterDesign = _{
-		Data.Map(CLUSTER_DESIGN.Original, {
-			[CLUSTER_DESIGN.Original]     = L'Round Silver';
-			[CLUSTER_DESIGN.Beveled]      = L'Beveled Silver';
-			[CLUSTER_DESIGN.OriginalGold] = L'Round Gold';
-			[CLUSTER_DESIGN.Hex]          = L'Hex Gold';
-			[CLUSTER_DESIGN.Squared]      = L'Squared Gold';
-		});
+	clusterDesign = _{Data.Map(CLUSTER_DESIGN.Original, CLUSTER_DESIGN_NAMES);
 		name = L'Cluster Design';
 		desc = L'Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.';
-		optionSort = function(_, a, b) return CLUSTER_DESIGN_ORDER[a] < CLUSTER_DESIGN_ORDER[b] end;
+		optionSort = function(_, a, b) return CLUSTER_DESIGNS[a].Order < CLUSTER_DESIGNS[b].Order end;
 	};
 	---------------------------------------------------------------
 	_('Toolbar', ACTIONBARS_LABEL);
@@ -378,9 +399,7 @@ local M1, M2, M3 = 'M1', 'M2', 'M3';
 local NOMOD,  SHIFT,    CTRL,    ALT =
       '',    'SHIFT-', 'CTRL-', 'ALT-';
 ---------------------------------------------------------------
--- Reference sizes in UI units: main button, flyout button, and its larger border art.
 local SIZE_L,  SIZE_S,  SIZE_T  = 64, 46, 58;
--- Side and middle wedge anchor offsets, plus the diagonal corner adjustment.
 local OFS_MOD, OFS_MID, OFS_FIX = 38, 21, 4;
 -----------------------------------------------------------------------------------------------------------------------
 local HK_ICONS_SIZE_L, HK_ICONS_SIZE_S = 32, 20;
@@ -394,6 +413,7 @@ env.Const.Cluster = {
 	Layout = {
 		[NOMOD]      = { ----------------------------------------------------------------------------------------------------------
 			Prefix   = nil;
+			Part     = 'Main';
 			Shadow   = { 82 / SIZE_L, 0.3, CPAPI.GetAsset([[Textures\Button\Shadow]]), {'CENTER', 0, -6} };
 			Level    = 4;
 			Hotkey   = {{ HK_ICONS_SIZE_L, HK_ATLAS_SIZE_L, {'TOP', 0, 12}, nil }};
@@ -407,6 +427,9 @@ env.Const.Cluster = {
 			RIGHT    = {'BOTTOMLEFT', 'TOPRIGHT', -OFS_MOD - OFS_FIX, -OFS_MOD + OFS_FIX, Coords = {0, 0,   0, 1,   1, 0,   1, 1}};
 			-----------------------------------------------------------------------------------------------------------------------
 			Prefix   = M1;
+			Part     = 'FlyoutSide';
+			GoldPart = 'FlyoutShift';
+			Glow     = M1;
 			Size     = SIZE_S / SIZE_L;
 			TexSize  = SIZE_T / SIZE_S;
 			Offset   = OFS_MOD / SIZE_L;
@@ -420,6 +443,9 @@ env.Const.Cluster = {
 			RIGHT    = {'TOPLEFT', 'BOTTOMRIGHT', -OFS_MOD - OFS_FIX,  OFS_MOD - OFS_FIX, Coords = {0, 1,   0, 0,   1, 1,   1, 0}};
 			-----------------------------------------------------------------------------------------------------------------------
 			Prefix   = M2;
+			Part     = 'FlyoutSide';
+			GoldPart = 'FlyoutCtrl';
+			Glow     = M1;
 			Size     = SIZE_S / SIZE_L;
 			TexSize  = SIZE_T / SIZE_S;
 			Offset   = OFS_MOD / SIZE_L;
@@ -433,6 +459,9 @@ env.Const.Cluster = {
 			RIGHT    = {'LEFT',          'RIGHT',           -OFS_MID,                  0, Coords = {0, 0,   0, 1,   1, 0,   1, 1}};
 			-----------------------------------------------------------------------------------------------------------------------
 			Prefix   = M3;
+			Part     = 'FlyoutMiddle';
+			GoldPart = 'FlyoutShiftCtrl';
+			Glow     = M3;
 			Size     = SIZE_S / SIZE_L;
 			TexSize  = SIZE_T / SIZE_S * 0.9;
 			Offset   = OFS_MID / SIZE_L;
@@ -444,11 +473,42 @@ env.Const.Cluster = {
 	Assets = {
 		MainMask                  = CPAPI.GetAsset([[Textures\Button\Mask]]);
 		EmptyIcon                 = CPAPI.GetAsset([[Textures\Button\EmptyIcon]]);
+		SilverFlash               =   env.GetAsset([[Textures\Button\Hilite2x]]);
+		SilverSpellHighlight      =   env.GetAsset([[Textures\Button\Hilite2x.png]]);
+		ChargeEdge                =   env.GetAsset([[Textures\Cluster\ChargeEdge]]);
+		SwingEdge                 =   env.GetAsset([[Textures\Cluster\SwingEdge]]);
+		TargetingGlow             =   env.GetAsset([[Textures\Cluster\Glow\Targeting]]);
+		ToggleGlow                =   env.GetAsset([[Textures\Cluster\Glow\Toggle]]);
+		PetStatusFill             =   env.GetAsset([[Textures\PetRing\StatusFill]]);
+		PetStateMask              =   env.GetAsset([[Textures\PetRing\StateMask]]);
+		PetStateOutline           =   env.GetAsset([[Textures\PetRing\StateOutline]]);
+		PetStatePulse             =   env.GetAsset([[Textures\PetRing\StatePulse]]);
+		PetCooldownSwipe          =   env.GetAsset([[Textures\PetRing\CooldownSwipe]]);
 	};
-	-- Muted brown shows through empty gold slots on the cluster and Pet Ring.
+	AssetFormats = {
+		Border                    =   env.GetAsset([[Textures\Cluster\%s\%s]]);
+		BorderHighlight           =   env.GetAsset([[Textures\Cluster\%s\%sHighlight]]);
+		ShapeShadow               =   env.GetAsset([[Textures\Cluster\%s\Shadow%s]]);
+		ShapeMask                 =   env.GetAsset([[Textures\Cluster\Shapes\%s%sMask]]);
+		ProcStart                 =   env.GetAsset([[Textures\Cluster\Glow\Flipbooks\%sStart]]);
+		ProcLoop                  =   env.GetAsset([[Textures\Cluster\Glow\Flipbooks\%sLoop]]);
+		ProcFlyout                =   env.GetAsset([[Textures\Cluster\Glow\%sFlyout]]);
+		ProcWedge                 =   env.GetAsset([[Textures\Cluster\Glow\%s]]);
+		CooldownMask              =   env.GetAsset([[Textures\Masks\Cooldowns\%s]]);
+		CooldownShadow            =   env.GetAsset([[Textures\Masks\CooldownShadows\%s]]);
+		PetRing                   =   env.GetAsset([[Textures\PetRing\%s%s]]);
+	};
+	Designs            = CLUSTER_DESIGNS;
+	RimBrightness      = 0.86;
+	GlowFadeIn         = 0.18;
+	GlowFadeOut        = 0.38;
+	CooldownShadeAlpha = COOLDOWN_SHADE_ALPHA;
+	CooldownShadeColor = COOLDOWN_SHADE_COLOR;
+	EmptySlotColor     = CreateColor(0.5, 0.5, 0.5, 1);
 	GoldEmptySlotColor = CreateColor(0.26, 0.23, 0.20, 0.76);
-	-- Fractions of the main button size. Middle is the center flyout distance;
-	-- Outward and Side locate each diagonal flyout along and across the flyout direction.
+	AmberColor         = CreateColor(1, 214 / 255, 125 / 255);
+	ProcGlowColor      = CreateColor(1, 0.82, 0.42);
+	ProcBurstColor     = CreateColor(1, 0.94, 0.70);
 	GoldShapes = {
 		[CLUSTER_DESIGN.Hex] = {
 			Asset           = 'Hex';
@@ -464,7 +524,7 @@ env.Const.Cluster = {
 			Middle       = 47 / 64;
 			Outward      = 39 / 64;
 			Side         = 39 / 64;
-			MainHitInset = 5.25 / 64; -- Transparent padding around the 53.5-unit rim.
+			MainHitInset = 5.25 / 64;
 		};
 	};
 };

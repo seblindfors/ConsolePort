@@ -2,10 +2,12 @@ local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local NOMOD = env.Const.Cluster.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_SHADOW = env.Const.Cluster.Types();
-local CLUSTER_LAYOUT = env.Const.Cluster.Layout;
-local GOLD_SHAPES    = env.Const.Cluster.GoldShapes;
--- Outward axis and the side occupied by Shift in the original cluster.
-local FLYOUT_AXES = {
+local ClusterLayout = env.Const.Cluster.Layout;
+local GoldShapes    = env.Const.Cluster.GoldShapes;
+---------------------------------------------------------------
+local SHAPED_HOTKEY_OFFSET   = 0.30;
+local SHAPED_SHADOW_Y_OFFSET = 3;
+local FLYOUT_AXES = { -- direction = outwardX, outwardY, shiftSide
 	UP    = { 0;  1; -1;};
 	RIGHT = { 1;  0;  1;};
 	DOWN  = { 0; -1;  1;};
@@ -18,7 +20,6 @@ local Cluster = CreateFromMixins(env.DynamicWidgetMixin, env.MovableWidgetMixin)
 function Cluster:OnLoad(buttonID, parent)
 	self.buttonID = buttonID;
 	self.header   = parent;
-	-- Keep the saved position and mover on the configured footprint.
 	self.anchor = CreateFrame('Frame', nil, parent);
 	self.anchor:SetFrameLevel(self:GetMainButton():GetFrameLevel())
 	self:OnVariableChanged()
@@ -42,7 +43,6 @@ end
 function Cluster:Show()
 	self.anchor:Show()
 	for _, button in self:Enumerate() do
-		-- Preset switches release cached buttons from the widget registry.
 		env:Acquire(CLUSTER_BUTTON, button:GetName())
 		button:ToggleShown(true)
 	end
@@ -63,7 +63,6 @@ function Cluster:SetPoint(...)
 	local point, _, _, x, y = ...;
 	self.anchor:ClearAllPoints()
 	if ( point and x and y ) then
-		-- Preset changes clear anchors on cached buttons as well as the handle.
 		local main = self:GetMainButton();
 		main:ClearAllPoints()
 		main:SetPoint('CENTER', self.anchor, 'CENTER')
@@ -79,13 +78,14 @@ local function layoutFlyout(button, main, size, shape)
 	local data = button.layoutData;
 	local axes = shape and FLYOUT_AXES[button.direction];
 	if axes then
-		-- Convert outward and sideways offsets to the cluster's screen direction.
 		local x, y, shiftSide = unpack(axes);
-		local isMiddle       = data.Prefix == 'M3';
-		local outward        = isMiddle and shape.Middle or shape.Outward;
-		local side           = isMiddle and 0 or shape.Side * (data.Prefix == 'M1' and shiftSide or -shiftSide);
+		local isMiddle = data.Prefix == 'M3';
+		local outward  = isMiddle and shape.Middle or shape.Outward;
+		local side     = isMiddle and 0 or shape.Side * (data.Prefix == 'M1' and shiftSide or -shiftSide);
+		local offsetX  = size * (x * outward + y * side);
+		local offsetY  = size * (y * outward - x * side);
 		button:ClearAllPoints()
-		button:SetPoint('CENTER', main, 'CENTER', size * (x * outward + y * side), size * (y * outward - x * side))
+		button:SetPoint('CENTER', main, 'CENTER', offsetX, offsetY)
 		return size * shape.Size;
 	end
 	local anchor = data[button.direction];
@@ -100,7 +100,7 @@ end
 
 function Cluster:SetSize(size)
 	local main  = self:GetMainButton();
-	local shape = GOLD_SHAPES[env('clusterDesign')];
+	local shape = GoldShapes[env('clusterDesign')];
 	self.anchor:SetSize(size, size)
 	if ( shape and shape.MainHitInset ) or ( main.clusterShape and main.clusterShape.MainHitInset ) then
 		local inset = size * (shape and shape.MainHitInset or 0);
@@ -109,7 +109,7 @@ function Cluster:SetSize(size)
 	if ( main.Hotkey1 and (shape or main.clusterShape) ) then
 		main.Hotkey1:ClearAllPoints()
 		if shape then
-			main.Hotkey1:SetPoint('CENTER', 0, size * 0.30)
+			main.Hotkey1:SetPoint('CENTER', 0, size * SHAPED_HOTKEY_OFFSET)
 		else
 			main.Hotkey1:SetPoint(unpack(main.layoutData.Hotkey[1][3]))
 		end
@@ -199,7 +199,6 @@ Cluster.GetSnapSize = CPAPI.Static(env.Const.Cluster.SnapPixels);
 
 ---------------------------------------------------------------
 local Shadow = {};
-local SHAPED_SHADOW_Y_OFFSET = 3;
 ---------------------------------------------------------------
 
 function Shadow:OnLoad(owner, relativeSize, alpha, texture, point)
@@ -321,7 +320,7 @@ env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 	local buttons = {};
 	local cluster = CPAPI.Proxy({buttons = buttons;}, CPAPI.Proxy(buttons, Cluster))
 
-	for modifier, layoutData in pairs(CLUSTER_LAYOUT) do
+	for modifier, layoutData in pairs(ClusterLayout) do
 		local name = env.MakeID('CPB_%s_%s', id, modifier)
 		local button = env:Acquire(CLUSTER_BUTTON, name, id, modifier, parent, layoutData)
 		cluster.buttons[modifier] = button;
