@@ -374,7 +374,7 @@ function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, argume
 	baseColor = baseColor or NORMAL_FONT_COLOR;
 
 	local function MakeBulletList(topic, args, color)
-		local list = baseColor:WrapTextInColorCode(L(topic)..':')
+		local list = baseColor:WrapTextInColorCode(topic..':')
 		for arg, desc in db.table.spairs(args) do
 			list = ('%s\n• %s - %s'):format(list, color:WrapTextInColorCode(arg), L(desc));
 		end
@@ -393,10 +393,10 @@ function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, argume
 		end
 	end
 	if arguments then
-		text = ('%s\n\n%s'):format(text, MakeBulletList('Arguments', arguments, BLUE_FONT_COLOR));
+		text = ('%s\n\n%s'):format(text, MakeBulletList(L'Arguments', arguments, BLUE_FONT_COLOR));
 	end
 	if states then
-		text = ('%s\n\n%s'):format(text, MakeBulletList('States', states, GREEN_FONT_COLOR));
+		text = ('%s\n\n%s'):format(text, MakeBulletList(L'States', states, GREEN_FONT_COLOR));
 	end
 	if outcome then
 		text = ('%s\n\n%s\n%s'):format(text, baseColor:WrapTextInColorCode(L'Outcome'..':'), L(outcome));
