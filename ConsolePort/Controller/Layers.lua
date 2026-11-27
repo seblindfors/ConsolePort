@@ -1,10 +1,57 @@
 ---------------------------------------------------------------
 -- Input layers
 ---------------------------------------------------------------
--- Owns the modifier state the rest of the suite binds against.
--- Publishes two values: 'prefix' is the resolved layer, 'chord' the
--- canonical combination the engine looks up. Registrants pick their
--- action by the prefix and key their binding by the chord.
+-- Owns the modifier state the rest of the suite binds against, and
+-- every override binding the suite writes to the engine.
+--
+-- Modifiers are pad buttons standing in for SHIFT, CTRL and ALT.
+-- Holding, tapping (latch) and double tapping (doubled bar) them
+-- selects a layer, described by two values:
+--
+--   chord  : what the engine sees as held, in canonical order, such
+--            as 'CTRL-SHIFT-'. The engine looks a binding up by
+--            chord..button, so every override is keyed by the chord.
+--   prefix : the resolved layer. Equal to the chord unless a latch,
+--            a doubled bar or modifier ordering is in play, such as
+--            'SHIFT-CTRL-' when ordered or 'CTRL-CTRL-' when doubled.
+--            Registrants pick what a button does by the prefix.
+--
+--   held, latched, doubled --> UpdatePrefix --> chord, prefix
+--                                                 |
+--                        +------------------------+
+--                        v                        v
+--                    ApplyRow                ApplyStates
+--             claims the layer's row     re-evaluates registered
+--             under the engine's chord   [mod:] drivers by prefix
+--
+-- The row is the one live binding set. Per button the first source
+-- with an entry wins: clicks registered by frames, then the player's
+-- stored bindings for the layer. A stand-in key claims the same
+-- entry as the button it emulates. With strict modifiers, buttons
+-- only the unmodified layer resolves are claimed on the void button,
+-- so the engine cannot drop the modifier and fire them.
+--
+-- Claims: one engine binding per key. A frame claims a key at a
+-- level, the highest level holds it, newest on a tie, and a release
+-- surfaces the next claim:
+--
+--   level     engine tier   claimant
+--   BASE      low           the row
+--   OVERRIDE  low           conditional replacements of the row
+--   NAV       priority      cursors
+--   MODAL     priority      rings, menus, unit hotkeys
+--
+-- States: the engine resolves [mod:] against physically held
+-- modifiers and cannot see a latched or doubled layer. Drivers
+-- registered here are split into segments; layer clauses are
+-- matched against the prefix, the rest go to SecureCmdOptionParse,
+-- first match wins like the macro resolver.
+--
+-- Gestures: with tap to latch or the doubled bar on, each modifier's
+-- bare chord is routed to a proxy button whose OnClick latches and
+-- OnDoubleClick doubles. A double tap followed by a hold is armed
+-- for a few pulses of the layerpulse state driver, the only timer
+-- that runs in combat.
 ---------------------------------------------------------------
 
 local Layers, _, db = CPAPI.DataHandler(ConsolePortLayers), ...;
@@ -162,7 +209,11 @@ Layers.Env = {
 	-----------------------------------------------------------
 	-- Only one row is live: the engine looks up the canonical chord of
 	-- whatever is held. Written at the low priority tier, so a transient
-	-- overlay wins while it is up.
+	-- overlay wins while it is up. One walk over the sources in order
+	-- of precedence, first claim per button wins: registered clicks,
+	-- then the player's bindings for the layer, and when strict, the
+	-- unmodified layer's buttons, which the engine would otherwise fire
+	-- for the held modifier, are claimed on the void button instead.
 	-- @param chord : key prefix the engine will look up
 	-- @param layer : binding set to resolve it against
 	ApplyRow = [[
@@ -170,32 +221,42 @@ Layers.Env = {
 		self::ClearRow()
 		wipe(ROW)
 
-		local stored = STORED[layer];
-		if stored then
-			for button, entry in pairs(stored) do
-				ROW[button] = entry;
+		local strict = STRICT and ( chord ~= '' );
+		local ownStored, ownBound = STORED[chord], BINDINGS[chord];
+		for i = 1, strict and 4 or 2 do
+			local set;
+			if     ( i == 1 ) then set = BINDINGS[layer];
+			elseif ( i == 2 ) then set = STORED[layer];
+			elseif ( i == 3 ) then set = BINDINGS[''];
+			else                   set = STORED[''];
 			end
-		end
-
-		local bound = BINDINGS[layer];
-		if bound then
-			for button, entry in pairs(bound) do
-				ROW[button] = entry;
-			end
-		end
-
-		for button, entry in pairs(ROW) do
-			if not CLAIMED[button] then
-				-- Stand-ins resolve to whatever the button does in this layer.
-				local emulated = EMULATED[button];
-				for i = 1, emulated and 2 or 1 do
-					local key = chord..( ( i == 1 ) and button or emulated );
-					if ( entry[1] == 'click' ) then
-						self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', entry[2], entry[3])
+			local void = ( i > 2 );
+			for button, entry in pairs(set or EMPTY) do
+				if ( not ROW[button] and not CLAIMED[button] ) then
+					if void then
+						-- Leave aliases and combinations the player bound
+						-- themselves, since the chord can differ from the layer.
+						local key = chord..button;
+						if ( not EMULATED[button] and not ALIAS[key]
+							and not ( ownStored and ownStored[button] )
+							and not ( ownBound and ownBound[button] ) ) then
+							self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', VOID, 'LeftButton')
+							APPLIED[#APPLIED + 1] = key;
+						end
 					else
-						self::Claim(ROWOWNER, LEVEL_BASE, key, 'binding', entry[2])
+						-- Stand-ins resolve to whatever the button does in this layer.
+						local emulated = EMULATED[button];
+						for j = 1, emulated and 2 or 1 do
+							local key = chord..( ( j == 1 ) and button or emulated );
+							if ( entry[1] == 'click' ) then
+								self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', entry[2], entry[3])
+							else
+								self::Claim(ROWOWNER, LEVEL_BASE, key, 'binding', entry[2])
+							end
+							APPLIED[#APPLIED + 1] = key;
+						end
 					end
-					APPLIED[#APPLIED + 1] = key;
+					ROW[button] = true;
 				end
 			end
 		end
@@ -392,28 +453,39 @@ Layers.Env = {
 -- At file scope: a registrant in a later file may arrive first.
 function Layers:OnEnvironmentChanged()
 	self:Execute([[
-		HELD     = HELD     or newtable();
-		HELDSET  = HELDSET  or newtable();
-		LATCH    = LATCH    or newtable();
-		MODS     = MODS     or newtable();
 		ALIAS    = ALIAS    or newtable();
 		APPLIED  = APPLIED  or newtable();
 		BINDINGS = BINDINGS or newtable();
-		STORED   = STORED   or newtable();
 		CLAIMED  = CLAIMED  or newtable();
-		EMULATED = EMULATED or newtable();
-		STATES   = STATES   or newtable();
 		CLAIMS   = CLAIMS   or newtable();
+		EMULATED = EMULATED or newtable();
+		EMPTY    = EMPTY    or newtable();
+		HELD     = HELD     or newtable();
+		HELDSET  = HELDSET  or newtable();
+		LATCH    = LATCH    or newtable();
+		LEVELS   = LEVELS   or newtable();
 		LIVE     = LIVE     or newtable();
-		LEVEL_BASE, LEVEL_OVERRIDE, LEVEL_NAV, LEVEL_MODAL = 1, 2, 3, 4;
-		LEVELS = LEVELS or newtable();
-		LEVELS.BASE, LEVELS.OVERRIDE, LEVELS.NAV, LEVELS.MODAL = 1, 2, 3, 4;
-		ROWOWNER = 'row';
+		MODS     = MODS     or newtable();
 		ROW      = ROW      or newtable();
-		PULSES     = PULSES or 0;
+		STATES   = STATES   or newtable();
+		STORED   = STORED   or newtable();
+		PULSES   = PULSES   or 0;
+
+		LEVEL_BASE, LEVEL_OVERRIDE, LEVEL_NAV, LEVEL_MODAL = 1, 2, 3, 4;
+		LEVELS.BASE, LEVELS.OVERRIDE, LEVELS.NAV, LEVELS.MODAL = 1, 2, 3, 4;
 		ARM_PULSES = 3;
+		ROWOWNER   = 'row';
+		VOID       = 'ConsolePortVoid';
+		STRICT     = false;
 	]])
 	self:CreateEnvironment()
+end
+
+function Layers:SetStrictBindings()
+	self:Execute(CPAPI.ConvertSecureBody(([[
+		STRICT = %s;
+		self::ReapplyRow()
+	]]):format(tostring(not not db('layersStrictModifiers')))))
 end
 
 Layers:OnEnvironmentChanged()
@@ -939,13 +1011,15 @@ end
 
 function Layers:OnSettingsChanged()
 	self:SetFeatures(db('layersTapLatch'), db('layersDoubleBar'), db('layersOrdered'))
+	self:SetStrictBindings()
 	self:SetModifiers()
 end
 
 db:RegisterSafeCallbacks(Layers.OnSettingsChanged, Layers,
 	'Settings/layersTapLatch',
 	'Settings/layersDoubleBar',
-	'Settings/layersOrdered'
+	'Settings/layersOrdered',
+	'Settings/layersStrictModifiers'
 );
 
 db:RegisterSafeCallback('OnNewBindings', Layers.OnNewBindings, Layers)

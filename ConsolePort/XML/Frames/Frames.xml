@@ -18,6 +18,7 @@
 			</Button>
 			<!-- Controllers\Layers.lua -->
 			<Frame name="$parentLayers" inherits="SecureHandlerStateTemplate"/>
+			<Button name="$parentVoid" inherits="SecureActionButtonTemplate" hidden="true" registerForClicks="AnyDown, AnyUp"/>
 			<!-- Controllers\Radial.lua -->
 			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
 			<!-- Controllers\Interact.lua -->

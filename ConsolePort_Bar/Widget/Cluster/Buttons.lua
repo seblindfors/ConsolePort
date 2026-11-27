@@ -226,7 +226,8 @@ function FlyoutButton:SetBindings(primary, allBindings)
 			self:RefreshBinding(modifier, emulation and allBindings[NOMOD] or primary)
 		end
 	end
-	self:RefreshBinding(self.mod, allBindings[NOMOD])
+	local fallback = db('layersStrictModifiers') and allBindings[self.mod] or allBindings[NOMOD];
+	self:RefreshBinding(self.mod, fallback)
 	self:RefreshBinding(ALT .. self.mod, allBindings[ALT .. self.mod])
 	self:UpdateVisibility(self.VisibilityState.NoBinding, false)
 end
