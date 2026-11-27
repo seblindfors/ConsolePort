@@ -1,45 +1,92 @@
 local CPAPI, env = CPAPI, CPAPI.GetEnv(...);
-local CreateFrame, GenerateClosure = CreateFrame, GenerateClosure;
+local CreateFrame, GenerateClosure, GetTime, Lerp = CreateFrame, GenerateClosure, GetTime, Lerp;
+local ipairs, next, pairs, select, type, unpack = ipairs, next, pairs, select, type, unpack;
+local max, min, huge = math.max, math.min, math.huge;
+local nop, pcall, wipe = nop, pcall, wipe;
 local _, _, CLUSTER_BUTTON = env.Const.Cluster.Types();
 ---------------------------------------------------------------
 -- Cluster spellcast and channel effects
 ---------------------------------------------------------------
-local CAST, CHANNEL, EMPOWER   = 1, 2, 3;
-local CAST_START_RETRY_DELAY   = .12; -- Seconds for the live cast and action slot to settle.
-local CHANNEL_END_TOLERANCE_MS = 150; -- Grace period for channel completion and empower cleanup.
-local CAST_TINT                = {1; .78; .34; .12}; -- Amber inner wash at 12% opacity.
-local CHANNEL_TINT             = {.55; .92; .24; .12}; -- Green inner wash at the same opacity.
-local getItemSpell             = C_Item and C_Item.GetItemSpell or GetItemSpell;
-local getBaseSpell             = C_Spell and C_Spell.GetBaseSpell
-	or C_SpellBook and C_SpellBook.FindBaseSpellByID or FindBaseSpellByID;
-local getOverrideSpell         = C_Spell and C_Spell.GetOverrideSpell
-	or C_SpellBook and C_SpellBook.FindSpellOverrideByID or FindSpellOverrideByID;
-local getSpellName             = C_Spell and C_Spell.GetSpellName or GetSpellInfo;
-local getSpellTexture          = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture;
-local isCurrentAction          = C_ActionBar and C_ActionBar.IsCurrentAction or IsCurrentAction;
-local isAttackAction           = C_ActionBar and C_ActionBar.IsAttackAction or IsAttackAction;
-local isAutoCastPetAction      = C_ActionBar and C_ActionBar.IsAutoCastPetAction or IsAutoCastPetAction;
-local isAutoRepeatSpell        = C_Spell and C_Spell.IsAutoRepeatSpell or IsAutoRepeatSpell;
-local isAutoAttackSpell        = C_Spell and C_Spell.IsAutoAttackSpell;
+local CAST, CHANNEL, EMPOWER, ANY_CAST = 1, 2, 3, false;
+local CAST_START_RETRY_DELAY   = 0.12;
+local CAST_RESULT_GRACE        = 0.5;
+local SENT_CAST_LIFETIME       = 5;
+local CHANNEL_END_TOLERANCE_MS = 150;
+local NULL_GUID_PATTERN        = '^0?x?[0%-]*$';
+local CAST_FRAME_TEMPLATE      = 'ActionButtonCastingAnimFrameTemplate';
+local CAST_FILL_START_OFFSET   = 45;
+local CAST_FILL_TRAVEL         = 43;
+local CAST_TINT                = {1; 0.78; 0.34; 0.12};
+local CHANNEL_TINT             = {0.55; 0.92; 0.24; 0.12};
 
--- Cast type (false for any), transition, and position of castBarID after the spell ID.
-local CAST_EVENTS = {
-	UNIT_SPELLCAST_START          = {CAST; 'start'};
-	UNIT_SPELLCAST_DELAYED        = {CAST; 'update'};
-	UNIT_SPELLCAST_STOP           = {CAST; 'stop'};
-	UNIT_SPELLCAST_SUCCEEDED      = {CAST; 'finish'};
-	UNIT_SPELLCAST_FAILED         = {CAST; 'cancel'};
-	UNIT_SPELLCAST_INTERRUPTED    = {false; 'interrupt'; 2};
-	UNIT_SPELLCAST_CHANNEL_START  = {CHANNEL; 'start'};
-	UNIT_SPELLCAST_CHANNEL_UPDATE = {CHANNEL; 'update'};
-	UNIT_SPELLCAST_CHANNEL_STOP   = {CHANNEL; 'finish'; 2};
-	UNIT_SPELLCAST_EMPOWER_START  = {EMPOWER; 'start'};
-	UNIT_SPELLCAST_EMPOWER_UPDATE = {EMPOWER; 'update'};
-	UNIT_SPELLCAST_EMPOWER_STOP   = {EMPOWER; 'finish'; 3};
-};
-local activeCast, pendingCast, activeTarget;
+local GLOW_ATLAS_WIDTH         = 512;
+local GLOW_ATLAS_HEIGHT        = 256;
+local GLOW_CELL_SIZE           = 64;
+local GLOW_TEXEL_CENTER        = 0.5;
+local TARGETING_PULSE_FROM     = 0.40;
+local TARGETING_PULSE_TO       = 0.90;
+local TARGETING_PULSE_DURATION = 0.6;
+local TOGGLE_FADE_IN           = env.Const.Cluster.GlowFadeIn;
+local TOGGLE_FADE_OUT          = env.Const.Cluster.GlowFadeOut;
+
+local EMPOWER_BLEND_MS         = 220;
+local EMPOWER_FLARE_MS         = 350;
+local EMPOWER_FLARE_PEAK_MS    = 80;
+local EMPOWER_FLARE_DECAY      = 1.55;
+local EMPOWER_FLARE_WIDTH      = 0.89;
+local EMPOWER_FLARE_WIDEN      = 0.29;
+local EMPOWER_FLARE_HEIGHT     = 0.32;
+local EMPOWER_FLARE_HEIGHTEN   = 0.25;
+local EMPOWER_FLARE_MAX_RISE   = 0.92;
+local EMPOWER_FLARE_WHITE_MIX  = 0.55;
+local EMPOWER_FLARE_MIN_ALPHA  = 0.73;
+local EMPOWER_FILL_WIDTH       = 1.13;
+local EMPOWER_FILL_HEIGHT      = 1.24;
+local EMPOWER_FRONT_ANCHOR     = 0.42;
+local EMPOWER_FRONT_TRAVEL     = 1.08;
+local EMPOWER_FRONT_START      = 0.55;
+local EMPOWER_TINT_ALPHA       = 0.14;
+local EMPOWER_TINT_RAMP        = 10;
+
+local BURST_DURATION           = 0.42;
+local BURST_SCALE              = 1.24;
+local BURST_ALPHA              = 0.70;
+local INTERRUPT_DURATION       = 0.20;
+local INTERRUPT_ALPHA          = 0.55;
+
+local MATCH_CAST_BY_NAME       = CPAPI.IsClassicVersion;
+local MATCH_SLOT_BY_NAME       = CPAPI.IsCamelotVersion or CPAPI.IsClassicVersion;
+local CAN_EMPOWER              = GetUnitEmpowerStageDuration and GetUnitEmpowerHoldAtMaxTime
+	and C_Texture and C_Texture.GetAtlasInfo and true or nil;
+
+local function canCreateCastFrame()
+	if not ActionButtonCastingAnimFrameMixin then return false end;
+	if ( C_XMLUtil and C_XMLUtil.GetTemplateInfo ) then
+		local found, info = pcall(C_XMLUtil.GetTemplateInfo, CAST_FRAME_TEMPLATE);
+		return found and info ~= nil;
+	end
+	local created, probe = pcall(CreateFrame, 'Frame', nil, nil, CAST_FRAME_TEMPLATE);
+	if created then
+		probe:SetScript('OnHide', nil)
+		probe:Hide()
+	end
+	return created;
+end
+
+local CAN_CREATE_CAST_FRAME = canCreateCastFrame();
+
+local GetBaseSpell, GetOverrideSpell = CPAPI.GetBaseSpell, CPAPI.GetOverrideSpell;
+local GetSpellName, GetSpellTexture  = CPAPI.GetSpellName, CPAPI.GetSpellTexture;
+local GetItemSpell, IsCurrentAction  = CPAPI.GetItemSpell, CPAPI.IsCurrentAction;
+local IsAttackAction                 = CPAPI.IsAttackAction;
+local IsAutoCastPetAction            = CPAPI.IsAutoCastPetAction;
+local IsAutoAttackSpell              = CPAPI.IsAutoAttackSpell;
+local IsAutoRepeatSpell              = CPAPI.IsAutoRepeatSpell;
+local GetActionSpell                 = C_ActionBar and C_ActionBar.GetSpell or nop;
+local SmoothStep                     = env.SmoothStep;
+
+local activeCast, pendingCast, activeTarget, activeFormSpell;
 local sentCasts = {};
-local SENT_CAST_LIFETIME = 5; -- Seconds to pair a sent cast with its instant success.
 
 ---------------------------------------------------------------
 -- Cast identity and timing
@@ -49,25 +96,21 @@ local function publicCastValue(value)
 end
 
 local function matchesSpellID(left, right)
-	if not (left and right) then return false end;
-	if left == right then return true end;
-	-- A temporary override can expire as the channel starts.
-	if getBaseSpell then
-		local leftBase = publicCastValue(getBaseSpell(left));
-		local rightBase = publicCastValue(getBaseSpell(right));
-		leftBase = leftBase and leftBase > 0 and leftBase or left;
-		rightBase = rightBase and rightBase > 0 and rightBase or right;
-		if leftBase == rightBase then return true end;
-	end
-	return getOverrideSpell and (publicCastValue(getOverrideSpell(left)) == right
-		or publicCastValue(getOverrideSpell(right)) == left);
+	if not ( left and right ) then return false end;
+	if ( left == right ) then return true end;
+	local leftBase  = publicCastValue(GetBaseSpell(left));
+	local rightBase = publicCastValue(GetBaseSpell(right));
+	leftBase  = leftBase and leftBase > 0 and leftBase or left;
+	rightBase = rightBase and rightBase > 0 and rightBase or right;
+	if ( leftBase == rightBase ) then return true end;
+	return publicCastValue(GetOverrideSpell(left)) == right
+		or publicCastValue(GetOverrideSpell(right)) == left;
 end
 
 local function matchesSpellNameAndIcon(spellID, name, icon)
-	-- MoP can restore the base action before the replacement finishes casting.
-	if not (CPAPI.IsClassicVersion and spellID and name and icon and getSpellName and getSpellTexture) then return false end;
-	if publicCastValue((getSpellName(spellID))) ~= name then return false end;
-	local texture, original = getSpellTexture(spellID);
+	if not ( MATCH_CAST_BY_NAME and spellID and name and icon ) then return false end;
+	if ( publicCastValue((GetSpellName(spellID))) ~= name ) then return false end;
+	local texture, original = GetSpellTexture(spellID);
 	return publicCastValue(texture) == icon or publicCastValue(original) == icon;
 end
 
@@ -87,43 +130,42 @@ local function getEmpowerStages(numStages)
 		total = total + duration;
 		stages[rank] = total;
 	end
-	if total > 0 then return stages, hold end;
+	if ( total > 0 ) then return stages, hold end;
 end
 
 local function readClusterCast(cast)
 	local _;
 	local name, icon, startTime, endTime, guid, spellID, castBarID, empowered, numStages;
-	if cast.castType == CAST then
+	if ( cast.castType == CAST ) then
 		name, _, icon, startTime, endTime, _, guid, _, spellID, castBarID = UnitCastingInfo('player');
 	else
 		name, _, icon, startTime, endTime, _, _, spellID, empowered, numStages, castBarID = UnitChannelInfo('player');
 	end
 	if CPAPI.IsSecret(startTime) or CPAPI.IsSecret(endTime) then return end;
-	if not (startTime and endTime and endTime > startTime) then return end;
-	if cast.castType == CHANNEL and publicCastValue(empowered) then return end;
+	if not ( startTime and endTime and endTime > startTime ) then return end;
+	if ( cast.castType == CHANNEL and publicCastValue(empowered) ) then return end;
 
 	guid, spellID, castBarID = publicCastValue(guid), publicCastValue(spellID), publicCastValue(castBarID);
 	name, icon = publicCastValue(name), publicCastValue(icon);
-	local sameCast = sameCastIdentity(cast, guid, castBarID);
+	local sameCast   = sameCastIdentity(cast, guid, castBarID);
 	local knownSpell = cast.spellID or cast.eventSpellID;
-	if sameCast == false then return end;
+	if ( sameCast == false ) then return end;
 	if ( not sameCast and knownSpell and spellID and not matchesSpellID(knownSpell, spellID)
 		and not matchesSpellNameAndIcon(knownSpell, name, icon) ) then return end;
-	if cast.castType == CAST and not (guid or castBarID or cast.guid or cast.castBarID) then return end;
-	if not (spellID or knownSpell) then return end;
-	-- A missing event spell can only be recovered from a matching live cast.
-	if not (knownSpell or sameCast) then return end;
+	if ( cast.castType == CAST and not (guid or castBarID or cast.guid or cast.castBarID) ) then return end;
+	if not ( spellID or knownSpell ) then return end;
+	if not ( knownSpell or sameCast ) then return end;
 
-	if cast.castType == EMPOWER then
+	if ( cast.castType == EMPOWER ) then
 		local stages, hold = getEmpowerStages(numStages);
 		if not stages then return end;
 		cast.stages  = stages;
-		cast.holdEnd = math.max(endTime, startTime + stages[#stages]) + hold;
+		cast.holdEnd = max(endTime, startTime + stages[#stages]) + hold;
 	end
 	cast.startTime, cast.endTime = startTime, endTime;
 	cast.guid, cast.castBarID    = cast.guid or guid, cast.castBarID or castBarID;
-	cast.spellID                = spellID or knownSpell;
-	cast.name, cast.icon        = name, icon;
+	cast.spellID                 = spellID or knownSpell;
+	cast.name, cast.icon         = name, icon;
 	return true;
 end
 
@@ -131,44 +173,42 @@ end
 -- Action matching
 ---------------------------------------------------------------
 local function getClusterCastAction(button)
-	-- The secure slot can change before LAB updates its cached action.
 	local kind   = publicCastValue(button:GetAttribute('type')) or button._state_type;
 	local action = kind == button._state_type and publicCastValue(button._state_action) or nil;
-	if kind == 'action' then
+	if ( kind == 'action' ) then
 		action = publicCastValue(button:GetAttribute('action')) or action;
-		if type(action) ~= 'number' or action < 1 then return kind end;
+		if ( type(action) ~= 'number' or action < 1 ) then return kind end;
 	end
 	return kind, action;
 end
 
 local function getClusterCastSpell(button, kind, action)
-	if kind == 'action' and not action then return end;
-	if kind == button._state_type and action == publicCastValue(button._state_action) then
+	if ( kind == 'action' and not action ) then return end;
+	if ( kind == button._state_type and action == publicCastValue(button._state_action) ) then
 		local spellID = publicCastValue(button:GetSpellId());
 		if spellID then return spellID end;
 	end
 	if not action then return end;
 	local item;
-	if kind == 'action' then
+	if ( kind == 'action' ) then
 		local actionType, id, subType = GetActionInfo(action);
 		if CPAPI.IsSecret(actionType) or CPAPI.IsSecret(id) or CPAPI.IsSecret(subType) then return end;
-		if actionType == 'spell' or (actionType == 'macro' and subType == 'spell') then
+		if ( actionType == 'spell' or (actionType == 'macro' and subType == 'spell') ) then
 			return id;
-		elseif actionType == 'item' or (actionType == 'macro' and subType == 'item') then
+		elseif ( actionType == 'item' or (actionType == 'macro' and subType == 'item') ) then
 			item = id;
-		elseif actionType == 'macro' and id and not subType then
-			-- Older clients can report a macro index instead of the resolved item.
+		elseif ( actionType == 'macro' and id and not subType ) then
 			local spellID = publicCastValue((GetMacroSpell(id)));
 			if spellID then return spellID end;
 			item = select(2, GetMacroItem(id));
 		end
-	elseif kind == 'item' then
+	elseif ( kind == 'item' ) then
 		item = action;
-	elseif kind == 'macro' then
+	elseif ( kind == 'macro' ) then
 		item = select(2, GetMacroItem(action));
 	end
-	if not getItemSpell or CPAPI.IsSecret(item) or not item then return end;
-	return publicCastValue((select(2, getItemSpell(item))));
+	if CPAPI.IsSecret(item) or not item then return end;
+	return publicCastValue((select(2, GetItemSpell(item))));
 end
 
 local function matchesCastSpell(cast, spellID)
@@ -180,10 +220,9 @@ end
 local function matchButtonSpell(button, cast, kind, action)
 	local spellID = getClusterCastSpell(button, kind, action);
 	if matchesCastSpell(cast, spellID) then return spellID, true end;
-	if ( kind == 'action' and action and C_ActionBar and C_ActionBar.GetSpell ) then
-		-- The client can resolve a spell from this slot differently from GetActionInfo.
-		local slotSpell = publicCastValue(C_ActionBar.GetSpell(action));
-		if slotSpell and slotSpell > 0 and matchesCastSpell(cast, slotSpell) then
+	if ( kind == 'action' and action ) then
+		local slotSpell = publicCastValue(GetActionSpell(action));
+		if ( slotSpell and slotSpell > 0 and matchesCastSpell(cast, slotSpell) ) then
 			return slotSpell, true;
 		end
 	end
@@ -191,110 +230,132 @@ local function matchButtonSpell(button, cast, kind, action)
 end
 
 local function matchesCurrentSlot(cast, spellID, slot)
-	-- Ranks and temporary replacements can share a name on Classic.
-	if (CPAPI.IsCamelotVersion or CPAPI.IsClassicVersion) and slot and spellID and cast.spellID
-		and isCurrentAction and getSpellName and publicCastValue(isCurrentAction(slot)) then
-		local name = publicCastValue((getSpellName(spellID)));
-		return name and name == publicCastValue((getSpellName(cast.spellID)));
+	if ( MATCH_SLOT_BY_NAME and slot and spellID and cast.spellID
+		and publicCastValue(IsCurrentAction(slot)) ) then
+		local name = publicCastValue((GetSpellName(spellID)));
+		return name and name == publicCastValue((GetSpellName(cast.spellID)));
 	end
 end
 
 ---------------------------------------------------------------
 -- Masked icon effects
 ---------------------------------------------------------------
--- Ground-targeting animation: green while placing a spell.
-local TARGETING_COLOR = {0; 1; 0; 1};
--- Active-toggle glow: Pet Ring amber with a short fade when the state changes.
-local TOGGLE_COLOR = {1; 214 / 255; 125 / 255; .60};
--- Attack and queued next-swing abilities share a white glow at 60% opacity.
-local ATTACK_TOGGLE_COLOR = {1; 1; 1; .60};
-local TOGGLE_FADE_IN, TOGGLE_FADE_OUT = .18, .38; -- Seconds to light up and fade back out.
-local PULSE_TEXTURE = env.GetAsset([[Textures\Cluster\Glow\Targeting]]);
--- Same atlas cells as Targeting.png, with a tighter alpha falloff baked in.
-local TOGGLE_TEXTURE = env.GetAsset([[Textures\Cluster\Glow\Toggle]]);
-local PULSE_COORDS = {};
-local activeFormSpell;
-do -- Each cell is an inward fade traced from its corresponding icon mask.
-	local rows = {
+local TARGETING_COLOR     = {0; 1; 0; 1};
+local TOGGLE_COLOR        = {env.Const.Cluster.AmberColor:GetRGB()}; TOGGLE_COLOR[4] = 0.60;
+local ATTACK_TOGGLE_COLOR = {1; 1; 1; 0.60};
+local PULSE_TEXTURE       = env.Const.Cluster.Assets.TargetingGlow;
+local TOGGLE_TEXTURE      = env.Const.Cluster.Assets.ToggleGlow;
+local PULSE_COORDS        = {};
+do  local rows = {
 		{'Round'; 'HexMain'; 'HexFlyout'; 'HexSidewaysMain'; 'HexSidewaysFlyout'; 'SquaredMain'; 'SquaredFlyout'};
 		{'M1_DOWN'; 'M1_LEFT'; 'M1_RIGHT'; 'M1_UP'};
 		{'M2_DOWN'; 'M2_LEFT'; 'M2_RIGHT'; 'M2_UP'};
 		{'M3_DOWN'; 'M3_LEFT'; 'M3_RIGHT'; 'M3_UP'};
 	};
-	-- Both atlases are 512 x 256 pixels, with 64 x 64 cells. Sample from the first
-	-- to the last pixel center (.5 to 63.5) so filtering cannot pull in the next shape.
 	for row, shapes in ipairs(rows) do
-		local y = (row - 1) * 64;
-		for col, shape in ipairs(shapes) do
-			local x = (col - 1) * 64;
-			PULSE_COORDS[shape] = {(x + .5) / 512; (x + 63.5) / 512; (y + .5) / 256; (y + 63.5) / 256};
+		local top = (row - 1) * GLOW_CELL_SIZE;
+		for column, shape in ipairs(shapes) do
+			local left = (column - 1) * GLOW_CELL_SIZE;
+			PULSE_COORDS[shape] = {
+				(left + GLOW_TEXEL_CENTER) / GLOW_ATLAS_WIDTH;
+				(left + GLOW_CELL_SIZE - GLOW_TEXEL_CENTER) / GLOW_ATLAS_WIDTH;
+				(top + GLOW_TEXEL_CENTER) / GLOW_ATLAS_HEIGHT;
+				(top + GLOW_CELL_SIZE - GLOW_TEXEL_CENTER) / GLOW_ATLAS_HEIGHT;
+			};
 		end
 	end
 end
 
 local nextSwingSpells, scanTooltip = {};
-local function isNextSwingSpell(spellID)
-	if not spellID or not SPELL_ON_NEXT_SWING then return end;
-	if nextSwingSpells[spellID] then return true end;
-	-- Only a checked spell needs classification. Match Blizzard's localized cast-time label.
-	if C_TooltipInfo and C_TooltipInfo.GetSpellByID then
-		local data = publicCastValue(C_TooltipInfo.GetSpellByID(spellID));
+
+-----------------------------------------------------------
+-- @param spellID : public spell ID
+-- @return found      : a public line equals the next swing label
+-- @return conclusive : the result can be cached
+local scanNextSwingLabel;
+if ( C_TooltipInfo and C_TooltipInfo.GetSpellByID ) then
+	function scanNextSwingLabel(spellID)
+		local data  = publicCastValue(C_TooltipInfo.GetSpellByID(spellID));
 		local lines = data and publicCastValue(data.lines);
-		if not lines then return end;
+		if not lines then return false, false end;
+		local conclusive = #lines > 0;
 		for _, line in ipairs(lines) do
-			if publicCastValue(line.leftText) == SPELL_ON_NEXT_SWING
-				or publicCastValue(line.rightText) == SPELL_ON_NEXT_SWING then
-				nextSwingSpells[spellID] = true;
-				return true;
+			local left, right = line.leftText, line.rightText;
+			if ( publicCastValue(left) == SPELL_ON_NEXT_SWING
+				or publicCastValue(right) == SPELL_ON_NEXT_SWING ) then
+				return true, true;
 			end
+			conclusive = conclusive and not ( CPAPI.IsSecret(left) or CPAPI.IsSecret(right) );
 		end
-	else
-		scanTooltip = scanTooltip or CreateFrame('GameTooltip', 'ConsolePortClusterSpellScan', UIParent, 'GameTooltipTemplate');
+		return false, conclusive;
+	end
+else
+	function scanNextSwingLabel(spellID)
+		scanTooltip = scanTooltip
+			or CreateFrame('GameTooltip', 'ConsolePortClusterSpellScan', UIParent, 'GameTooltipTemplate');
 		scanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
 		scanTooltip:ClearLines()
 		scanTooltip:SetSpellByID(spellID)
+		local found, hasText, hasSecret = false, false, false;
 		for _, region in ipairs({scanTooltip:GetRegions()}) do
-			if region:IsObjectType('FontString') and region:IsShown() and publicCastValue(region:GetText()) == SPELL_ON_NEXT_SWING then
-				nextSwingSpells[spellID] = true;
-				break;
+			if ( region:IsObjectType('FontString') and region:IsShown() ) then
+				local text = region:GetText();
+				if CPAPI.IsSecret(text) then
+					hasSecret = true;
+				elseif ( text == SPELL_ON_NEXT_SWING ) then
+					found = true;
+					break;
+				elseif text then
+					hasText = true;
+				end
 			end
 		end
 		scanTooltip:Hide()
-		return nextSwingSpells[spellID];
+		return found, found or (hasText and not hasSecret);
+	end
+end
+
+local isNextSwingSpell = nop;
+if SPELL_ON_NEXT_SWING then
+	function isNextSwingSpell(spellID)
+		if not spellID then return end;
+		local cached = nextSwingSpells[spellID];
+		if ( cached ~= nil ) then return cached end;
+		local found, conclusive = scanNextSwingLabel(spellID);
+		if conclusive then nextSwingSpells[spellID] = found end;
+		return found;
 	end
 end
 
 local function getClusterToggleColor(button, kind, action)
 	local spellID = action;
-	if kind == 'action' and action then
+	if ( kind == 'action' and action ) then
 		local actionType, id, subType = GetActionInfo(action);
 		if publicCastValue(actionType) ~= 'spell' or CPAPI.IsSecret(subType) then return end;
 		spellID = publicCastValue(id);
-		if subType == 'pet' then
-			if not isCurrentAction or not publicCastValue(isCurrentAction(action)) then return nil, spellID end;
-			-- Pet Attack and autocast abilities have their own feedback.
-			local attack = isAttackAction and isAttackAction(action);
-			local autoCast = isAutoCastPetAction and isAutoCastPetAction(action);
-			if not (CPAPI.IsSecret(attack) or attack or CPAPI.IsSecret(autoCast) or autoCast) then
+		if ( subType == 'pet' ) then
+			if not publicCastValue(IsCurrentAction(action)) then return nil, spellID end;
+			local attack   = IsAttackAction(action);
+			local autoCast = IsAutoCastPetAction(action);
+			if not ( CPAPI.IsSecret(attack) or attack or CPAPI.IsSecret(autoCast) or autoCast ) then
 				return TOGGLE_COLOR, spellID;
 			end
 			return nil, spellID;
 		end
-		if isCurrentAction and publicCastValue(isCurrentAction(action))
-			and ((isAttackAction and publicCastValue(isAttackAction(action))) or isNextSwingSpell(spellID)) then
+		if ( publicCastValue(IsCurrentAction(action))
+			and (publicCastValue(IsAttackAction(action)) or isNextSwingSpell(spellID)) ) then
 			return ATTACK_TOGGLE_COLOR, spellID;
 		end
-	elseif kind ~= 'spell' then
+	elseif ( kind ~= 'spell' ) then
 		return;
-	elseif spellID and publicCastValue(button:IsCurrentlyActive())
-		and (publicCastValue(button:IsAttack()) or isNextSwingSpell(spellID)) then
+	elseif ( spellID and publicCastValue(button:IsCurrentlyActive())
+		and (publicCastValue(button:IsAttack()) or isNextSwingSpell(spellID)) ) then
 		return ATTACK_TOGGLE_COLOR, spellID;
 	end
-	if activeFormSpell and spellID == activeFormSpell then return TOGGLE_COLOR, spellID end;
+	if ( activeFormSpell and spellID == activeFormSpell ) then return TOGGLE_COLOR, spellID end;
 	return nil, spellID;
 end
 
--- Clip both effects to the icon and keep them beneath the rim.
 local function createClusterGlow(button)
 	local mask = env.LIB.SkinUtility.GetIconMask(button);
 	local glow = button:CreateTexture(nil, 'ARTWORK', nil, 1);
@@ -308,52 +369,52 @@ end
 local function createTargetingPulse(glow)
 	local group = glow:CreateAnimationGroup();
 	local pulse = group:CreateAnimation('Alpha');
-	-- Each half of the targeting pulse takes 0.6 seconds, between 40% and 90% opacity.
-	pulse:SetFromAlpha(.40)
-	pulse:SetToAlpha(.90)
-	pulse:SetDuration(.6)
+	pulse:SetFromAlpha(TARGETING_PULSE_FROM)
+	pulse:SetToAlpha(TARGETING_PULSE_TO)
+	pulse:SetDuration(TARGETING_PULSE_DURATION)
 	pulse:SetSmoothing('IN_OUT')
 	group:SetLooping('BOUNCE')
 	return group;
 end
 
-local toggleFades, toggleFadeFrame = {};
-
-local function updateToggleFades(frame)
-	local now = GetTime();
-	for glow, fade in pairs(toggleFades) do
-		local progress = math.min(1, (now - fade.start) / fade.duration);
-		glow:SetAlpha(Lerp(fade.from, fade.to, env.SmoothStep(progress)))
-		if progress == 1 then
-			toggleFades[glow] = nil;
-			glow:SetShown(fade.to > 0)
+local function updateToggleFades(self)
+	local now, glows = GetTime(), self.glows;
+	for glow in pairs(glows) do
+		local progress = min(1, (now - glow.fadeStart) / glow.fadeDuration);
+		glow:SetAlpha(Lerp(glow.fadeFrom, glow.fadeTo, SmoothStep(progress)))
+		if ( progress == 1 ) then
+			glows[glow] = nil;
+			glow:SetShown(glow.fadeTo > 0)
 		end
 	end
-	if not next(toggleFades) then frame:Hide() end;
+	if not next(glows) then self:Hide() end;
 end
 
--- Active-toggle animation: apply the Pet Ring's easing directly to the glow.
+local ToggleFader = CreateFrame('Frame');
+ToggleFader.glows = {};
+ToggleFader:Hide()
+ToggleFader:SetScript('OnUpdate', updateToggleFades)
+
 local function setToggleGlowAlpha(glow, show, instant)
-	local from = glow:GetAlpha();
-	local to = show and 1 or 0;
-	if instant or from == to then
-		toggleFades[glow] = nil;
+	local from, to = glow:GetAlpha(), show and 1 or 0;
+	if ( instant or from == to ) then
+		ToggleFader.glows[glow] = nil;
 		glow:SetAlpha(to)
 		glow:SetShown(show)
 		return;
 	end
-	if not toggleFadeFrame then
-		toggleFadeFrame = CreateFrame('Frame');
-		toggleFadeFrame:SetScript('OnUpdate', updateToggleFades)
-	end
-	toggleFades[glow] = {start = GetTime(); duration = show and TOGGLE_FADE_IN or TOGGLE_FADE_OUT; from = from; to = to;};
+	glow.fadeStart    = GetTime();
+	glow.fadeDuration = show and TOGGLE_FADE_IN or TOGGLE_FADE_OUT;
+	glow.fadeFrom     = from;
+	glow.fadeTo       = to;
+	ToggleFader.glows[glow] = true;
 	glow:Show()
-	toggleFadeFrame:Show()
+	ToggleFader:Show()
 end
 
 local function syncClusterPulse(button)
 	local color, kind, action, spellID;
-	if button.clusterPulseCoords and button:IsVisible() then
+	if ( button.clusterPulseCoords and button:IsVisible() ) then
 		kind, action = getClusterCastAction(button);
 		color, spellID = getClusterToggleColor(button, kind, action);
 		if activeTarget then
@@ -364,9 +425,9 @@ local function syncClusterPulse(button)
 	local actionChanged = kind ~= button.clusterPulseActionType or action ~= button.clusterPulseAction
 		or spellID ~= button.clusterPulseSpell;
 	button.clusterPulseActionType, button.clusterPulseAction, button.clusterPulseSpell = kind, action, spellID;
-	local previous = button.clusterPulseColor;
-	local glow = button.clusterPulseGlow;
-	if color == previous and not (actionChanged and glow and glow:IsShown() and color ~= TARGETING_COLOR) then return end;
+	local previous, glow = button.clusterPulseColor, button.clusterPulseGlow;
+	local restyle = actionChanged and glow and glow:IsShown() and color ~= TARGETING_COLOR;
+	if ( color == previous and not restyle ) then return end;
 	local targeting, wasTargeting = color == TARGETING_COLOR, previous == TARGETING_COLOR;
 	button.clusterPulseColor = color;
 	if wasTargeting then button.clusterPulseAnim:Stop() end;
@@ -385,19 +446,9 @@ local function syncClusterPulse(button)
 	else
 		setToggleGlowAlpha(glow, false, actionChanged or wasTargeting)
 	end
-	if button.AlphaState and targeting ~= wasTargeting then
+	if ( button.AlphaState and targeting ~= wasTargeting ) then
 		button:UpdateAlpha(button.AlphaState.Targeting, targeting)
 	end
-end
-
-function env:SetClusterPulseShape(button, shape)
-	local coords = PULSE_COORDS[shape];
-	button.clusterPulseCoords = coords;
-	local glow = button.clusterPulseGlow;
-	if coords and glow then
-		glow:SetTexCoord(unpack(coords))
-	end
-	syncClusterPulse(button)
 end
 
 local function syncClusterPulses()
@@ -405,16 +456,15 @@ local function syncClusterPulses()
 end
 
 local function syncClusterForm()
-	-- The checked border can also mean a queued cast. Read the actual player form.
-	local form = publicCastValue(GetShapeshiftForm());
+	local form    = publicCastValue(GetShapeshiftForm());
 	local spellID = form and form > 0 and publicCastValue((select(4, GetShapeshiftFormInfo(form)))) or nil;
-	if spellID == activeFormSpell then return end;
+	if ( spellID == activeFormSpell ) then return end;
 	activeFormSpell = spellID;
 	syncClusterPulses()
 end
 
 local function updateTargetingButtons(target)
-	if target ~= activeTarget then return end;
+	if ( target ~= activeTarget ) then return end;
 	syncClusterPulses()
 end
 
@@ -424,15 +474,43 @@ local function clearClusterTargeting(spellID)
 	updateTargetingButtons()
 end
 
+local function clearSentTargeting(target)
+	if ( activeTarget == target and not SpellIsTargeting() ) then
+		clearClusterTargeting(target.spellID)
+	end
+end
+
+---------------------------------------------------------------
+-- Awaited cast result
+---------------------------------------------------------------
+local function expireAwaitedCast(frame)
+	frame.clusterAwaitedCast, frame.clusterAwaitTimer = nil, nil;
+	frame.clusterCastSpell, frame.clusterCastAction, frame.clusterCastActionType = nil, nil, nil;
+end
+
+local function cancelAwaitedCast(frame)
+	if not frame.clusterAwaitedCast then return end;
+	frame.clusterAwaitedCast = nil;
+	frame.clusterAwaitTimer  = frame.clusterAwaitTimer:Cancel();
+end
+
+local function awaitCastResult(frame)
+	local cast = frame.clusterCast;
+	local spellID, action, kind = frame.clusterCastSpell, frame.clusterCastAction, frame.clusterCastActionType;
+	cancelAwaitedCast(frame)
+	frame:Hide()
+	if ( not cast or cast ~= activeCast ) then return end;
+	frame.clusterCastSpell, frame.clusterCastAction, frame.clusterCastActionType = spellID, action, kind;
+	frame.clusterAwaitedCast = cast;
+	frame.clusterAwaitTimer  = C_Timer.NewTimer(CAST_RESULT_GRACE, GenerateClosure(expireAwaitedCast, frame));
+end
+
 ---------------------------------------------------------------
 -- Empower animation
 ---------------------------------------------------------------
--- Start violet, transition from ember toward gold at intermediate ranks, and hold gold at max rank.
-local VIOLET = {.70; .34; 1};
-local EMBER  = {1; .43; .17};
-local GOLD   = {1; .80; .34};
--- After a rank change, crossfade the fill for 220 ms. The 350 ms flare peaks at 80 ms.
-local EMPOWER_BLEND_MS, EMPOWER_PULSE_MS, EMPOWER_PULSE_PEAK_MS = 220, 350, 80;
+local VIOLET = {0.70; 0.34; 1};
+local EMBER  = {1; 0.43; 0.17};
+local GOLD   = {1; 0.80; 0.34};
 
 local function empowerRank(cast, elapsed)
 	local rank = #cast.stages;
@@ -441,8 +519,8 @@ local function empowerRank(cast, elapsed)
 end
 
 local function empowerColor(rank, count)
-	if rank > 0 and rank == count then return unpack(GOLD) end;
-	if rank < 2 then return unpack(VIOLET) end;
+	if ( rank > 0 and rank == count ) then return unpack(GOLD) end;
+	if ( rank < 2 ) then return unpack(VIOLET) end;
 	local blend = (rank - 2) / (count - 2);
 	return Lerp(EMBER[1], GOLD[1], blend), Lerp(EMBER[2], GOLD[2], blend), Lerp(EMBER[3], GOLD[3], blend);
 end
@@ -459,19 +537,19 @@ end
 local function updateClusterEmpower(frame)
 	local cast, effect = frame.clusterCast, frame.clusterEmpower;
 	local now = GetTime() * 1000;
-	if now > cast.holdEnd + CHANNEL_END_TOLERANCE_MS then return frame:Hide() end;
+	if ( now > cast.holdEnd + CHANNEL_END_TOLERANCE_MS ) then return awaitCastResult(frame) end;
 
-	local elapsed = math.max(0, now - cast.startTime);
-	local total = cast.stages[#cast.stages];
-	local rank = empowerRank(cast, elapsed);
+	local count     = #cast.stages;
+	local elapsed   = max(0, now - cast.startTime);
+	local total     = cast.stages[count];
+	local rank      = empowerRank(cast, elapsed);
 	local stageTime = cast.stages[rank];
-	local age = stageTime and elapsed - stageTime or math.huge;
-	local progress = math.min(1, elapsed / total);
-	local r, g, b = empowerColor(rank, #cast.stages);
-	if rank > 0 and age < EMPOWER_BLEND_MS then
-		local pr, pg, pb = empowerColor(rank - 1, #cast.stages);
-		local t = age / EMPOWER_BLEND_MS;
-		local blend = env.SmoothStep(t);
+	local age       = stageTime and elapsed - stageTime or huge;
+	local progress  = min(1, elapsed / total);
+	local r, g, b   = empowerColor(rank, count);
+	if ( rank > 0 and age < EMPOWER_BLEND_MS ) then
+		local pr, pg, pb = empowerColor(rank - 1, count);
+		local blend      = SmoothStep(age / EMPOWER_BLEND_MS);
 		r, g, b = Lerp(pr, r, blend), Lerp(pg, g, blend), Lerp(pb, b, blend);
 	end
 
@@ -481,32 +559,32 @@ local function updateClusterEmpower(frame)
 	local button        = frame:GetParent();
 	local shape         = button.clusterShape;
 	local inset         = not button.layoutData.Prefix and shape and shape.MainHitInset or 0;
-	-- Convert the visible icon bounds into cast-frame units, trimming the square rim padding on both sides.
-	local geometry      = (1 - 2 * inset) / scale;
-	width, height       = width * geometry, height * geometry;
-	-- Oversize the sprite to fill the corners. Its bright front sits 42% of its height
-	-- above center and travels from just below the icon to just above it.
-	local fillHeight = height * 1.24;
-	local front      = height * (1.08 * progress - .55);
-	effect.Fill:SetSize(width * 1.13, fillHeight)
-	effect.Fill:SetPoint('CENTER', mask, 'CENTER', 0, front - fillHeight * .42)
+	local iconToFrame   = (1 - 2 * inset) / scale;
+	width, height       = width * iconToFrame, height * iconToFrame;
+	local fillHeight    = height * EMPOWER_FILL_HEIGHT;
+	local front         = height * (EMPOWER_FRONT_TRAVEL * progress - EMPOWER_FRONT_START);
+	effect.Fill:SetSize(width * EMPOWER_FILL_WIDTH, fillHeight)
+	effect.Fill:SetPoint('CENTER', mask, 'CENTER', 0, front - fillHeight * EMPOWER_FRONT_ANCHOR)
 	effect.Fill:SetVertexColor(r, g, b)
-	-- Bring in the 14% background tint over the first tenth of the cast.
-	effect.Inner:SetVertexColor(r, g, b, .14 * math.min(1, progress * 10))
+	effect.Inner:SetVertexColor(r, g, b, EMPOWER_TINT_ALPHA * min(1, progress * EMPOWER_TINT_RAMP))
 
-	local pulse = effect.Pulse;
-	pulse:SetShown(age < EMPOWER_PULSE_MS)
-	if pulse:IsShown() then
-		-- Expand the flare at the crossed threshold. Cap its height at 92% of the icon
-		-- so the final flare stays visible, and mix white into the rank color for contrast.
-		local spread = age / EMPOWER_PULSE_MS;
-		local peak = age < EMPOWER_PULSE_PEAK_MS and age / EMPOWER_PULSE_PEAK_MS
-			or ((EMPOWER_PULSE_MS - age) / (EMPOWER_PULSE_MS - EMPOWER_PULSE_PEAK_MS)) ^ 1.55;
-		local nr, ng, nb = empowerColor(rank, #cast.stages);
-		pulse:SetSize(width * (.89 + spread * .29), height * (.32 + spread * .25))
-		pulse:SetPoint('CENTER', mask, 'CENTER', 0, height * (math.min(.92, stageTime / total) - .5))
-		pulse:SetVertexColor(Lerp(nr, 1, .55), Lerp(ng, 1, .55), Lerp(nb, 1, .55))
-		pulse:SetAlpha(peak * Lerp(.73, 1, rank / #cast.stages))
+	local flare = effect.Pulse;
+	flare:SetShown(age < EMPOWER_FLARE_MS)
+	if flare:IsShown() then
+		local spread = age / EMPOWER_FLARE_MS;
+		local peak   = age < EMPOWER_FLARE_PEAK_MS and age / EMPOWER_FLARE_PEAK_MS
+			or ((EMPOWER_FLARE_MS - age) / (EMPOWER_FLARE_MS - EMPOWER_FLARE_PEAK_MS)) ^ EMPOWER_FLARE_DECAY;
+		local rise   = min(EMPOWER_FLARE_MAX_RISE, stageTime / total);
+		local nr, ng, nb = empowerColor(rank, count);
+		flare:SetSize(
+			width * (EMPOWER_FLARE_WIDTH + spread * EMPOWER_FLARE_WIDEN),
+			height * (EMPOWER_FLARE_HEIGHT + spread * EMPOWER_FLARE_HEIGHTEN))
+		flare:SetPoint('CENTER', mask, 'CENTER', 0, height * (rise - 0.5))
+		flare:SetVertexColor(
+			Lerp(nr, 1, EMPOWER_FLARE_WHITE_MIX),
+			Lerp(ng, 1, EMPOWER_FLARE_WHITE_MIX),
+			Lerp(nb, 1, EMPOWER_FLARE_WHITE_MIX))
+		flare:SetAlpha(peak * Lerp(EMPOWER_FLARE_MIN_ALPHA, 1, rank / count))
 	end
 end
 
@@ -530,10 +608,10 @@ local function startClusterEmpower(button, frame, cast)
 			Inner = createEmpowerTexture(frame, mask, 0);
 			Pulse = createEmpowerTexture(frame, mask, 2);
 		};
-		-- Map the atlas's bright right edge to the top without shrinking the sprite.
-		local l, r, t, b = atlas.leftTexCoord, atlas.rightTexCoord, atlas.topTexCoord, atlas.bottomTexCoord;
+		local left, right = atlas.leftTexCoord, atlas.rightTexCoord;
+		local top, bottom = atlas.topTexCoord, atlas.bottomTexCoord;
 		effect.Fill:SetTexture(atlas.file or atlas.filename)
-		effect.Fill:SetTexCoord(r, t, l, t, r, b, l, b)
+		effect.Fill:SetTexCoord(right, top, left, top, right, bottom, left, bottom)
 		effect.Inner:SetColorTexture(1, 1, 1, 1)
 		effect.Inner:SetAllPoints(mask)
 		effect.Pulse:SetAtlas('cast-empowered-pipflare')
@@ -554,11 +632,7 @@ end
 ---------------------------------------------------------------
 -- Button animation
 ---------------------------------------------------------------
-
--- Swing and instant success share a 0.42-second burst that expands 24% and fades from 70% opacity.
-env.ClusterBurstDuration = .42;
-
-function env:CreateClusterBurst(parent, mask, red, green, blue)
+local function createClusterBurst(parent, mask, red, green, blue)
 	local glow = parent:CreateTexture(nil, 'ARTWORK', nil, 2);
 	glow:SetAllPoints(mask)
 	glow:AddMaskTexture(mask)
@@ -570,23 +644,20 @@ function env:CreateClusterBurst(parent, mask, red, green, blue)
 	local group = glow:CreateAnimationGroup();
 	local scale = group:CreateAnimation('Scale');
 	scale:SetOrigin('CENTER', 0, 0)
-	scale:SetScale(1.24, 1.24)
-	scale:SetDuration(self.ClusterBurstDuration)
+	scale:SetScale(BURST_SCALE, BURST_SCALE)
+	scale:SetDuration(BURST_DURATION)
 	scale:SetSmoothing('OUT')
 
 	local fade = group:CreateAnimation('Alpha');
-	fade:SetFromAlpha(.70)
+	fade:SetFromAlpha(BURST_ALPHA)
 	fade:SetToAlpha(0)
-	fade:SetDuration(self.ClusterBurstDuration)
+	fade:SetDuration(BURST_DURATION)
 	fade:SetSmoothing('IN_OUT')
 	local hide = GenerateClosure(glow.Hide, glow);
 	group:SetScript('OnFinished', hide)
 	group:SetScript('OnStop', hide)
 	return group;
 end
-
--- Interrupt flash fades a 55% white overlay to clear in 0.20 seconds inside the icon mask.
-local INTERRUPT_DURATION = .20;
 
 local function createInterruptFlash(button)
 	local mask = env.LIB.SkinUtility.GetIconMask(button);
@@ -597,8 +668,8 @@ local function createInterruptFlash(button)
 	glow:SetBlendMode('BLEND')
 
 	local group = glow:CreateAnimationGroup();
-	local fade = group:CreateAnimation('Alpha');
-	fade:SetFromAlpha(.55)
+	local fade  = group:CreateAnimation('Alpha');
+	fade:SetFromAlpha(INTERRUPT_ALPHA)
 	fade:SetToAlpha(0)
 	fade:SetDuration(INTERRUPT_DURATION)
 	fade:SetSmoothing('OUT')
@@ -630,19 +701,16 @@ local function playClusterFeedback(button, group, actionType, action)
 	group:Play()
 end
 
--- Instant-cast success burst: draw above the sweeps and below the rim.
 local function playClusterInstant(button, cast)
-	if not (button.clusterSkinLayered and button:IsVisible()) then return end;
+	if not ( button.clusterSkinLayered and button:IsVisible() ) then return end;
 	local kind, action = getClusterCastAction(button);
 	local _, matches = matchButtonSpell(button, cast, kind, action);
-	if not matches or (kind == 'action' and action and isAttackAction and publicCastValue(isAttackAction(action))) then
-		return;
-	end
+	if not matches then return end;
+	if ( kind == 'action' and action and publicCastValue(IsAttackAction(action)) ) then return end;
 	local burst = button.clusterInstantBurst;
 	if not burst then
 		local mask = env.LIB.SkinUtility.GetIconMask(button);
-		-- Keep the warm yellow finish tint used by instant casts.
-		burst = env:CreateClusterBurst(button, mask, 248 / 255, 236 / 255, 181 / 255);
+		burst = createClusterBurst(button, mask, 248 / 255, 236 / 255, 181 / 255);
 		button.clusterInstantBurst = burst;
 	end
 	playClusterFeedback(button, burst, kind, action)
@@ -656,39 +724,40 @@ local function syncClusterCast(button, timingChanged, checkLive)
 	local kind, action = getClusterCastAction(button);
 	local slot         = kind == 'action' and action or nil;
 	local buttonSpell, matches = matchButtonSpell(button, cast, kind, action);
-	local sameButton = shownCast == cast and frame.clusterCastSpell == buttonSpell and frame.clusterCastAction == action
-		and frame.clusterCastActionType == kind;
+	local sameButton = shownCast == cast and frame.clusterCastSpell == buttonSpell
+		and frame.clusterCastAction == action and frame.clusterCastActionType == kind;
 	matches = matches or sameButton or matchesCurrentSlot(cast, buttonSpell, slot);
 	if ( shownCast and (shownCast ~= cast or not matches) ) then
 		frame:Hide()
 	end
-	if not (activeCast and matches) then return end;
-	if checkLive and not sameButton and not readClusterCast(cast) then return end;
+	if not ( activeCast and matches ) then return end;
+	if ( checkLive and not sameButton and not readClusterCast(cast) ) then return end;
 
 	local now = GetTime();
-	if now * 1000 >= (cast.holdEnd or cast.endTime) then return end;
+	if ( now * 1000 >= (cast.holdEnd or cast.endTime) ) then return end;
 	local starting = frame.clusterCast ~= cast;
-	if starting then stopClusterFeedback(button) end;
+	if starting then
+		stopClusterFeedback(button)
+		cancelAwaitedCast(frame)
+	end
 	frame.clusterCastSpell, frame.clusterCastAction, frame.clusterCastActionType = buttonSpell, action, kind;
-	if cast.castType == EMPOWER then
+	if ( cast.castType == EMPOWER ) then
 		if starting then startClusterEmpower(button, frame, cast) end;
 		return;
 	end
-	if not (starting or timingChanged) then return end;
+	if not ( starting or timingChanged ) then return end;
 	if starting then
 		frame.clusterCast = cast;
 		frame.EndBurst.FinishCastAnim:Stop()
 		frame.EndBurst:Hide()
-		-- Match Blizzard's stock art and travel using the same cast snapshot
-		-- for every button, including buttons that become visible mid-cast.
 		local fill      = frame.Fill;
 		local isChannel = cast.castType == CHANNEL;
 		local direction = isChannel and -1 or 1;
 		fill.CastFill:ClearAllPoints()
 		fill.CastFill:SetAtlas(isChannel and 'UI-HUD-ActionBar-Channel-Fill' or 'UI-HUD-ActionBar-Cast-Fill', true)
 		fill.InnerGlowTexture:SetColorTexture(unpack(isChannel and CHANNEL_TINT or CAST_TINT))
-		fill.CastFill:SetPoint('CENTER', -45 * direction, 0)
-		fill.CastingAnim.CastFillTranslation:SetOffset(43 * direction, 0)
+		fill.CastFill:SetPoint('CENTER', -CAST_FILL_START_OFFSET * direction, 0)
+		fill.CastingAnim.CastFillTranslation:SetOffset(CAST_FILL_TRAVEL * direction, 0)
 		fill:Show()
 		frame:Show()
 	end
@@ -696,38 +765,27 @@ local function syncClusterCast(button, timingChanged, checkLive)
 	local animation = frame.Fill.CastingAnim;
 	animation:Stop()
 	animation.CastFillTranslation:SetDuration((cast.endTime - cast.startTime) / 1000)
-	animation:Play(false, math.max(0, now - cast.startTime / 1000))
+	animation:Play(false, max(0, now - cast.startTime / 1000))
 end
 
 local function refreshClusterAction(button)
 	local feedback = button.clusterCastFeedback;
 	if feedback then
 		local kind, action = getClusterCastAction(button);
-		if kind ~= feedback.actionType or action ~= feedback.action then feedback:Stop() end;
+		if ( kind ~= feedback.actionType or action ~= feedback.action ) then feedback:Stop() end;
 	end
 	syncClusterCast(button, false, true)
 	syncClusterPulse(button)
 end
 
-local function onActionAttributeChanged(button, attribute)
-	if (activeCast or button.clusterPulseCoords or button.clusterCastFeedback) and (attribute == 'type' or attribute == 'action') then
-		CPAPI.Next(refreshClusterAction, button)
-	end
+local function runQueuedRefresh(button)
+	button.clusterRefreshQueued = nil;
+	refreshClusterAction(button)
 end
 
-local function finishClusterCast(button, cast, transition)
-	local frame = button.SpellCastAnimFrame;
-	if not frame or frame.clusterCast ~= cast then return end;
-	if transition == 'interrupt' and button:IsVisible() then
-		local kind, action = getClusterCastAction(button);
-		if kind == frame.clusterCastActionType and action == frame.clusterCastAction then
-			button.clusterInterruptFlash = button.clusterInterruptFlash or createInterruptFlash(button);
-			playClusterFeedback(button, button.clusterInterruptFlash, kind, action)
-		end
-	end
-	if transition ~= 'finish' then return frame:Hide() end;
+local function playCastBurst(frame, cast)
 	if frame.EndBurst:IsShown() then return end;
-	if cast.castType == EMPOWER then
+	if ( cast.castType == EMPOWER ) then
 		stopClusterEmpower(frame)
 		local ring = frame.EndBurst.GlowRing;
 		local rank = empowerRank(cast, GetTime() * 1000 - cast.startTime);
@@ -738,13 +796,50 @@ local function finishClusterCast(button, cast, transition)
 	frame.Fill:Hide()
 end
 
+local function finishAwaitedCast(button, frame, cast, transition)
+	cancelAwaitedCast(frame)
+	local kind, action = getClusterCastAction(button);
+	if ( transition == 'finish' and button:IsVisible()
+		and kind == frame.clusterCastActionType and action == frame.clusterCastAction ) then
+		frame.clusterCast = cast;
+		frame.Fill:Hide()
+		frame:Show()
+		return playCastBurst(frame, cast);
+	end
+	frame.clusterCastSpell, frame.clusterCastAction, frame.clusterCastActionType = nil, nil, nil;
+end
+
+local function finishClusterCast(button, cast, transition)
+	local frame = button.SpellCastAnimFrame;
+	if not frame then return end;
+	if ( frame.clusterAwaitedCast == cast ) then return finishAwaitedCast(button, frame, cast, transition) end;
+	if ( frame.clusterCast ~= cast ) then return end;
+	if ( transition == 'interrupt' and button:IsVisible() ) then
+		local kind, action = getClusterCastAction(button);
+		if ( kind == frame.clusterCastActionType and action == frame.clusterCastAction ) then
+			button.clusterInterruptFlash = button.clusterInterruptFlash or createInterruptFlash(button);
+			playClusterFeedback(button, button.clusterInterruptFlash, kind, action)
+		end
+	end
+	if ( transition ~= 'finish' ) then return frame:Hide() end;
+	playCastBurst(frame, cast)
+end
+
 ---------------------------------------------------------------
--- Player cast events
+-- Player cast tracker
 ---------------------------------------------------------------
+local function isNullGUID(value)
+	return type(value) == 'string' and value:find(NULL_GUID_PATTERN) ~= nil;
+end
+
+local function isInterruptSource(value)
+	return type(value) == 'string' and not value:find(NULL_GUID_PATTERN);
+end
+
 local function matchesCastEvent(cast, castType, guid, spellID, castBarID)
 	if not cast or (castType and cast.castType ~= castType) then return false end;
 	local sameCast = sameCastIdentity(cast, guid, castBarID);
-	if sameCast ~= nil then return sameCast end;
+	if ( sameCast ~= nil ) then return sameCast end;
 	return matchesCastSpell(cast, spellID);
 end
 
@@ -752,58 +847,53 @@ local function playConfirmedInstant(guid, spellID, castBarID)
 	local sentAt = sentCasts[guid];
 	sentCasts[guid] = nil;
 	if not sentAt or GetTime() - sentAt > SENT_CAST_LIFETIME then return end;
-	if matchesCastEvent(pendingCast, nil, guid, spellID, castBarID)
-		or matchesCastEvent(activeCast, nil, guid, spellID, castBarID) then return end;
-	if (isAutoAttackSpell and publicCastValue(isAutoAttackSpell(spellID)))
-		or (isAutoRepeatSpell and publicCastValue(isAutoRepeatSpell(spellID))) then return end;
+	if ( matchesCastEvent(pendingCast, nil, guid, spellID, castBarID)
+		or matchesCastEvent(activeCast, nil, guid, spellID, castBarID) ) then return end;
+	if ( publicCastValue(IsAutoAttackSpell(spellID))
+		or publicCastValue(IsAutoRepeatSpell(spellID)) ) then return end;
 	env:Map(CLUSTER_BUTTON, nil, playClusterInstant, {spellID = spellID;})
 end
 
 local function applyClusterCast(cast)
-	-- A queued retry can outlive the cast that scheduled it.
-	if cast ~= activeCast and cast ~= pendingCast then return end;
+	if ( cast ~= activeCast and cast ~= pendingCast ) then return end;
 	local startTime, endTime = cast.startTime, cast.endTime;
 	if not readClusterCast(cast) then return end;
-	if pendingCast == cast then pendingCast = nil end;
-	if activeCast and activeCast ~= cast then
+	if ( pendingCast == cast ) then pendingCast = nil end;
+	if ( activeCast and activeCast ~= cast ) then
 		env:Map(CLUSTER_BUTTON, nil, finishClusterCast, activeCast)
 	end
 	activeCast = cast;
 	env:Map(CLUSTER_BUTTON, nil, syncClusterCast, startTime ~= cast.startTime or endTime ~= cast.endTime)
 end
 
-local function onActionBarUpdateState()
-	local cast = pendingCast or activeCast;
-	if cast then applyClusterCast(cast) end;
-	syncClusterPulses()
-end
-
 local function clearClusterCast(cast, transition)
-	if activeCast ~= cast then return end;
+	if ( activeCast ~= cast ) then return end;
 	activeCast = nil;
 	env:Map(CLUSTER_BUTTON, nil, finishClusterCast, cast, transition)
 end
 
-local function onClusterCastEvent(info, _, _, guid, spellID, ...)
+-----------------------------------------------------------
+-- @param castType    : CAST, CHANNEL, EMPOWER or ANY_CAST
+-- @param transition  : start, update, stop, finish, cancel, interrupt
+-- @param barPosition : index of castBarID after spellID
+local function onPlayerCastEvent(castType, transition, barPosition, _, guid, spellID, ...)
 	guid, spellID = publicCastValue(guid), publicCastValue(spellID);
-	local castType, transition, barPosition = unpack(info);
-	local castBarID = publicCastValue((select(barPosition or 1, ...)));
+	local castBarID      = publicCastValue((select(barPosition, ...)));
 	local matchesPending = matchesCastEvent(pendingCast, castType, guid, spellID, castBarID);
-	local matchesActive = matchesCastEvent(activeCast, castType, guid, spellID, castBarID);
+	local matchesActive  = matchesCastEvent(activeCast, castType, guid, spellID, castBarID);
 	if guid and sentCasts[guid] then
-		if castType == CAST and transition == 'finish' and type(spellID) == 'number' and spellID > 0
-			and not (matchesPending or matchesActive) then
-			-- A channel can send SUCCEEDED immediately before its start event.
+		if ( castType == CAST and transition == 'finish' and type(spellID) == 'number' and spellID > 0
+			and not (matchesPending or matchesActive) ) then
 			CPAPI.Next(playConfirmedInstant, guid, spellID, castBarID)
-		elseif transition ~= 'stop' then
+		elseif ( transition ~= 'stop' ) then
 			sentCasts[guid] = nil;
 		end
 	end
-	if transition == 'start' or transition == 'update' then
+	if ( transition == 'start' or transition == 'update' ) then
 		local existing = matchesPending and pendingCast or matchesActive and activeCast;
 		if existing then return applyClusterCast(existing) end;
-		if transition == 'update' and activeCast then return end;
-		if not (guid or spellID or castBarID) then return end;
+		if ( transition == 'update' and activeCast ) then return end;
+		if not ( guid or spellID or castBarID ) then return end;
 		local cast = {
 			castType     = castType;
 			guid         = guid;
@@ -812,7 +902,6 @@ local function onClusterCastEvent(info, _, _, guid, spellID, ...)
 		};
 		pendingCast = cast;
 		applyClusterCast(cast)
-		-- The live cast and action slots can settle after the event.
 		CPAPI.Next(applyClusterCast, cast)
 		C_Timer.After(CAST_START_RETRY_DELAY, GenerateClosure(applyClusterCast, cast))
 		return;
@@ -820,26 +909,130 @@ local function onClusterCastEvent(info, _, _, guid, spellID, ...)
 
 	if matchesPending then pendingCast = nil end;
 	if not matchesActive then return end;
-	local cast = activeCast;
+	local cast   = activeCast;
 	local result = ...;
-	if castType == EMPOWER then
-		local interruptedBy = publicCastValue((select(2, ...)));
-		transition = type(interruptedBy) == 'string' and 'interrupt'
-			or publicCastValue(result) == true and 'finish' or 'cancel';
-	elseif castType == CHANNEL then
-		local interruptedBy = publicCastValue(result);
-		local complete = not CPAPI.IsSecret(result) and not result
-			and GetTime() * 1000 + CHANNEL_END_TOLERANCE_MS >= cast.endTime;
-		transition = type(interruptedBy) == 'string' and 'interrupt' or complete and 'finish' or 'cancel';
+	if ( castType == EMPOWER ) then
+		local interrupted = isInterruptSource(publicCastValue((select(2, ...))));
+		transition = interrupted and 'interrupt' or publicCastValue(result) == true and 'finish' or 'cancel';
+	elseif ( castType == CHANNEL ) then
+		local source   = publicCastValue(result);
+		local natural  = not CPAPI.IsSecret(result) and (not source or isNullGUID(source));
+		local complete = natural and GetTime() * 1000 + CHANNEL_END_TOLERANCE_MS >= cast.endTime;
+		transition = isInterruptSource(source) and 'interrupt' or complete and 'finish' or 'cancel';
 	end
-	if transition == 'stop' or transition == 'cancel' then
-		-- A success or explicit interruption can follow a generic stop in the same frame.
+	if ( transition == 'stop' or transition == 'cancel' ) then
 		return CPAPI.Next(clearClusterCast, cast);
 	end
 	clearClusterCast(cast, transition)
 end
 
-local function onReticleTarget(_, _, _, spellID)
+local function unregisterEvents(frame, events)
+	for _, event in pairs(events) do
+		if CPAPI.IsEventValid(event) then
+			frame:UnregisterEvent(event)
+		end
+	end
+end
+
+local function hasActiveButton()
+	local active = false;
+	env:Map(CLUSTER_BUTTON, nil, function() active = true; end)
+	return active;
+end
+
+---------------------------------------------------------------
+-- Event handler
+---------------------------------------------------------------
+local CastHandler = CPAPI.CreateEventHandler({'Frame'}, nil, {
+	Events = {
+		'ACTIONBAR_UPDATE_STATE';
+		'PET_BAR_UPDATE';
+		'PLAYER_ENTER_COMBAT';
+		'PLAYER_ENTERING_WORLD';
+		'PLAYER_LEAVE_COMBAT';
+		'UNIT_SPELLCAST_SENT';
+		'UPDATE_SHAPESHIFT_FORM';
+	};
+	PlayerEvents = {
+		'UNIT_PET';
+		'UNIT_SPELLCAST_CHANNEL_START';
+		'UNIT_SPELLCAST_CHANNEL_STOP';
+		'UNIT_SPELLCAST_CHANNEL_UPDATE';
+		'UNIT_SPELLCAST_DELAYED';
+		'UNIT_SPELLCAST_FAILED';
+		'UNIT_SPELLCAST_INTERRUPTED';
+		'UNIT_SPELLCAST_RETICLE_CLEAR';
+		'UNIT_SPELLCAST_RETICLE_TARGET';
+		'UNIT_SPELLCAST_START';
+		'UNIT_SPELLCAST_STOP';
+		'UNIT_SPELLCAST_SUCCEEDED';
+		CAN_EMPOWER and 'UNIT_SPELLCAST_EMPOWER_START';
+		CAN_EMPOWER and 'UNIT_SPELLCAST_EMPOWER_STOP';
+		CAN_EMPOWER and 'UNIT_SPELLCAST_EMPOWER_UPDATE';
+	};
+	isTracking = false;
+});
+
+function CastHandler:SetTracking(enabled)
+	if ( self.isTracking == enabled ) then return end;
+	self.isTracking = enabled;
+	if enabled then
+		CPAPI.RegisterFrameForEvents(self, self.Events)
+		CPAPI.RegisterFrameForUnitEvents(self, self.PlayerEvents, 'player')
+		return syncClusterForm();
+	end
+	unregisterEvents(self, self.Events)
+	unregisterEvents(self, self.PlayerEvents)
+	activeCast, pendingCast, activeTarget = nil, nil, nil;
+	wipe(sentCasts)
+end
+
+function CastHandler:ACTIONBAR_UPDATE_STATE()
+	local cast = pendingCast or activeCast;
+	if cast then applyClusterCast(cast) end;
+	syncClusterPulses()
+end
+
+function CastHandler:PET_BAR_UPDATE()
+	syncClusterPulses()
+end
+
+function CastHandler:PLAYER_ENTER_COMBAT()
+	syncClusterPulses()
+end
+
+function CastHandler:PLAYER_LEAVE_COMBAT()
+	syncClusterPulses()
+end
+
+function CastHandler:UNIT_PET()
+	syncClusterPulses()
+end
+
+function CastHandler:PLAYER_ENTERING_WORLD()
+	syncClusterForm()
+end
+
+function CastHandler:UPDATE_SHAPESHIFT_FORM()
+	syncClusterForm()
+end
+
+function CastHandler:UNIT_SPELLCAST_SENT(unit, _, guid, spellID)
+	if ( unit ~= 'player' ) then return end;
+	guid = publicCastValue(guid);
+	if guid then
+		local now = GetTime();
+		for key, sentAt in pairs(sentCasts) do
+			if ( now - sentAt > SENT_CAST_LIFETIME ) then sentCasts[key] = nil end;
+		end
+		sentCasts[guid] = now;
+	end
+	local target = activeTarget;
+	if not target or publicCastValue(spellID) ~= target.spellID then return end;
+	CPAPI.Next(clearSentTargeting, target)
+end
+
+function CastHandler:UNIT_SPELLCAST_RETICLE_TARGET(_, _, spellID)
 	spellID = publicCastValue(spellID);
 	if not spellID or (activeTarget and activeTarget.spellID == spellID) then return end;
 	local target = {spellID = spellID;};
@@ -848,62 +1041,60 @@ local function onReticleTarget(_, _, _, spellID)
 	CPAPI.Next(updateTargetingButtons, target)
 end
 
-local function onReticleClear(_, _, _, spellID)
+function CastHandler:UNIT_SPELLCAST_RETICLE_CLEAR(_, _, spellID)
 	clearClusterTargeting(publicCastValue(spellID))
 end
 
-local function onCastSent(_, unit, _, guid, spellID)
-	if unit ~= 'player' then return end;
-	guid = publicCastValue(guid);
-	if guid then
-		local now = GetTime();
-		for key, sentAt in pairs(sentCasts) do
-			if now - sentAt > SENT_CAST_LIFETIME then sentCasts[key] = nil end;
-		end
-		sentCasts[guid] = now;
-	end
-	local target = activeTarget;
-	if not target or publicCastValue(spellID) ~= target.spellID then return end;
-	CPAPI.Next(function()
-		if activeTarget == target and not SpellIsTargeting() then
-			clearClusterTargeting(target.spellID)
-		end
-	end)
+function CastHandler:UNIT_SPELLCAST_START(...)
+	onPlayerCastEvent(CAST, 'start', 1, ...)
 end
 
-local CastHandler;
-local function initializeCastHandler()
-	if CastHandler then return end;
-	CastHandler = CPAPI.CreateEventHandler({'Frame'});
-	CastHandler.UNIT_SPELLCAST_RETICLE_TARGET = onReticleTarget;
-	CastHandler.UNIT_SPELLCAST_RETICLE_CLEAR  = onReticleClear;
-	CastHandler.UNIT_SPELLCAST_SENT           = onCastSent;
-	CastHandler.ACTIONBAR_UPDATE_STATE        = onActionBarUpdateState;
-	CastHandler.PLAYER_ENTER_COMBAT           = syncClusterPulses;
-	CastHandler.PLAYER_LEAVE_COMBAT           = syncClusterPulses;
-	CastHandler.PET_BAR_UPDATE               = syncClusterPulses;
-	CastHandler.UNIT_PET                     = syncClusterPulses;
-	CastHandler.PLAYER_ENTERING_WORLD        = syncClusterForm;
-	CastHandler.UPDATE_SHAPESHIFT_FORM       = syncClusterForm;
-	CPAPI.RegisterFrameForEvents(CastHandler, {
-		'UNIT_SPELLCAST_SENT'; 'ACTIONBAR_UPDATE_STATE'; 'PET_BAR_UPDATE'; 'PLAYER_ENTERING_WORLD'; 'UPDATE_SHAPESHIFT_FORM';
-		'PLAYER_ENTER_COMBAT'; 'PLAYER_LEAVE_COMBAT';
-	})
-	CPAPI.RegisterFrameForUnitEvents(CastHandler, {'UNIT_PET'}, 'player')
-	local events = {'UNIT_SPELLCAST_RETICLE_TARGET'; 'UNIT_SPELLCAST_RETICLE_CLEAR';};
-	local canEmpower = GetUnitEmpowerStageDuration and GetUnitEmpowerHoldAtMaxTime and C_Texture and C_Texture.GetAtlasInfo;
-	for event, info in pairs(CAST_EVENTS) do
-		if ( info[1] ~= EMPOWER or canEmpower ) then
-			CastHandler[event] = GenerateClosure(onClusterCastEvent, info);
-			events[#events + 1] = event;
-		end
-	end
-	CPAPI.RegisterFrameForUnitEvents(CastHandler, events, 'player')
-	syncClusterForm()
+function CastHandler:UNIT_SPELLCAST_DELAYED(...)
+	onPlayerCastEvent(CAST, 'update', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_STOP(...)
+	onPlayerCastEvent(CAST, 'stop', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_SUCCEEDED(...)
+	onPlayerCastEvent(CAST, 'finish', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_FAILED(...)
+	onPlayerCastEvent(CAST, 'cancel', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_INTERRUPTED(...)
+	onPlayerCastEvent(ANY_CAST, 'interrupt', 2, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_CHANNEL_START(...)
+	onPlayerCastEvent(CHANNEL, 'start', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_CHANNEL_UPDATE(...)
+	onPlayerCastEvent(CHANNEL, 'update', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_CHANNEL_STOP(...)
+	onPlayerCastEvent(CHANNEL, 'finish', 2, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_EMPOWER_START(...)
+	onPlayerCastEvent(EMPOWER, 'start', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_EMPOWER_UPDATE(...)
+	onPlayerCastEvent(EMPOWER, 'update', 1, ...)
+end
+
+function CastHandler:UNIT_SPELLCAST_EMPOWER_STOP(...)
+	onPlayerCastEvent(EMPOWER, 'finish', 3, ...)
 end
 
 ---------------------------------------------------------------
--- Button initialization
+-- Button and cast frame scripts
 ---------------------------------------------------------------
 local function setCasting(button, casting)
 	button:SetCastingSwipe(casting)
@@ -929,15 +1120,54 @@ local function onCastFrameHide(frame)
 	setCasting(frame:GetParent(), false)
 end
 
-local function onCastAnimationFinished(animation)
+local function onCastFillFinished(animation)
+	awaitCastResult(animation:GetParent():GetParent())
+end
+
+local function onCastBurstFinished(animation)
 	animation:GetParent():GetParent():Hide()
+end
+
+local function onButtonShow()
+	CastHandler:SetTracking(true)
+end
+
+local function onButtonHide(button)
+	if env:IsActive(button) or hasActiveButton() then return end;
+	CastHandler:SetTracking(false)
+end
+
+local function onActionAttributeChanged(button, attribute)
+	if button.clusterRefreshQueued or not ( attribute == 'type' or attribute == 'action' ) then return end;
+	if ( activeCast or button.clusterPulseCoords or button.clusterCastFeedback ) then
+		button.clusterRefreshQueued = true;
+		CPAPI.Next(runQueuedRefresh, button)
+	end
+end
+
+---------------------------------------------------------------
+-- Cluster effects API
+---------------------------------------------------------------
+env.ClusterBurstDuration = BURST_DURATION;
+
+function env:CreateClusterBurst(parent, mask, red, green, blue)
+	return createClusterBurst(parent, mask, red, green, blue);
+end
+
+function env:SetClusterPulseShape(button, shape)
+	local coords = PULSE_COORDS[shape];
+	button.clusterPulseCoords = coords;
+	local glow = button.clusterPulseGlow;
+	if coords and glow then
+		glow:SetTexCoord(unpack(coords))
+	end
+	syncClusterPulse(button)
 end
 
 function env:InitializeClusterCast(button)
 	local frame = button.SpellCastAnimFrame;
-	-- Classic loads the shared template, but its action buttons do not inherit it.
-	if not frame and ActionButtonCastingAnimFrameMixin then
-		frame = CreateFrame('Frame', nil, button, 'ActionButtonCastingAnimFrameTemplate');
+	if ( not frame and CAN_CREATE_CAST_FRAME ) then
+		frame = CreateFrame('Frame', nil, button, CAST_FRAME_TEMPLATE);
 		frame:SetScript('OnHide', nil)
 		frame:Hide()
 		button.SpellCastAnimFrame = frame;
@@ -945,16 +1175,16 @@ function env:InitializeClusterCast(button)
 	if frame then
 		frame:SetScript('OnShow', onCastFrameShow)
 		frame:SetScript('OnHide', onCastFrameHide)
-		-- The native fill normally starts a finish burst on its own. Only play it
-		-- from the confirmed finish path so an interrupted cast can't flash late.
-		frame.Fill.CastingAnim:SetScript('OnFinished', onCastAnimationFinished)
-		frame.EndBurst.FinishCastAnim:SetScript('OnFinished', onCastAnimationFinished)
+		frame.Fill.CastingAnim:SetScript('OnFinished', onCastFillFinished)
+		frame.EndBurst.FinishCastAnim:SetScript('OnFinished', onCastBurstFinished)
 	end
 	hooksecurefunc(button, 'UpdateAction', refreshClusterAction)
 	hooksecurefunc(button, 'OnActionBarSlotChanged', refreshClusterAction)
+	button:HookScript('OnShow', onButtonShow)
 	button:HookScript('OnShow', refreshClusterAction)
 	button:HookScript('OnHide', syncClusterPulse)
 	button:HookScript('OnHide', stopClusterFeedback)
+	button:HookScript('OnHide', onButtonHide)
 	button:HookScript('OnAttributeChanged', onActionAttributeChanged)
-	initializeCastHandler()
+	CastHandler:SetTracking(true)
 end
