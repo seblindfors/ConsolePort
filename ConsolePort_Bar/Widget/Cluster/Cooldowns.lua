@@ -7,14 +7,14 @@ local SHORT_COOLDOWN_LIMIT = 2; -- Ignore GCD-length numeric timers when the cli
 local LOSS_OF_CONTROL_RED   = 0.17; -- LAB uses this red channel for the Classic lockout swipe.
 local LOCKOUT_EDGE_TEXTURE = CPAPI.IsModernVersion and [[Interface\Cooldown\UI-HUD-ActionBar-LoC]]
 	or [[Interface\Cooldown\edge-LoC]];
-local CHARGE_EDGE_TEXTURE  = env.GetAsset[[Textures\Cluster\ChargeEdge.png]];
-local COOLDOWN_SHADOW_PATH = [[Textures\Masks\CooldownShadows\%s.png]];
+local CHARGE_EDGE_TEXTURE  = env.GetAsset[[Textures\Cluster\ChargeEdge]];
+local COOLDOWN_SHADOW_PATH = [[Textures\Masks\CooldownShadows\%s]];
 local COOLDOWN_SHADOW_ALPHA = .81; -- Fixed black rim opacity. The texture supplies its inward falloff.
 local COOLDOWN_SWIPE_SCALE  = .50 / (163 / 255); -- 50% at the default swipe opacity.
 -- Query the client's GCD reference spell to classify numeric timers.
 local GCD_SPELL_ID         = (CPAPI.IsAnniVersion or CPAPI.IsClassicEraVersion or CPAPI.IsWrathVersion) and 29515 or 61304;
 local FULL_ROTATION        = 2 * math.pi;
-local SWING_EDGE_TEXTURE   = env.GetAsset[[Textures\Cluster\SwingEdge.png]];
+local SWING_EDGE_TEXTURE   = env.GetAsset[[Textures\Cluster\SwingEdge]];
 local SWING_EDGE_SCALE     = 1.26; -- Extend the steel-blue streak to the rim before clipping.
 local swingTypes           = CPAPI.IsCamelotVersion and C_SwingTimer and CPAPI.IsEventValid('PLAYER_SWING')
 	and Enum.PlayerSwingType;

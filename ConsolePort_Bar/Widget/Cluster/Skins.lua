@@ -10,12 +10,12 @@ local FLYOUT_PARTS        = {M1 = 'FlyoutSide'; M2 = 'FlyoutSide'; M3 = 'FlyoutM
 local FLYOUT_MODIFIERS    = {M1 = 'Shift'; M2 = 'Ctrl'; M3 = 'ShiftCtrl';};
 local FULL_TEX_COORDS     = {0; 1; 0; 1;};
 local MIDDLE_MASK_INSET   = 1 / 46; -- one pixel per side at the default flyout size
-local COOLDOWN_MASK_PATH  = [[Textures\Masks\Cooldowns\%s.png]];
+local COOLDOWN_MASK_PATH  = [[Textures\Masks\Cooldowns\%s]];
 
 local function getClusterBorderTextures(design, part)
 	local path      = env.GetAsset([[Textures\Cluster\%s\%s]], design, part);
-	local normal    = path .. '.png';
-	local highlight = path .. 'Highlight.png';
+	local normal    = path .. '';
+	local highlight = path .. 'Highlight';
 	return {
 		NormalTexture         = normal;
 		Border                = highlight;
@@ -61,20 +61,20 @@ local silverTextures = {
 
 local function getProcFlipBook(asset)
 	local path = env.GetAsset([[Textures\Cluster\Glow\Flipbooks\%s]], asset);
-	return {Start = path .. 'Start.png'; Loop = path .. 'Loop.png';};
+	return {Start = path .. 'Start'; Loop = path .. 'Loop';};
 end
 
 local roundProcGlow = getProcFlipBook('Round');
 
 local function getShapeSkins(design, asset, orientation)
-	local slots = {Shadow = env.GetAsset([[Textures\Cluster\%s\Shadow%s.png]], design, orientation);};
+	local slots = {Shadow = env.GetAsset([[Textures\Cluster\%s\Shadow%s]], design, orientation);};
 	for _, slot in ipairs({'Main'; 'Flyout';}) do
 		local isMain = slot == 'Main';
 		slots[slot] = {
 			Border       = getClusterBorderTextures(design, slot .. orientation);
-			Mask         = env.GetAsset([[Textures\Cluster\Shapes\%s%sMask.tga]], asset, slot);
+			Mask         = env.GetAsset([[Textures\Cluster\Shapes\%s%sMask]], asset, slot);
 			MaskShape    = asset .. slot;
-			ProcGlow     = isMain and getProcFlipBook(asset) or env.GetAsset([[Textures\Cluster\Glow\%sFlyout.tga]], asset);
+			ProcGlow     = isMain and getProcFlipBook(asset) or env.GetAsset([[Textures\Cluster\Glow\%sFlyout]], asset);
 		};
 	end
 	return slots;
@@ -209,7 +209,7 @@ for mod, data in pairs(env.Const.Cluster.Layout) do
 	local borderScale     = data.TexSize or 1;
 	local borderPart      = FLYOUT_PARTS[prefix] or 'Main';
 	local goldByDirection = {};
-	local procGlow        = prefix and env.GetAsset([[Textures\Cluster\Glow\%s.tga]], prefix == 'M3' and 'M3' or 'M1')
+	local procGlow        = prefix and env.GetAsset([[Textures\Cluster\Glow\%s]], prefix == 'M3' and 'M3' or 'M1')
 		or roundProcGlow;
 	if prefix then
 		for direction in pairs(env.Const.Cluster.Directions) do

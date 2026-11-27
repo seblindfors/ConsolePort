@@ -72,7 +72,7 @@
 				<Layers>
 					<Layer level="BACKGROUND">
 						<MaskTexture parentKey="Mask" setAllPoints="true"
-							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\PetRing\IconMask.png"/>
+							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\PetRing\IconMask"/>
 					</Layer>
 				</Layers>
 			</Frame>

@@ -2,11 +2,11 @@ local env, db = CPAPI.GetEnv(...)
 local FadeIn, FadeOut = db.Alpha.FadeIn, db.Alpha.FadeOut;
 local IsSecret = CPAPI.IsSecret;
 ---------------------------------------------------------------
-local PET_STATUS_TEXTURE      = env.GetAsset[[Textures\PetRing\StatusFill.png]];
-local PET_STATE_MASK          = env.GetAsset[[Textures\PetRing\StateMask.png]];
-local PET_STATE_OUTLINE       = env.GetAsset[[Textures\PetRing\StateOutline.png]];
-local PET_STATE_PULSE         = env.GetAsset[[Textures\PetRing\StatePulse.png]];
-local PET_COOLDOWN_SWIPE      = env.GetAsset[[Textures\PetRing\CooldownSwipe.png]];
+local PET_STATUS_TEXTURE      = env.GetAsset[[Textures\PetRing\StatusFill]];
+local PET_STATE_MASK          = env.GetAsset[[Textures\PetRing\StateMask]];
+local PET_STATE_OUTLINE       = env.GetAsset[[Textures\PetRing\StateOutline]];
+local PET_STATE_PULSE         = env.GetAsset[[Textures\PetRing\StatePulse]];
+local PET_COOLDOWN_SWIPE      = env.GetAsset[[Textures\PetRing\CooldownSwipe]];
 local HALF_MASK               = env.GetAsset[[Textures\Masks\PetPowerMask]];
 local PET_COOLDOWN_ALPHA      = 163 / 255; -- Fixed black shading for pet slots.
 local COOLDOWN_SIZE           = 48;
@@ -29,10 +29,10 @@ local getCombatEvent = not CPAPI.IsModernVersion and CombatLogGetCurrentEventInf
 local function getPetRingTextures(style)
 	local path = env.GetAsset([[Textures\PetRing\%s]], style);
 	return {
-		Portrait = path .. 'Portrait.png';
-		Wheel    = path .. 'Wheel.png';
-		Status   = path .. 'Status.png';
-		Slot     = path .. 'Slot.png';
+		Portrait = path .. 'Portrait';
+		Wheel    = path .. 'Wheel';
+		Status   = path .. 'Status';
+		Slot     = path .. 'Slot';
 	};
 end
 

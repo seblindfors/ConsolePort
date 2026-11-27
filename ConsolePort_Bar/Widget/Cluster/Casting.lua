@@ -209,9 +209,9 @@ local TOGGLE_COLOR = {1; 214 / 255; 125 / 255; .60};
 -- Attack and queued next-swing abilities share a white glow at 60% opacity.
 local ATTACK_TOGGLE_COLOR = {1; 1; 1; .60};
 local TOGGLE_FADE_IN, TOGGLE_FADE_OUT = .18, .38; -- Seconds to light up and fade back out.
-local PULSE_TEXTURE = env.GetAsset([[Textures\Cluster\Glow\Targeting.png]]);
+local PULSE_TEXTURE = env.GetAsset([[Textures\Cluster\Glow\Targeting]]);
 -- Same atlas cells as Targeting.png, with a tighter alpha falloff baked in.
-local TOGGLE_TEXTURE = env.GetAsset([[Textures\Cluster\Glow\Toggle.png]]);
+local TOGGLE_TEXTURE = env.GetAsset([[Textures\Cluster\Glow\Toggle]]);
 local PULSE_COORDS = {};
 local activeFormSpell;
 do -- Each cell is an inward fade traced from its corresponding icon mask.
