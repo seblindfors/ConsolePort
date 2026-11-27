@@ -254,8 +254,8 @@ local function applySwipeTint(cooldown, isLossOfControl)
 end
 
 local function onSwipeColorSet(cooldown, red, _, _, alpha)
-	cooldown.clusterSwipeHidden = alpha == 0;
-	applySwipeTint(cooldown, red == LOSS_OF_CONTROL_RED)
+	cooldown.clusterSwipeHidden = not IsSecret(alpha) and alpha == 0;
+	applySwipeTint(cooldown, not IsSecret(red) and red == LOSS_OF_CONTROL_RED)
 end
 
 local function refreshSwipeTint(button)

@@ -348,7 +348,7 @@ CPAPI.IsAutoRepeatSpell              = C_Spell         and C_Spell.IsAutoRepeatS
 CPAPI.IsCurrentAction                = C_ActionBar     and C_ActionBar.IsCurrentAction                   or IsCurrentAction or nop;
 -- Cooldown wrappers
 CPAPI.GetActionCooldownDuration      = C_ActionBar     and C_ActionBar.GetActionCooldownDuration         or nop;
-CPAPI.GetItemCooldown                = C_Item          and C_Item.GetItemCooldown                        or nop;
+CPAPI.GetItemCooldown                = C_Item          and C_Item.GetItemCooldown                        or GetItemCooldown or nop;
 CPAPI.GetSpellCooldownDuration       = C_Spell         and C_Spell.GetSpellCooldownDuration              or nop;
 -- Fallthroughs
 CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
