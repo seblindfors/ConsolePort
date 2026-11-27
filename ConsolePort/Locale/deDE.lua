@@ -1933,3 +1933,39 @@ L['Vertex color condition of the texture. Accepts pairs of a macro condition and
 L['Visibility condition of the element. Accepts pairs of a macro condition and a visibility state, or a single visibility state.'] = [[Sichtbarkeits-Bedingung des Elements. Akzeptiert Paare aus einer Makro-Bedingung und einem Sichtbarkeitszustand oder einen einzelnen Sichtbarkeitszustand.]];
 L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r ist das aktuell geprüfte Fenster.
 |cff0070ddunit|r ist die aktuelle Einheiten-ID des Fensters.]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = 'Additiv';
+L['BACKGROUND'] = 'Hintergrund';
+L['BLEND'] = 'Überblenden';
+L['BOTTOM'] = 'Unten';
+L['BOTTOMLEFT'] = 'Unten links';
+L['BOTTOMRIGHT'] = 'Unten rechts';
+L['CENTER'] = 'Mitte';
+L['DIALOG'] = 'Dialog';
+L['DOWN'] = 'Unten';
+L['FULLSCREEN'] = 'Vollbild';
+L['FULLSCREEN_DIALOG'] = 'Vollbild-Dialog';
+L['HIGH'] = 'Hoch';
+L['HORIZONTAL'] = 'Horizontal';
+L['KBM'] = 'Tastatur & Maus';
+L['LEFT'] = 'Links';
+L['LOW'] = 'Niedrig';
+L['MEDIUM'] = 'Mittel';
+L['MONOCHROME'] = 'Monochrom';
+L['OUTLINE'] = 'Umriss';
+L['RIGHT'] = 'Rechts';
+L['THICKOUTLINE'] = 'Dicker Umriss';
+L['TOOLTIP'] = 'Tooltip';
+L['TOP'] = 'Oben';
+L['TOPLEFT'] = 'Oben links';
+L['TOPRIGHT'] = 'Oben rechts';
+L['UP'] = 'Oben';
+L['VERTICAL'] = 'Vertikal';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Strg';
+L['SHIFT'] = 'Umschalt';
+L['ALT-CTRL'] = 'Alt-Strg';
+L['ALT-SHIFT'] = 'Alt-Umschalt';
+L['CTRL-SHIFT'] = 'Strg-Umschalt';

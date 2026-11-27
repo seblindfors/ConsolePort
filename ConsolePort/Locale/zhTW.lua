@@ -1930,3 +1930,39 @@ L['Takes the format of...\n|cff0070dd[condition] bindingID; nil|r\n...where each
 ...其中每組條件/綁定以分號分隔，「nil」會清除覆蓋。]];
 L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r 是目前正在檢查的框架。
 |cff0070ddunit|r 是該框架目前的單位 ID。]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = '疊加';
+L['BACKGROUND'] = '背景';
+L['BLEND'] = '混合';
+L['BOTTOM'] = '下方';
+L['BOTTOMLEFT'] = '左下';
+L['BOTTOMRIGHT'] = '右下';
+L['CENTER'] = '置中';
+L['DIALOG'] = '對話框';
+L['DOWN'] = '下';
+L['FULLSCREEN'] = '全螢幕';
+L['FULLSCREEN_DIALOG'] = '全螢幕對話框';
+L['HIGH'] = '高';
+L['HORIZONTAL'] = '水平';
+L['KBM'] = '鍵鼠';
+L['LEFT'] = '左';
+L['LOW'] = '低';
+L['MEDIUM'] = '中';
+L['MONOCHROME'] = '單色';
+L['OUTLINE'] = '描邊';
+L['RIGHT'] = '右';
+L['THICKOUTLINE'] = '粗描邊';
+L['TOOLTIP'] = '提示框';
+L['TOP'] = '上方';
+L['TOPLEFT'] = '左上';
+L['TOPRIGHT'] = '右上';
+L['UP'] = '上';
+L['VERTICAL'] = '垂直';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Ctrl';
+L['SHIFT'] = 'Shift';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Shift';
+L['CTRL-SHIFT'] = 'Ctrl-Shift';

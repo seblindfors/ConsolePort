@@ -1940,3 +1940,39 @@ L['Takes the format of...\n|cff0070dd[condition] bindingID; nil|r\n...where each
 L['Visibility condition of the element. Accepts pairs of a macro condition and a visibility state, or a single visibility state.'] = [[Condição de visibilidade do elemento. Aceita pares de uma condição de macro e um estado de visibilidade, ou um único estado de visibilidade.]];
 L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r é o quadro atualmente em análise.
 |cff0070ddunit|r é o ID de unidade atual do quadro.]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = 'Aditivo';
+L['BACKGROUND'] = 'Plano de fundo';
+L['BLEND'] = 'Mesclar';
+L['BOTTOM'] = 'Inferior';
+L['BOTTOMLEFT'] = 'Inferior esquerdo';
+L['BOTTOMRIGHT'] = 'Inferior direito';
+L['CENTER'] = 'Centro';
+L['DIALOG'] = 'Diálogo';
+L['DOWN'] = 'Para baixo';
+L['FULLSCREEN'] = 'Tela cheia';
+L['FULLSCREEN_DIALOG'] = 'Diálogo em tela cheia';
+L['HIGH'] = 'Alto';
+L['HORIZONTAL'] = 'Horizontal';
+L['KBM'] = 'Teclado e mouse';
+L['LEFT'] = 'Esquerda';
+L['LOW'] = 'Baixo';
+L['MEDIUM'] = 'Médio';
+L['MONOCHROME'] = 'Monocromático';
+L['OUTLINE'] = 'Contorno';
+L['RIGHT'] = 'Direita';
+L['THICKOUTLINE'] = 'Contorno espesso';
+L['TOOLTIP'] = 'Dica';
+L['TOP'] = 'Superior';
+L['TOPLEFT'] = 'Superior esquerdo';
+L['TOPRIGHT'] = 'Superior direito';
+L['UP'] = 'Para cima';
+L['VERTICAL'] = 'Vertical';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Ctrl';
+L['SHIFT'] = 'Shift';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Shift';
+L['CTRL-SHIFT'] = 'Ctrl-Shift';

@@ -1945,3 +1945,39 @@ L['Takes the format of...\n|cff0070dd[condition] bindingID; nil|r\n...where each
 ...где каждая пара условие/привязка отделяется точкой с запятой, а «nil» снимает переопределение.]];
 L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r — текущий проверяемый фрейм.
 |cff0070ddunit|r — текущий идентификатор персонажа для этого фрейма.]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = 'Сложение';
+L['BACKGROUND'] = 'Фон';
+L['BLEND'] = 'Смешивание';
+L['BOTTOM'] = 'Снизу';
+L['BOTTOMLEFT'] = 'Снизу слева';
+L['BOTTOMRIGHT'] = 'Снизу справа';
+L['CENTER'] = 'По центру';
+L['DIALOG'] = 'Диалог';
+L['DOWN'] = 'Вниз';
+L['FULLSCREEN'] = 'Полный экран';
+L['FULLSCREEN_DIALOG'] = 'Полноэкранный диалог';
+L['HIGH'] = 'Высокий';
+L['HORIZONTAL'] = 'Горизонтально';
+L['KBM'] = 'Клавиатура и мышь';
+L['LEFT'] = 'Слева';
+L['LOW'] = 'Низкий';
+L['MEDIUM'] = 'Средний';
+L['MONOCHROME'] = 'Монохромный';
+L['OUTLINE'] = 'Контур';
+L['RIGHT'] = 'Справа';
+L['THICKOUTLINE'] = 'Толстый контур';
+L['TOOLTIP'] = 'Подсказка';
+L['TOP'] = 'Сверху';
+L['TOPLEFT'] = 'Сверху слева';
+L['TOPRIGHT'] = 'Сверху справа';
+L['UP'] = 'Вверх';
+L['VERTICAL'] = 'Вертикально';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Ctrl';
+L['SHIFT'] = 'Shift';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Shift';
+L['CTRL-SHIFT'] = 'Ctrl-Shift';

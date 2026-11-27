@@ -1940,3 +1940,39 @@ L['Visibility condition of the element. Accepts pairs of a macro condition and a
 L['Width condition of the texture. Accepts pairs of a macro condition and a width, or a single width.'] = [[Condition de largeur de la texture. Accepte des paires composées d'une condition de macro et d'une largeur, ou une seule largeur.]];
 L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r est le cadre en cours d'examen.
 |cff0070ddunit|r est l'ID d'unité actuel du cadre.]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = 'Additif';
+L['BACKGROUND'] = 'Arrière-plan';
+L['BLEND'] = 'Fondu';
+L['BOTTOM'] = 'Bas';
+L['BOTTOMLEFT'] = 'Bas gauche';
+L['BOTTOMRIGHT'] = 'Bas droite';
+L['CENTER'] = 'Centre';
+L['DIALOG'] = 'Dialogue';
+L['DOWN'] = 'Bas';
+L['FULLSCREEN'] = 'Plein écran';
+L['FULLSCREEN_DIALOG'] = 'Dialogue plein écran';
+L['HIGH'] = 'Haut';
+L['HORIZONTAL'] = 'Horizontal';
+L['KBM'] = 'Clavier et souris';
+L['LEFT'] = 'Gauche';
+L['LOW'] = 'Bas';
+L['MEDIUM'] = 'Moyen';
+L['MONOCHROME'] = 'Monochrome';
+L['OUTLINE'] = 'Contour';
+L['RIGHT'] = 'Droite';
+L['THICKOUTLINE'] = 'Contour épais';
+L['TOOLTIP'] = 'Infobulle';
+L['TOP'] = 'Haut';
+L['TOPLEFT'] = 'Haut gauche';
+L['TOPRIGHT'] = 'Haut droite';
+L['UP'] = 'Haut';
+L['VERTICAL'] = 'Vertical';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Ctrl';
+L['SHIFT'] = 'Maj';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Maj';
+L['CTRL-SHIFT'] = 'Ctrl-Maj';

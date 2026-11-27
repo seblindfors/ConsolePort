@@ -1939,3 +1939,39 @@ L['Vertex color condition of the texture. Accepts pairs of a macro condition and
 L['Visibility condition of the element. Accepts pairs of a macro condition and a visibility state, or a single visibility state.'] = [[Condición de visibilidad del elemento. Acepta pares de una condición de macro y un estado de visibilidad, o un único estado de visibilidad.]];
 L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r es el marco que se está examinando.
 |cff0070ddunit|r es el ID de unidad actual del marco.]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = 'Aditivo';
+L['BACKGROUND'] = 'Fondo';
+L['BLEND'] = 'Mezcla';
+L['BOTTOM'] = 'Abajo';
+L['BOTTOMLEFT'] = 'Abajo a la izquierda';
+L['BOTTOMRIGHT'] = 'Abajo a la derecha';
+L['CENTER'] = 'Centro';
+L['DIALOG'] = 'Diálogo';
+L['DOWN'] = 'Abajo';
+L['FULLSCREEN'] = 'Pantalla completa';
+L['FULLSCREEN_DIALOG'] = 'Diálogo de pantalla completa';
+L['HIGH'] = 'Alto';
+L['HORIZONTAL'] = 'Horizontal';
+L['KBM'] = 'Teclado y mouse';
+L['LEFT'] = 'Izquierda';
+L['LOW'] = 'Bajo';
+L['MEDIUM'] = 'Medio';
+L['MONOCHROME'] = 'Monocromo';
+L['OUTLINE'] = 'Contorno';
+L['RIGHT'] = 'Derecha';
+L['THICKOUTLINE'] = 'Contorno grueso';
+L['TOOLTIP'] = 'Descripción emergente';
+L['TOP'] = 'Arriba';
+L['TOPLEFT'] = 'Arriba a la izquierda';
+L['TOPRIGHT'] = 'Arriba a la derecha';
+L['UP'] = 'Arriba';
+L['VERTICAL'] = 'Vertical';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Ctrl';
+L['SHIFT'] = 'Mayús';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Mayús';
+L['CTRL-SHIFT'] = 'Ctrl-Mayús';

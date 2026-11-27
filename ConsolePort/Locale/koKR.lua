@@ -1931,3 +1931,39 @@ L['Takes the format of...\n|cff0070dd[condition] bindingID; nil|r\n...where each
 ...각 조건/단축키는 세미콜론으로 구분하며, "nil"은 재정의를 해제합니다.]];
 L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r: 현재 검사 중인 프레임입니다.
 |cff0070ddunit|r: 해당 프레임의 현재 유닛 ID입니다.]];
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['ADD'] = '더하기';
+L['BACKGROUND'] = '배경';
+L['BLEND'] = '혼합';
+L['BOTTOM'] = '하단';
+L['BOTTOMLEFT'] = '좌측 하단';
+L['BOTTOMRIGHT'] = '우측 하단';
+L['CENTER'] = '중앙';
+L['DIALOG'] = '대화 상자';
+L['DOWN'] = '아래';
+L['FULLSCREEN'] = '전체 화면';
+L['FULLSCREEN_DIALOG'] = '전체 화면 대화 상자';
+L['HIGH'] = '높음';
+L['HORIZONTAL'] = '가로';
+L['KBM'] = '키보드 및 마우스';
+L['LEFT'] = '왼쪽';
+L['LOW'] = '낮음';
+L['MEDIUM'] = '중간';
+L['MONOCHROME'] = '단색';
+L['OUTLINE'] = '외곽선';
+L['RIGHT'] = '오른쪽';
+L['THICKOUTLINE'] = '굵은 외곽선';
+L['TOOLTIP'] = '툴팁';
+L['TOP'] = '상단';
+L['TOPLEFT'] = '좌측 상단';
+L['TOPRIGHT'] = '우측 상단';
+L['UP'] = '위';
+L['VERTICAL'] = '세로';
+L['ALT'] = 'Alt';
+L['CTRL'] = 'Ctrl';
+L['SHIFT'] = 'Shift';
+L['ALT-CTRL'] = 'Alt-Ctrl';
+L['ALT-SHIFT'] = 'Alt-Shift';
+L['CTRL-SHIFT'] = 'Ctrl-Shift';

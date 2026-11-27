@@ -1770,7 +1770,6 @@ L['HIGH'] = '高';
 L['Hold Shift + Left Click to move.'] = '按住 Shift + 左键单击以移动。';
 L['HORIZONTAL'] = '水平';
 L['Implicit'] = '隐式';
-L['Incompatible with %s.'] = '与 %s 不兼容。';
 L['Invalid item removed from %s in slot %d.'] = '已从 %s 的槽位 %d 中移除无效物品。';
 L['Invalid layout data, ignoring changes.'] = '布局数据无效，已忽略更改。';
 L['Invalid spell removed from %s in slot %d.'] = '已从 %s 的槽位 %d 中移除无效法术。';
@@ -1796,7 +1795,6 @@ L['No connected devices found.'] = '未找到已连接的设备。';
 L['NoCombat'] = '战斗中禁用';
 L['Normal'] = '正常';
 L['Normal scale.'] = '正常比例。';
-L['On Press'] = '按下时';
 L['Opacity condition of the element. Accepts pairs of a macro condition and an opacity in percentage, or a single opacity value.'] = '元素的不透明度条件。接受宏条件与不透明度百分比组成的成对值，或单个不透明度值。';
 L['OUTLINE'] = '描边';
 L['Page condition of the element. Accepts pairs of a macro condition and a page identifier, or a single page number.'] = '元素的页面条件。接受宏条件与页面标识符组成的成对值，或单个页面编号。';
@@ -1876,7 +1874,6 @@ L['THICKOUTLINE'] = '粗描边';
 L['This action will remove all your saved settings and reload your interface.'] = '此操作将清除你所有已保存的设置并重新加载界面。';
 L['Timeout'] = '超时';
 L['Tints the texture with the applicable color.'] = '用适用的颜色为纹理着色。';
-L['To interact with a target, use the binding %s.'] = '要与目标互动，请使用快捷键 %s。';
 L['TOP'] = '上方';
 L['TOPLEFT'] = '左上';
 L['TOPRIGHT'] = '右上';
@@ -1895,7 +1892,6 @@ L['Vehicle UI is active.'] = '载具界面处于激活状态。';
 L['Vertex color condition of the texture. Accepts pairs of a macro condition and a hexadecimal color, or a single color.'] = '纹理的顶点颜色条件。接受宏条件与十六进制颜色组成的成对值，或单个颜色。';
 L['VERTICAL'] = '垂直';
 L['Visibility condition of the element. Accepts pairs of a macro condition and a visibility state, or a single visibility state.'] = '元素的可见性条件。接受宏条件与可见性状态组成的成对值，或单个可见性状态。';
-L['When Untargeted'] = '无目标时';
 L['Width condition of the texture. Accepts pairs of a macro condition and a width, or a single width.'] = '纹理的宽度条件。接受宏条件与宽度组成的成对值，或单个宽度。';
 L['Your gamepad configuration has changed.'] = '你的手柄配置已更改。';
 ---------------------------------------------------------------
@@ -1985,3 +1981,9 @@ L['Player'] = '玩家';
 L['Redirect'] = '重定向';
 L['Tapping the same modifier twice needs the Doubled Bar option enabled.'] = '双击同一修饰键需要启用“双击动作条”选项。';
 L['Those modifiers do not form a layer that can be bound.'] = '这些修饰键无法组成可绑定的层。';
+---------------------------------------------------------------
+-- Option values
+---------------------------------------------------------------
+L['FULLSCREEN'] = '全屏';
+L['FULLSCREEN_DIALOG'] = '全屏对话框';
+L['TOOLTIP'] = '提示框';
