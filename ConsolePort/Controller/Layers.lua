@@ -1,10 +1,57 @@
 ---------------------------------------------------------------
 -- Input layers
 ---------------------------------------------------------------
--- Owns the modifier state the rest of the suite binds against.
--- Publishes two values: 'prefix' is the resolved layer, 'chord' the
--- canonical combination the engine looks up. Registrants pick their
--- action by the prefix and key their binding by the chord.
+-- Owns the modifier state the rest of the suite binds against, and
+-- every override binding the suite writes to the engine.
+--
+-- Modifiers are pad buttons standing in for SHIFT, CTRL and ALT.
+-- Holding, tapping (latch) and double tapping (doubled bar) them
+-- selects a layer, described by two values:
+--
+--   chord  : what the engine sees as held, in canonical order, such
+--            as 'CTRL-SHIFT-'. The engine looks a binding up by
+--            chord..button, so every override is keyed by the chord.
+--   prefix : the resolved layer. Equal to the chord unless a latch,
+--            a doubled bar or modifier ordering is in play, such as
+--            'SHIFT-CTRL-' when ordered or 'CTRL-CTRL-' when doubled.
+--            Registrants pick what a button does by the prefix.
+--
+--   held, latched, doubled --> UpdatePrefix --> chord, prefix
+--                                                 |
+--                        +------------------------+
+--                        v                        v
+--                    ApplyRow                ApplyStates
+--             claims the layer's row     re-evaluates registered
+--             under the engine's chord   [mod:] drivers by prefix
+--
+-- The row is the one live binding set. Per button the first source
+-- with an entry wins: clicks registered by frames, then the player's
+-- stored bindings for the layer. A stand-in key claims the same
+-- entry as the button it emulates. With strict modifiers, buttons
+-- only the unmodified layer resolves are claimed on the void button,
+-- so the engine cannot drop the modifier and fire them.
+--
+-- Claims: one engine binding per key. A frame claims a key at a
+-- level, the highest level holds it, newest on a tie, and a release
+-- surfaces the next claim:
+--
+--   level     engine tier   claimant
+--   BASE      low           the row
+--   OVERRIDE  low           conditional replacements of the row
+--   NAV       priority      cursors
+--   MODAL     priority      rings, menus, unit hotkeys
+--
+-- States: the engine resolves [mod:] against physically held
+-- modifiers and cannot see a latched or doubled layer. Drivers
+-- registered here are split into segments; layer clauses are
+-- matched against the prefix, the rest go to SecureCmdOptionParse,
+-- first match wins like the macro resolver.
+--
+-- Gestures: with tap to latch or the doubled bar on, each modifier's
+-- bare chord is routed to a proxy button whose OnClick latches and
+-- OnDoubleClick doubles. A double tap followed by a hold is armed
+-- for a few pulses of the layerpulse state driver, the only timer
+-- that runs in combat.
 ---------------------------------------------------------------
 
 local Layers, _, db = CPAPI.DataHandler(ConsolePortLayers), ...;
