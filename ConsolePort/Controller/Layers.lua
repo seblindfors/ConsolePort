@@ -170,50 +170,40 @@ Layers.Env = {
 		self::ClearRow()
 		wipe(ROW)
 
-		local stored = STORED[layer];
-		if stored then
-			for button, entry in pairs(stored) do
-				ROW[button] = entry;
+		local strict = STRICT and ( chord ~= '' );
+		local ownStored, ownBound = STORED[chord], BINDINGS[chord];
+		for i = 1, strict and 4 or 2 do
+			local set;
+			if     ( i == 1 ) then set = BINDINGS[layer];
+			elseif ( i == 2 ) then set = STORED[layer];
+			elseif ( i == 3 ) then set = BINDINGS[''];
+			else                   set = STORED[''];
 			end
-		end
-
-		local bound = BINDINGS[layer];
-		if bound then
-			for button, entry in pairs(bound) do
-				ROW[button] = entry;
-			end
-		end
-
-		for button, entry in pairs(ROW) do
-			if not CLAIMED[button] then
-				-- Stand-ins resolve to whatever the button does in this layer.
-				local emulated = EMULATED[button];
-				for i = 1, emulated and 2 or 1 do
-					local key = chord..( ( i == 1 ) and button or emulated );
-					if ( entry[1] == 'click' ) then
-						self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', entry[2], entry[3])
+			local void = ( i > 2 );
+			for button, entry in pairs(set or EMPTY) do
+				if ( not ROW[button] and not CLAIMED[button] ) then
+					if void then
+						local key = chord..button;
+						if ( not EMULATED[button] and not ALIAS[key]
+							and not ( ownStored and ownStored[button] )
+							and not ( ownBound and ownBound[button] ) ) then
+							self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', VOID, 'LeftButton')
+							APPLIED[#APPLIED + 1] = key;
+						end
 					else
-						self::Claim(ROWOWNER, LEVEL_BASE, key, 'binding', entry[2])
+						-- Stand-ins resolve to whatever the button does in this layer.
+						local emulated = EMULATED[button];
+						for j = 1, emulated and 2 or 1 do
+							local key = chord..( ( j == 1 ) and button or emulated );
+							if ( entry[1] == 'click' ) then
+								self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', entry[2], entry[3])
+							else
+								self::Claim(ROWOWNER, LEVEL_BASE, key, 'binding', entry[2])
+							end
+							APPLIED[#APPLIED + 1] = key;
+						end
 					end
-					APPLIED[#APPLIED + 1] = key;
-				end
-			end
-		end
-
-		if STRICT and ( chord ~= '' ) then
-			local ownStored, ownBound = STORED[chord], BINDINGS[chord];
-			for i = 1, 2 do
-				local set = ( i == 1 ) and STORED[''] or BINDINGS[''];
-				for button in pairs(set or ROW) do
-					local key = chord..button;
-					if ( not ROW[button] and not CLAIMED[button] and not EMULATED[button]
-						and not ALIAS[key]
-						and not ( ownStored and ownStored[button] )
-						and not ( ownBound and ownBound[button] ) ) then
-						self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', VOID, 'LeftButton')
-						APPLIED[#APPLIED + 1] = key;
-						ROW[button] = true;
-					end
+					ROW[button] = true;
 				end
 			end
 		end
@@ -416,6 +406,7 @@ function Layers:OnEnvironmentChanged()
 		CLAIMED  = CLAIMED  or newtable();
 		CLAIMS   = CLAIMS   or newtable();
 		EMULATED = EMULATED or newtable();
+		EMPTY    = EMPTY    or newtable();
 		HELD     = HELD     or newtable();
 		HELDSET  = HELDSET  or newtable();
 		LATCH    = LATCH    or newtable();
