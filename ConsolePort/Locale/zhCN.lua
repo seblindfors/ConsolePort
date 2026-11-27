@@ -1987,3 +1987,19 @@ L['Those modifiers do not form a layer that can be bound.'] = '这些修饰键�
 L['FULLSCREEN'] = '全屏';
 L['FULLSCREEN_DIALOG'] = '全屏对话框';
 L['TOOLTIP'] = '提示框';
+---------------------------------------------------------------
+-- Cluster designs
+---------------------------------------------------------------
+L['Beveled Silver'] = '斜角银色';
+L['Round Silver'] = '圆形银色';
+L['Round Gold'] = '圆形金色';
+L['Hex Gold'] = '六边形金色';
+L['Squared Gold'] = '方形金色';
+L['Cluster - %s'] = '集群 - %s';
+L['Cluster - Orthodox'] = '集群 - 正统';
+L['Cluster Design'] = '集群外观';
+L['Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.'] = '选择集群按钮的形状和材质。金色外观也会应用到宠物环。';
+L['Cooldown Swipe Color'] = '冷却扫掠颜色';
+L['Color and opacity of regular cooldown and swing timer shading.'] = '常规冷却和挥击计时器遮罩的颜色与不透明度。';
+L['Global Cooldown Swipe Color'] = '公共冷却扫掠颜色';
+L['Color and opacity of the global cooldown shading on cluster buttons.'] = '集群按钮上公共冷却遮罩的颜色与不透明度。';

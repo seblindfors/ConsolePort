@@ -1,9 +1,22 @@
 local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
+local CLUSTER_DESIGN = env.Const.ClusterDesign;
+---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
 local invert = function(v) return not v end;
-local color  = function(v) return ('%.2x%.2x%.2x%.2x'):format(CreateColor(unpack(v)):GetRGBAAsBytes()) end;
+local color  = function(v) return db.Data.Color(unpack(v)):GetHex() end;
+
+function env.UpgradeClusterSettings(settings)
+	local borderStyle = settings.clusterBorderStyle;
+	if not borderStyle then return end;
+	local design = settings.clusterDesign;
+	-- The old border style only applied to the original cluster design.
+	if ( not design or design == CLUSTER_DESIGN.Original ) then
+		settings.clusterDesign = borderStyle == 'Beveled' and CLUSTER_DESIGN.Beveled or CLUSTER_DESIGN.Original;
+	end
+	settings.clusterBorderStyle = nil;
+end
 
 ---------------------------------------------------------------
 -- V1 Upgrade
@@ -14,46 +27,21 @@ function env.IsV1Layout(preset)
 	return type(preset) == 'table' and type(preset.layout) == 'table' and not preset.children;
 end
 
--- Migration: V1 -> V2
--- Converts an outdated layout to the new format.
-function env.UpgradeFromV1()
-	local v1 = ConsolePort_BarSetup;
-	if v1 then
-		ConsolePort_BarSetup = nil;
-		CPAPI.Log('ConsolePort: upgrading action bar layout...')
-		local v2, settings = env.ConvertV1Layout(v1);
-		for path, value in pairs(settings) do
-			env(path, value);
-		end
-		return v2;
-	end
-end
-
 -- Map V1 table -> V2 DB
 local V1V2DBMap = {
-	showbuttons    = { 'Settings/clusterShowAll' };
-	hidewatchbars  = { 'Settings/enableXPBar', invert };
-	watchbars      = { 'Settings/fadeXPBar', invert };
-	hideIcons      = { 'Settings/clusterShowMainIcons', invert };
-	hideModifiers  = { 'Settings/clusterShowFlyoutIcons', invert };
-	classicBorders = { 'Settings/clusterBorderStyle', function(v) return v and 'Beveled' or 'Normal' end };
-	borderRGB      = { 'Settings/borderColor', color };
-	expRGB         = { 'Settings/xpBarColor', color };
-	swipeRGB       = { 'Settings/swipeColor', color };
-	tintRGB        = { 'Settings/tintColor', color };
+	showbuttons    = { 'clusterShowAll' };
+	hidewatchbars  = { 'enableXPBar', invert };
+	watchbars      = { 'fadeXPBar', invert };
+	hideIcons      = { 'showMainIcons', invert };
+	hideModifiers  = { 'clusterShowFlyoutIcons', invert };
+	classicBorders = { 'clusterDesign', function(v) return v and CLUSTER_DESIGN.Beveled or CLUSTER_DESIGN.Original end };
+	borderRGB      = { 'borderColor', color };
+	expRGB         = { 'xpBarColor', color };
+	tintRGB        = { 'tintColor', color };
 };
 
--- Map V1 table -> V2 Layout
-local V1V2LayoutMap = {
-	width = { 'v2/children/Cluster/width' };
-	scale = { 'v2/children/Cluster/rescale', function(v) return tostring(math.ceil(v * 100)) end };
-};
-
--- Map V1.button.dir -> V2.ClusterHandle.dir + V2.ClusterHandle.showFlyouts
-local V2ValidateDir = CPAPI.Proxy({['<hide>'] = false}, function(_, v) return v:upper() end );
-
-function env.ConvertV1Layout(v1)
-	assert(v1.layout, 'No layout found in outdated preset.')
+local function convertV1Layout(v1)
+	assert(type(v1.layout) == 'table', 'No layout found in outdated preset.')
 
 	-- Handle settings that were part of the layout table,
 	-- but are now part of the settings table.
@@ -61,33 +49,28 @@ function env.ConvertV1Layout(v1)
 	for deprecated, value in pairs(v1) do
 		local map = V1V2DBMap[deprecated];
 		if map then
-			local path, conv = unpack(map)
+			local key, conv = unpack(map)
 			if conv then
 				value = conv(value)
 			end
-			settings[path] = value;
+			settings[key] = value;
 		end
 	end
 
 	-- Handle the layout table buttons, convert to ClusterHandle.
 	local buttons = {};
 	for buttonID, data in pairs(v1.layout) do
-		-- no point in converting disabled buttons, pun intended.
-		-- also, remove modifier buttons from the layout, because they were not visible in V1.
+		-- V1 omitted disabled buttons and buttons bound as modifiers.
 		if data.point and not db.Gamepad.Index.Modifier.Owner[buttonID] then
-			-- dir = <hide> -> showFlyouts = false;
-			local showFlyouts = not not V2ValidateDir[data.dir];
-			-- dir = lowercased -> dir = uppercased;
-			local dir  = data.dir and V2ValidateDir[data.dir] or 'DOWN';
-			-- unchanged
-			local size = data.size;
+			local showFlyouts = data.dir ~= '<hide>';
+			local dir = showFlyouts and data.dir and data.dir:upper() or 'DOWN';
 			-- point = {[1], [2], [3]} -> pos = {point, relPoint, x, y};
 			local point, x, y = unpack(data.point);
 			local pos = {point = point, relPoint = point, x = x, y = y};
 			-- convert V1 button to V2 ClusterHandle.
 			buttons[buttonID] = env.Interface.ClusterHandle():Warp {
 				pos         = pos;
-				size        = size;
+				size        = data.size;
 				showFlyouts = showFlyouts;
 				dir         = dir;
 			};
@@ -95,6 +78,7 @@ function env.ConvertV1Layout(v1)
 	end
 
 	local v2 = CopyTable(env.Presets.Default)
+	v2.settings = settings;
 	v2.name = env.Const.DefaultPresetName;
 	v2.desc = db.Locale'Player action bar setup.';
 	-- Can't track where the pet ring was located in V1, so place it in a convenient spot
@@ -103,26 +87,21 @@ function env.ConvertV1Layout(v1)
 	-- Convert the V1 layout to a V2 Cluster layout.
 	v2.children.Cluster = env.Interface.Cluster:Render {
 		children = buttons;
+		width    = v1.width;
+		-- V1 stored scale as a multiplier. The layout selector stores a percentage string.
+		rescale  = v1.scale and tostring(math.ceil(v1.scale * 100));
 	};
+	return v2;
+end
 
-	-- Register in database to leverage pathing.
-	env:Register('v2', v2);
-
-	-- Transfer layout settings to the new layout.
-	for deprecated, value in pairs(v1) do
-		local map = V1V2LayoutMap[deprecated];
-		if map then
-			local path, conv = unpack(map)
-			if conv then
-				value = conv(value)
-			end
-			env(path, value)
-		end
+function env:GetDefaultLayout()
+	if ConsolePort_BarSetup then
+		local layout = convertV1Layout(ConsolePort_BarSetup);
+		ConsolePort_BarSetup = nil;
+		CPAPI.Log('ConsolePort: upgrading action bar layout...')
+		return layout;
 	end
-
-	-- Clean up
-	env:Register('v2', nil, true)
-	return v2, settings;
+	return CopyTable(env.Presets.Default);
 end
 
 ---------------------------------------------------------------
@@ -132,10 +111,12 @@ function env.IsV2Layout(preset)
 	return type(preset) == 'table' and type(preset.children) == 'table';
 end
 
-function env.BuildLayout(layout)
+function env.BuildLayout(layout, applyOptions)
 	if env.IsV1Layout(layout) then
-		layout = env.ConvertV1Layout(layout);
+		layout = convertV1Layout(layout);
 	end
+	-- Activate saved options before resolving the layout. Importing only prepares the preset.
+	if applyOptions then env:ApplyPresetOptions(layout) end;
 
 	local function EvaluateDynamicOptions(data)
 		if data.children then

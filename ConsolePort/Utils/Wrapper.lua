@@ -333,6 +333,23 @@ CPAPI.IsPlayerAtEffectiveMaxLevel    = GameRulesUtil   and GameRulesUtil.IsPlaye
 CPAPI.IsSpellBookItemPassive         = C_SpellBook     and C_SpellBook.IsSpellBookItemPassive            or IsPassiveSpell;
 CPAPI.LeaveParty                     = C_PartyInfo     and C_PartyInfo.LeaveParty                        or LeaveParty;
 CPAPI.PickupSpellBookItem            = C_SpellBook     and C_SpellBook.PickupSpellBookItem               or PickupSpellBookItem;
+-- Spell and action wrappers
+CPAPI.GetBaseSpell                   = C_Spell         and C_Spell.GetBaseSpell
+	or C_SpellBook and C_SpellBook.FindBaseSpellByID or FindBaseSpellByID or nop;
+CPAPI.GetItemSpell                   = C_Item          and C_Item.GetItemSpell                           or GetItemSpell or nop;
+CPAPI.GetOverrideSpell               = C_Spell         and C_Spell.GetOverrideSpell
+	or C_SpellBook and C_SpellBook.FindSpellOverrideByID or FindSpellOverrideByID or nop;
+CPAPI.GetSpellName                   = C_Spell         and C_Spell.GetSpellName                          or GetSpellInfo or nop;
+CPAPI.GetSpellTexture                = C_Spell         and C_Spell.GetSpellTexture                       or GetSpellTexture or nop;
+CPAPI.IsAttackAction                 = C_ActionBar     and C_ActionBar.IsAttackAction                    or IsAttackAction or nop;
+CPAPI.IsAutoAttackSpell              = C_Spell         and C_Spell.IsAutoAttackSpell                     or nop;
+CPAPI.IsAutoCastPetAction            = C_ActionBar     and C_ActionBar.IsAutoCastPetAction               or IsAutoCastPetAction or nop;
+CPAPI.IsAutoRepeatSpell              = C_Spell         and C_Spell.IsAutoRepeatSpell                     or IsAutoRepeatSpell or nop;
+CPAPI.IsCurrentAction                = C_ActionBar     and C_ActionBar.IsCurrentAction                   or IsCurrentAction or nop;
+-- Cooldown wrappers
+CPAPI.GetActionCooldownDuration      = C_ActionBar     and C_ActionBar.GetActionCooldownDuration         or nop;
+CPAPI.GetItemCooldown                = C_Item          and C_Item.GetItemCooldown                        or GetItemCooldown or nop;
+CPAPI.GetSpellCooldownDuration       = C_Spell         and C_Spell.GetSpellCooldownDuration              or nop;
 -- Fallthroughs
 CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
 CPAPI.IsSecret                       = issecretvalue      or nop;

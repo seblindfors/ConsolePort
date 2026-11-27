@@ -1981,3 +1981,19 @@ L['SHIFT'] = 'Shift';
 L['ALT-CTRL'] = 'Alt-Ctrl';
 L['ALT-SHIFT'] = 'Alt-Shift';
 L['CTRL-SHIFT'] = 'Ctrl-Shift';
+---------------------------------------------------------------
+-- Cluster designs
+---------------------------------------------------------------
+L['Beveled Silver'] = 'Серебро со скосом';
+L['Round Silver'] = 'Круглое серебро';
+L['Round Gold'] = 'Круглое золото';
+L['Hex Gold'] = 'Шестиугольное золото';
+L['Squared Gold'] = 'Квадратное золото';
+L['Cluster - %s'] = 'Кластер - %s';
+L['Cluster - Orthodox'] = 'Кластер - Ортодоксальный';
+L['Cluster Design'] = 'Оформление кластера';
+L['Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.'] = 'Выберите форму и отделку кнопок кластера. Золотые варианты также оформляют круговое меню питомца.';
+L['Cooldown Swipe Color'] = 'Цвет смахивания восстановления';
+L['Color and opacity of regular cooldown and swing timer shading.'] = 'Цвет и непрозрачность затенения обычного восстановления и таймера удара.';
+L['Global Cooldown Swipe Color'] = 'Цвет смахивания общего восстановления';
+L['Color and opacity of the global cooldown shading on cluster buttons.'] = 'Цвет и непрозрачность затенения общего времени восстановления на кнопках кластера.';

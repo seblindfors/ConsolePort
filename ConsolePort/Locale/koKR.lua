@@ -1967,3 +1967,19 @@ L['SHIFT'] = 'Shift';
 L['ALT-CTRL'] = 'Alt-Ctrl';
 L['ALT-SHIFT'] = 'Alt-Shift';
 L['CTRL-SHIFT'] = 'Ctrl-Shift';
+---------------------------------------------------------------
+-- Cluster designs
+---------------------------------------------------------------
+L['Beveled Silver'] = '경사형 은색';
+L['Round Silver'] = '원형 은색';
+L['Round Gold'] = '원형 금색';
+L['Hex Gold'] = '육각형 금색';
+L['Squared Gold'] = '사각형 금색';
+L['Cluster - %s'] = '클러스터 - %s';
+L['Cluster - Orthodox'] = '클러스터 - 정통';
+L['Cluster Design'] = '클러스터 디자인';
+L['Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.'] = '클러스터 버튼의 모양과 마감을 선택합니다. 금색 디자인은 소환수 원형 메뉴에도 적용됩니다.';
+L['Cooldown Swipe Color'] = '재사용 대기시간 스와이프 색상';
+L['Color and opacity of regular cooldown and swing timer shading.'] = '일반 재사용 대기시간과 평타 타이머 음영의 색상과 불투명도입니다.';
+L['Global Cooldown Swipe Color'] = '전역 재사용 대기시간 스와이프 색상';
+L['Color and opacity of the global cooldown shading on cluster buttons.'] = '클러스터 버튼의 전역 재사용 대기시간 음영의 색상과 불투명도입니다.';

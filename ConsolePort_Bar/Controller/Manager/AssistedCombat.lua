@@ -108,7 +108,10 @@ end
 function AssistedCombatManager:OnActionButtonActionChanged(actionButton)
 	local spellID = self:GetActionButtonSpellForAssistedHighlight(actionButton);
 	self.assistedHighlightCandidateActionButtons[actionButton] = spellID;
-	self:SetAssistedHighlightFrameShown(actionButton, self.lastNextCastSpellID and spellID == self.lastNextCastSpellID);
+	-- Auto-rotation also tracks the next spell when assisted highlighting is disabled.
+	if self.trackAssistedCombat then
+		self:SetAssistedHighlightFrameShown(actionButton, spellID and spellID == self.lastNextCastSpellID);
+	end
 
 	local actionID = actionButton:GetAttribute('action');
 	local retainCandidate = true;
@@ -151,6 +154,9 @@ end
 
 function AssistedCombatManager:OnActionButtonTypeChanged(actionButton, retainCandidate)
 	if not retainCandidate then
+		if self.trackAssistedCombat and self.assistedHighlightCandidateActionButtons[actionButton] then
+			self:SetAssistedHighlightFrameShown(actionButton, false);
+		end
 		self.assistedHighlightCandidateActionButtons[actionButton] = nil;
 	end
 	self:ClearRotationTicker(actionButton);

@@ -1,14 +1,23 @@
 local _, env = ...;
 ---------------------------------------------------------------
 
-function env:GetDefaultLayout()
-	return env.UpgradeFromV1() or CopyTable(env.Presets.Default);
-end
-
----------------------------------------------------------------
 local Presets = {}; env.Presets = Presets;
 local Interface = env.Interface;
+local CLUSTER_DESIGN = env.Const.ClusterDesign;
+local Designs = env.Const.Cluster.Designs;
+local merge = env.db.table.merge;
 ---------------------------------------------------------------
+
+local function GetDesignPresetName(design)
+	return env.L('Cluster - %s', Designs[design].Name);
+end
+
+local function DesignPreset(design, layout)
+	local preset = merge(CopyTable(Presets.Default), layout or {});
+	preset.name = GetDesignPresetName(design);
+	preset.settings.clusterDesign = design;
+	return preset;
+end
 
 ---------------------------------------------------------------
 -- Toolbar presets
@@ -45,9 +54,10 @@ local AllModifiers = env.RunTimeFilter({
 local Handle = Interface.ClusterHandle(); -- reuse one handle instance and warp it
 
 Presets.Default = {
-	name       = DEFAULT;
+	name       = GetDesignPresetName(CLUSTER_DESIGN.Original);
 	desc       = 'A cluster bar with a toolbar below it.';
 	visibility = env.Const.ManagerVisibility;
+	settings   = { clusterDesign = CLUSTER_DESIGN.Original };
 	children = {
 		Watchbar = Interface.Watchbar:Render {
 			totem = { pos = { y = 18 } };
@@ -68,8 +78,12 @@ Presets.Default = {
 			page       = 'override';
 			visibility = '[vehicleui][overridebar] show; hide';
 		};
-		Petring  = Interface.Petring:Render();
+		Petring  = Interface.Petring:Render {
+			pos = { y = 100 };
+		};
 		Cluster  = Interface.Cluster:Render {
+			pos      = { y = 40 };
+			width    = 1225;
 			rescale  = '90';
 			children = {
 				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  176, y =  40 } };
@@ -89,10 +103,28 @@ Presets.Default = {
 	};
 };
 
+Presets.ClusterBeveledSilver = DesignPreset(CLUSTER_DESIGN.Beveled);
+Presets.ClusterRoundGold     = DesignPreset(CLUSTER_DESIGN.OriginalGold);
+Presets.ClusterHexGold       = DesignPreset(CLUSTER_DESIGN.Hex);
+Presets.ClusterSquaredGold   = DesignPreset(CLUSTER_DESIGN.Squared, {
+	children = {
+		Cluster = {
+			width    = 1230;
+			children = {
+				PADLSHOULDER = { pos = { x =  478 } };
+				PADRSHOULDER = { pos = { x = -478 } };
+				PADLTRIGGER  = { pos = { x =  410 } };
+				PADRTRIGGER  = { pos = { x = -410 } };
+			};
+		};
+	};
+});
+
 Presets.Orthodox = {
-	name       = 'Orthodox';
+	name       = env.L'Cluster - Orthodox';
 	desc       = 'A cluster bar with a toolbar below it, laid out horizontally.';
 	visibility = env.Const.ManagerVisibility;
+	settings   = { clusterDesign = CLUSTER_DESIGN.Original };
 	children = {
 		Watchbar = Interface.Watchbar:Render {
 			totem = { pos = { y = 116 } };
@@ -115,9 +147,10 @@ Presets.Orthodox = {
 		};
 		Petring = Interface.Petring:Render {
 			scale = 0.7;
-			pos   = { y = 75 };
+			pos   = { y = 100 };
 		};
 		Cluster = Interface.Cluster:Render {
+			pos     = { y = 40 };
 			width   = 1325;
 			rescale = '80';
 			children = {

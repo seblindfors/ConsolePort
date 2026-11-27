@@ -1969,3 +1969,19 @@ L['SHIFT'] = 'Umschalt';
 L['ALT-CTRL'] = 'Alt-Strg';
 L['ALT-SHIFT'] = 'Alt-Umschalt';
 L['CTRL-SHIFT'] = 'Strg-Umschalt';
+---------------------------------------------------------------
+-- Cluster designs
+---------------------------------------------------------------
+L['Beveled Silver'] = 'Abgeschrägt Silber';
+L['Round Silver'] = 'Rund Silber';
+L['Round Gold'] = 'Rund Gold';
+L['Hex Gold'] = 'Sechseck Gold';
+L['Squared Gold'] = 'Quadrat Gold';
+L['Cluster - %s'] = 'Cluster - %s';
+L['Cluster - Orthodox'] = 'Cluster - Orthodox';
+L['Cluster Design'] = 'Cluster-Design';
+L['Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.'] = 'Wähle Form und Oberfläche der Cluster-Tasten. Gold-Designs gestalten auch den Begleiter-Ring.';
+L['Cooldown Swipe Color'] = 'Abklingzeit-Wischfarbe';
+L['Color and opacity of regular cooldown and swing timer shading.'] = 'Farbe und Deckkraft der Schattierung für normale Abklingzeiten und den Schlagtimer.';
+L['Global Cooldown Swipe Color'] = 'Wischfarbe der globalen Abklingzeit';
+L['Color and opacity of the global cooldown shading on cluster buttons.'] = 'Farbe und Deckkraft der Schattierung für die globale Abklingzeit auf Cluster-Tasten.';
