@@ -51,6 +51,13 @@ local function NPE_LoadUI()
 end
 
 
+function env.UIHandler:HideMultiBar(bar)
+	hideEditModeFrame(_G[bar], true)
+	for i = 1, 12 do
+		hideActionButton(_G[bar .. 'Button' .. i])
+	end
+end
+
 function env.UIHandler:HideBlizzard()
 	---------------------------------------------------------------
 	-- Main action bar
@@ -70,18 +77,9 @@ function env.UIHandler:HideBlizzard()
 
 	---------------------------------------------------------------
 	-- Action bars
-	for bar, clearEvents in pairs({
-		MultiBarBottomLeft  = true;
-		MultiBarBottomRight = true;
-	--	MultiBarLeft        = true;
-	--	MultiBarRight       = true;
-	--	MultiBar5           = true;
-	--	MultiBar6           = true;
-	--	MultiBar7           = true;
-	}) do
-		hideEditModeFrame(_G[bar], clearEvents)
-		for i = 1, 12 do -- Hide MultiBar Buttons
-			hideActionButton(_G[bar .. 'Button' .. i])
+	for bar, setting in pairs(env.OptionalBlizzardBars) do
+		if env(setting) then
+			self:HideMultiBar(bar)
 		end
 	end
 
