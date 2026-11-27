@@ -9,10 +9,17 @@ env.UIHandler  = CPAPI.CreateEventHandler({'Frame'}, {
 }); local db, L, UIHandler = env.db, env.db.Locale, env.UIHandler;
 
 UIHandler:Hide()
-function UIHandler:OnDataLoaded()
+local function FinishDataLoaded(self)
+	-- Combat lockdown can start after ADDON_LOADED (mid-fight /reload), so test it here, where
+	-- the protected calls run; the blocked ones are redone when combat ends.
+	self.hideBlizzardOnRegen = InCombatLockdown() or nil;
 	self:HideBlizzard()
 	env.Manager:CacheActionButtons(self)
 	env:TriggerEvent('OnEnvLoaded')
+end
+
+function UIHandler:OnDataLoaded()
+	CPAPI.Next(FinishDataLoaded, self)
 	return CPAPI.BurnAfterReading;
 end
 
@@ -21,6 +28,10 @@ function UIHandler:PLAYER_REGEN_DISABLED()
 end
 
 function UIHandler:PLAYER_REGEN_ENABLED()
+	if self.hideBlizzardOnRegen then
+		self.hideBlizzardOnRegen = nil;
+		self:HideBlizzard()
+	end
 	env:TriggerEvent('OnCombatLockdown', false)
 end
 
