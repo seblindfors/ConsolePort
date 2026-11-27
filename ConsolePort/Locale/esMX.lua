@@ -1684,3 +1684,258 @@ Cuando se configura al máximo, nunca mira en la dirección de tu stick de movim
 L['While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.'] = [[Mientras esté desactivado, el tiempo de espera del cursor y la alternancia entre cursor libre y fijo central también están desactivados.]];
 L['Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?'] = [[Tu dispositivo %s tiene gestión separada para conexión Bluetooth y por cable.
 ¿Cuál estás usando?]];
+---------------------------------------------------------------
+-- Additional display strings
+---------------------------------------------------------------
+L['   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Battery Level: %s'] = '   Fabricante: |cFF00FFFF%s|r, Producto: |cFF00FFFF%s|r, Configuración: %s, Nivel de batería: %s';
+L['%s was added to your utility ring. Use: %s'] = '%s se añadió a tu menú radial de utilidad. Uso: %s';
+L['%s was removed from your utility ring.'] = '%s se eliminó de tu menú radial de utilidad.';
+L['<none>'] = '<ninguno>';
+L['A doubled modifier is a bar of its own and cannot be combined with others.'] = 'Un modificador doble es una barra propia y no puede combinarse con otros.';
+L['Action Buttons'] = 'Botones de acción';
+L['Action bar settings have been reset to default.'] = 'Los ajustes de la barra de acción se han restablecido a los valores por defecto.';
+L['All presets are valid.'] = 'Todos los preajustes son válidos.';
+L['An override bar is active, can use either vehicle UI or an unskinned override bar.'] = 'Hay una barra de sustitución activa; puede usar la interfaz de vehículo o una barra de sustitución sin estilo.';
+L['An override bar is active, used when the specific scenario does not have a vehicle UI.'] = 'Hay una barra de sustitución activa; se usa cuando el escenario concreto no tiene interfaz de vehículo.';
+L['Arguments'] = 'Argumentos';
+L['Around'] = 'Alrededor';
+L['Artifact'] = 'Artefacto';
+L['Bar'] = 'Barra';
+L['Beveled'] = 'Biselado';
+L['Bindings are removed from the element.'] = 'Las asignaciones se quitan del elemento.';
+L['Bindings are set to the element when it is hidden.'] = 'Las asignaciones se aplican al elemento cuando está oculto.';
+L['Bindings are set to the element when it is shown.'] = 'Las asignaciones se aplican al elemento cuando se muestra.';
+L['Bindings are set to the element.'] = 'Las asignaciones se aplican al elemento.';
+L['Bluetooth set to %s for %s.'] = 'Bluetooth establecido en %s para %s.';
+L['Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.'] = 'Conjunto de botones al que cambiar, donde n es el número del modificador. Pueden combinarse varios modificadores.';
+L['Button that emulates the |cff0070ddAlt|r key. Hold this button to swap all your binding sets.'] = 'Botón que emula la tecla |cff0070ddAlt|r. Mantén pulsado este botón para cambiar todos tus conjuntos de asignaciones.';
+L['Button that emulates the |cff0070ddCtrl|r key. Hold this button to swap your binding set.'] = 'Botón que emula la tecla |cff0070ddCtrl|r. Mantén pulsado este botón para cambiar tu conjunto de asignaciones.';
+L['Button that emulates the |cff0070ddShift|r key. Hold this button to swap your binding set.'] = 'Botón que emula la tecla |cff0070ddMayús|r. Mantén pulsado este botón para cambiar tu conjunto de asignaciones.';
+L['Button that emulates |cff0070ddLeft Click|r while controlling the mouse cursor.'] = 'Botón que emula el |cff0070ddclic izquierdo|r mientras controlas el cursor del ratón.';
+L['Button that emulates |cff0070ddRight Click|r while controlling the mouse cursor.'] = 'Botón que emula el |cff0070ddclic derecho|r mientras controlas el cursor del ratón.';
+L['Camera'] = 'Cámara';
+L['Center'] = 'Centro';
+L['Changes the opacity of the element based on the condition.'] = 'Cambia la opacidad del elemento según la condición.';
+L['Class'] = 'Clase';
+L['Cluster'] = 'Clúster';
+L['Cone'] = 'Cono';
+L['Config was applied for your %s device.'] = 'Se aplicó la configuración para tu dispositivo %s.';
+L['Connected devices:'] = 'Dispositivos conectados:';
+L['ConsolePort: upgrading action bar layout...'] = 'ConsolePort: actualizando el diseño de la barra de acción...';
+L['CtrlShift'] = 'Ctrl+Mayús';
+L['Custom'] = 'Personalizado';
+L['Deadzone'] = 'Zona muerta';
+L['Device test concluded.'] = 'Prueba de dispositivo finalizada.';
+L['Disabled'] = 'Desactivado';
+L['DividerLeft'] = 'Separador izquierdo';
+L['DividerMid'] = 'Separador central';
+L['DividerRight'] = 'Separador derecho';
+L['Double scale.'] = 'Escala doble.';
+L['Dragonriding'] = 'Surcacielos';
+L['Dynamic'] = 'Dinámico';
+L['Dynamic page number, matching the global page number.'] = 'Número de página dinámico, que coincide con el número de página global.';
+L['Either'] = 'Cualquiera';
+L['Empty condition, always true.'] = 'Condición vacía, siempre verdadera.';
+L['Enabled'] = 'Activado';
+L['Expired ring %s removed from %s.'] = 'Menú radial caducado %s eliminado de %s.';
+L['Explicit'] = 'Explícito';
+L['Faction'] = 'Facción';
+L['Failed to add new ring with name %s, because it already exists.'] = 'No se pudo añadir un nuevo menú radial con el nombre %s porque ya existe.';
+L['Frame %s was added under %s.'] = 'El marco %s se añadió bajo %s.';
+L['Frame %s was registered to %s, but does not exist yet.'] = 'El marco %s se registró en %s, pero aún no existe.';
+L['Frame %s was removed from %s.'] = 'El marco %s se eliminó de %s.';
+L['Frame %s was reset.'] = 'El marco %s se restableció.';
+L['Frame owner %s is not eligble. Reason: %s'] = 'El propietario de marco %s no es apto. Motivo: %s';
+L['Friendly'] = 'Amistoso';
+L['Front'] = 'Frente';
+L['Fully opaque.'] = 'Totalmente opaco.';
+L['Fully transparent.'] = 'Totalmente transparente.';
+L['Gamepad'] = 'Mando';
+L['Global condition for the visibility of the action bar. This is shared across all action bars.'] = 'Condición global para la visibilidad de la barra de acción. Se comparte entre todas las barras de acción.';
+L['GlyphLayer'] = 'Capa de glifo';
+L['GlyphShift'] = 'Glifo de Mayús';
+L['Group'] = 'Grupo';
+L['Gyro'] = 'Giroscopio';
+L['Gyro X'] = 'Giroscopio X';
+L['Gyro Y'] = 'Giroscopio Y';
+L['Half scale.'] = 'Media escala.';
+L['Half visible.'] = 'Medio visible.';
+L['Height condition of the texture. Accepts pairs of a macro condition and a height, or a single height.'] = 'Condición de altura de la textura. Acepta pares de una condición de macro y una altura, o una única altura.';
+L['Hide the action bar(s).'] = 'Ocultar la(s) barra(s) de acción.';
+L['Hide the element.'] = 'Ocultar el elemento.';
+L['Hold Shift + Left Click to move.'] = 'Mantén Mayús + clic izquierdo para mover.';
+L['Hostile'] = 'Hostil';
+L['Implicit'] = 'Implícito';
+L['Invalid item removed from %s in slot %d.'] = 'Objeto no válido eliminado de %s en el espacio %d.';
+L['Invalid layout data, ignoring changes.'] = 'Datos de disposición no válidos; se ignoran los cambios.';
+L['Invalid spell removed from %s in slot %d.'] = 'Hechizo no válido eliminado de %s en el espacio %d.';
+L['Keep Character Centered'] = 'Mantener personaje centrado';
+L['Keyboard command buttons were restored to your saved choices.'] = 'Los botones de orden del teclado se restauraron a tus elecciones guardadas.';
+L['Keyboard dictionary has been reset to default.'] = 'El diccionario del teclado se ha restablecido a los valores por defecto.';
+L['Keyboard dictionary has been wiped.'] = 'El diccionario del teclado se ha borrado.';
+L['Keyboard layout has been updated.'] = 'La disposición del teclado se ha actualizado.';
+L['Large'] = 'Grande';
+L['Layout "%s" does not exist.'] = 'El diseño "%s" no existe.';
+L['Left Stick X'] = 'Stick izquierdo X';
+L['Left Stick Y'] = 'Stick izquierdo Y';
+L['Left Trigger'] = 'Gatillo izquierdo';
+L['Modifier condition of the element. Accepts pairs of a macro condition and a modifier.'] = 'Condición de modificador del elemento. Acepta pares de una condición de macro y un modificador.';
+L['Module selection now lives in the AddOns list; your modules were restored there.'] = 'La selección de módulos ahora está en la lista de AddOns; tus módulos se restauraron allí.';
+L['No active config found.'] = 'No se encontró ninguna configuración activa.';
+L['No connected devices found.'] = 'No se encontraron dispositivos conectados.';
+L['NoCombat'] = 'Fuera de combate';
+L['Nomod'] = 'Sin modificador';
+L['Normal scale.'] = 'Escala normal.';
+L['Off'] = 'Desactivado';
+L['Page number to forward to the response handler.'] = 'Número de página que se envía al gestor de respuesta.';
+L['Petring'] = 'Menú radial de mascota';
+L['Player'] = 'Jugador';
+L['Player action bar setup.'] = 'Configuración de la barra de acción del jugador.';
+L['Player is in a pet battle.'] = 'El jugador está en una batalla de mascotas.';
+L['Possess bar is visible, such as Mind Control or Eyes of the Beast.'] = 'La barra de posesión está visible, como con Control mental u Ojos de la bestia.';
+L['Prefix for matching a modifier being held.'] = 'Prefijo para detectar un modificador mantenido.';
+L['Preset %s cannot be modified.'] = 'El preajuste %s no se puede modificar.';
+L['Preset %s has been applied.'] = 'Se ha aplicado el preajuste %s.';
+L['Preset %s has been created.'] = 'Se ha creado el preajuste %s.';
+L['Preset %s has been deleted.'] = 'Se ha eliminado el preajuste %s.';
+L['Preset %s is not a valid layout.'] = 'El preajuste %s no es un diseño válido.';
+L['Preset icon cannot be empty.'] = 'El icono del preajuste no puede estar vacío.';
+L['Preset key %s already exists.'] = 'La clave de preajuste %s ya existe.';
+L['Preset key cannot be empty.'] = 'La clave del preajuste no puede estar vacía.';
+L['Preset key is unchanged.'] = 'La clave del preajuste no ha cambiado.';
+L['Preset name cannot be empty.'] = 'El nombre del preajuste no puede estar vacío.';
+L['Raid cursor scan failed due to combat lockdown. Waiting for combat to end...'] = 'La exploración del cursor de banda falló por el bloqueo de combate. Esperando a que termine el combate...';
+L['Redirect'] = 'Redirección';
+L['Reduce Camera Motion'] = 'Reducir movimiento de cámara';
+L['Removed bindings that cannot be used: %s'] = 'Se eliminaron asignaciones que no se pueden usar: %s';
+L['Requires |cff0070ddL[Button Set]|r > |cff0070ddL[Custom]|r to control each button individually.'] = 'Requiere |cff0070ddL[Button Set]|r > |cff0070ddL[Custom]|r para controlar cada botón individualmente.';
+L['Resolves to the current override or vehicle page.'] = 'Se resuelve a la página de sustitución o de vehículo actual.';
+L['Right'] = 'Derecha';
+L['Right Stick X'] = 'Stick derecho X';
+L['Right Stick Y'] = 'Stick derecho Y';
+L['Right Trigger'] = 'Gatillo derecho';
+L['Rings settings have been reset to default.'] = 'Los ajustes de menús radiales se han restablecido a los valores por defecto.';
+L['Scales the element to the applicable scale.'] = 'Escala el elemento a la escala correspondiente.';
+L['Selected page 1 (default)'] = 'Página 1 seleccionada (por defecto)';
+L['Selected page 2'] = 'Página 2 seleccionada';
+L['Selected page 3'] = 'Página 3 seleccionada';
+L['Selected page 4'] = 'Página 4 seleccionada';
+L['Selected page 5'] = 'Página 5 seleccionada';
+L['Selected page 6'] = 'Página 6 seleccionada';
+L['Sends the resulting page to the response handler for post-processing.'] = 'Envía la página resultante al gestor de respuesta para su posprocesamiento.';
+L['Sets or unsets applicable bindings to the element.'] = 'Aplica o quita las asignaciones correspondientes al elemento.';
+L['Sets the height of the texture to the applicable value.'] = 'Establece la altura de la textura en el valor correspondiente.';
+L['Sets the resulting page to the action headers, which in turn update the action buttons.'] = 'Establece la página resultante en los encabezados de acción, que a su vez actualizan los botones de acción.';
+L['Sets the visibility of all action bar components based on the result of the condition.'] = 'Establece la visibilidad de todos los componentes de la barra de acción según el resultado de la condición.';
+L['Sets the width of the texture to the applicable value.'] = 'Establece la anchura de la textura en el valor correspondiente.';
+L['Settings have been reset to default.'] = 'Los ajustes se han restablecido a los valores por defecto.';
+L['Shift'] = 'Mayús';
+L['Shorthand for no modifiers.'] = 'Abreviatura de sin modificadores.';
+L['Shorthand for the Alt modifier.'] = 'Abreviatura del modificador Alt.';
+L['Shorthand for the Ctrl modifier.'] = 'Abreviatura del modificador Ctrl.';
+L['Shorthand for the Shift modifier.'] = 'Abreviatura del modificador Mayús.';
+L['Show Buffs'] = 'Mostrar beneficios';
+L['Show Debuffs'] = 'Mostrar perjuicios';
+L['Show the action bar(s).'] = 'Mostrar la(s) barra(s) de acción.';
+L['Show the element.'] = 'Mostrar el elemento.';
+L['Shows or hides the element based on the condition.'] = 'Muestra u oculta el elemento según la condición.';
+L['Skipped layout element %s: %s'] = 'Elemento de diseño %s omitido: %s';
+L['Snap'] = 'Ajuste';
+L['Stance/Form 1'] = 'Actitud/Forma 1';
+L['Stance/Form 2'] = 'Actitud/Forma 2';
+L['Stance/Form 3'] = 'Actitud/Forma 3';
+L['Stance/Form 4'] = 'Actitud/Forma 4';
+L['States'] = 'Estados';
+L['Static page number to swap to.'] = 'Número de página estático al que cambiar.';
+L['Swaps the buttons to show the applicable modifier.'] = 'Cambia los botones para mostrar el modificador correspondiente.';
+L['Tapping the same modifier twice needs the Doubled Bar option enabled.'] = 'Tocar dos veces el mismo modificador requiere tener activada la opción Barra doble.';
+L['Temporarily shapeshifted, but not forms or stances that have their own action bar.'] = 'Cambio de forma temporal, sin incluir formas o actitudes que tienen su propia barra de acción.';
+L['TextureAtlas'] = 'Textura de atlas';
+L['TextureID'] = 'ID de textura';
+L['TexturePath'] = 'Ruta de textura';
+L['That button is reserved for %s.'] = 'Ese botón está reservado para %s.';
+L['The import data contains some outdated content. It will not be imported.'] = 'Los datos de importación contienen contenido obsoleto. No se importarán.';
+L['The import data is invalid.'] = 'Los datos de importación no son válidos.';
+L['The resulting page number to set on the action headers.'] = 'El número de página resultante que se establece en los encabezados de acción.';
+L['The resulting value from the condition handler.'] = 'El valor resultante del gestor de condición.';
+L['The same modifier twice is its doubled bar, reached by double tapping it.'] = 'El mismo modificador dos veces es su barra doble, a la que se llega con una doble pulsación.';
+L['This action will remove all your saved settings and reload your interface.'] = 'Esta acción eliminará todos tus ajustes guardados y recargará tu interfaz.';
+L['Those modifiers do not form a layer that can be bound.'] = 'Esos modificadores no forman una capa que pueda asignarse.';
+L['Timeout'] = 'Tiempo de espera';
+L['Tints the texture with the applicable color.'] = 'Tiñe la textura con el color correspondiente.';
+L['TouchPad X'] = 'Panel táctil X';
+L['TouchPad Y'] = 'Panel táctil Y';
+L['Unknown command |cFF00FFFF%s|r.'] = 'Orden desconocida |cFF00FFFF%s|r.';
+L['Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r'] = 'Uso: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
+L['Validating preset %s...'] = 'Validando el preajuste %s...';
+L['Value %s set at %s.'] = 'Valor %s establecido en %s.';
+L['Value found for %s:'] = 'Valor encontrado para %s:';
+L['Value not found for %s.'] = 'No se encontró ningún valor para %s.';
+L['Variable |cFFFFFFFF%s|r reset to default.'] = 'Variable |cFFFFFFFF%s|r restablecida al valor por defecto.';
+L['Variable |cFFFFFFFF%s|r updated to:'] = 'Variable |cFFFFFFFF%s|r actualizada a:';
+L['Vehicle'] = 'Vehículo';
+L['Vehicle UI is active.'] = 'La interfaz de vehículo está activa.';
+L['VehicleL'] = 'Vehículo izquierdo';
+L['VehicleR'] = 'Vehículo derecho';
+L['Watchbar'] = 'Barra de seguimiento';
+L['Width condition of the texture. Accepts pairs of a macro condition and a width, or a single width.'] = 'Condición de anchura de la textura. Acepta pares de una condición de macro y una anchura, o una única anchura.';
+L['Your gamepad configuration has changed.'] = 'La configuración de tu mando ha cambiado.';
+---------------------------------------------------------------
+-- Additional block entries (multi-line values)
+---------------------------------------------------------------
+L['A simple value (number, string, boolean) to forward to the response handler where the real action page number is calculated.'] = [[Un valor simple (número, cadena, booleano) que se envía al gestor de respuesta, donde se calcula el número real de página de acción.]];
+L['Binding override condition of the element. Accept pairs of a macro condition and an override state, or a single override state.'] = [[Condición de sustitución de asignaciones del elemento. Acepta pares de una condición de macro y un estado de sustitución, o un único estado de sustitución.]];
+L['Dynamic will use the button set that does not conflict with your |cff0070ddL[Target Unit Frames (Hold)]|r binding.'] = [[«Dinámico» usará el conjunto de botones que no entre en conflicto con tu asignación |cff0070ddL[Target Unit Frames (Hold)]|r.]];
+L['E.g. |cff0070dd[group:party] party1-4, player [] player|r watches your party while grouped, otherwise only yourself.'] = [[P. ej., |cff0070dd[group:party] party1-4, player [] player|r vigila a tu grupo mientras estás agrupado; de lo contrario, solo a ti.]];
+L['Error while compiling:\n%s'] = [[Error al compilar:
+%s]];
+L['Failed to load %s. Reason: %s\nPlease check your installation.'] = [[No se pudo cargar %s. Motivo: %s
+Por favor, revisa tu instalación.]];
+L['Failed to set binding %s to %s.\nPlease report this bug using in-game customer support.\nSteps to resolve for now:\n1. Backup bindings.\n2. Exit the game completely.\n3. Remove WTF/Account/%s/bindings-cache.wtf.\n4. Restart the game and restore bindings from backup.'] = [[No se pudo establecer la asignación %s en %s.
+Por favor, informa de este error mediante el servicio de atención al cliente del juego.
+Pasos para resolverlo por ahora:
+1. Haz una copia de seguridad de las asignaciones.
+2. Sal del juego por completo.
+3. Elimina WTF/Account/%s/bindings-cache.wtf.
+4. Reinicia el juego y restaura las asignaciones desde la copia de seguridad.]];
+L['File condition of the texture. Accepts pairs of a macro condition and an atlas name or texture path, or a single atlas name or texture path.'] = [[Condición de archivo de la textura. Acepta pares de una condición de macro y un nombre de atlas o ruta de textura, o un único nombre de atlas o ruta de textura.]];
+L['Global condition of the action bar page. Accepts pairs of a macro condition and a page number, or a single page number.'] = [[Condición global de la página de barra de acción. Acepta pares de una condición de macro y un número de página, o un único número de página.]];
+L['Global post-processing in Lua of the action bar page condition. This is shared across all action bars and systems. Restricted environment API only.'] = [[Posprocesamiento global en Lua de la condición de página de barra de acción. Se comparte entre todas las barras de acción y sistemas. Solo API de entorno restringido.]];
+L['Invalid item removed from %s:\nID: %s\nLink: %s'] = [[Objeto no válido eliminado de %s:
+ID: %s
+Enlace: %s]];
+L['Invalid raid cursor filter:\n%s\nThe default filter has been applied.'] = [[Filtro de cursor de banda no válido:
+%s
+Se ha aplicado el filtro por defecto.]];
+L['Invalid spell removed from %s:\nID: %s\nLink: %s'] = [[Hechizo no válido eliminado de %s:
+ID: %s
+Enlace: %s]];
+L['Method execution failed in %s handler:\n%s'] = [[Falló la ejecución del método en el gestor %s:
+%s]];
+L['Opacity condition of the element. Accepts pairs of a macro condition and an opacity in percentage, or a single opacity value.'] = [[Condición de opacidad del elemento. Acepta pares de una condición de macro y una opacidad en porcentaje, o un único valor de opacidad.]];
+L['Page condition of the element. Accepts pairs of a macro condition and a page identifier, or a single page number.'] = [[Condición de página del elemento. Acepta pares de una condición de macro y un identificador de página, o un único número de página.]];
+L['Raid cursor filter failed a test:\n%s\nThe default filter has been applied.'] = [[El filtro del cursor de banda no superó una prueba:
+%s
+Se ha aplicado el filtro por defecto.]];
+L['Scale condition of the element. Accepts pairs of a macro condition and a scale in percentage, or a single scale value.'] = [[Condición de escala del elemento. Acepta pares de una condición de macro y una escala en porcentaje, o un único valor de escala.]];
+L['Script execution failed in %s handler:\n%s'] = [[Falló la ejecución del script en el gestor %s:
+%s]];
+L['Shows the applicable atlas or texture file. A value containing a slash is a texture path, anything else is an atlas name.'] = [[Muestra el atlas o archivo de textura correspondiente. Un valor que contiene una barra es una ruta de textura; cualquier otro es un nombre de atlas.]];
+L['Swaps the buttons to the applicable page, with the formula:\nslotID = (page - 1) * slots + offset + i'] = [[Cambia los botones a la página correspondiente, con la fórmula:
+slotID = (page - 1) * slots + offset + i]];
+L['Takes the format of...\n|cFF3FC7EB[condition] Preset Name; nil|r\n\nAuto-saved presets are named "Character (Specialization) Realm", using class instead of specialization on Classic.\n\nThe preset loads outside of combat when the condition applies. Character presets take precedence over device presets.'] = [[Tiene el formato...
+|cFF3FC7EB[condición] Nombre del preajuste; nil|r
+
+Los preajustes guardados automáticamente se llaman "Personaje (Especialización) Reino", usando la clase en lugar de la especialización en Classic.
+
+El preajuste se carga fuera de combate cuando se cumple la condición. Los preajustes de personaje tienen prioridad sobre los de dispositivo.]];
+L['Takes the format of...\n|cff0070dd[condition] angle; nil|r\n...where each condition/angle is separated by a semicolon, and "nil" clears the override.'] = [[Tiene el formato...
+|cff0070dd[condición] ángulo; nil|r
+...donde cada condición/ángulo se separa con punto y coma, y "nil" borra la sustitución.]];
+L['Takes the format of...\n|cff0070dd[condition] bindingID; nil|r\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.'] = [[Tiene el formato...
+|cff0070dd[condición] bindingID; nil|r
+...donde cada condición/asignación se separa con punto y coma, y "nil" borra la sustitución.]];
+L['Vertex color condition of the texture. Accepts pairs of a macro condition and a hexadecimal color, or a single color.'] = [[Condición de color de vértice de la textura. Acepta pares de una condición de macro y un color hexadecimal, o un único color.]];
+L['Visibility condition of the element. Accepts pairs of a macro condition and a visibility state, or a single visibility state.'] = [[Condición de visibilidad del elemento. Acepta pares de una condición de macro y un estado de visibilidad, o un único estado de visibilidad.]];
+L['|cff0070ddnode|r is the current frame under scrutinization.\n|cff0070ddunit|r is the current unit ID for the frame.'] = [[|cff0070ddnode|r es el marco que se está examinando.
+|cff0070ddunit|r es el ID de unidad actual del marco.]];

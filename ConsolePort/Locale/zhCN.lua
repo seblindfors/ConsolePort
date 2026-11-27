@@ -1971,3 +1971,17 @@ L['DividerMid'] = '中分隔符';
 L['DividerLeft'] = '左分隔符';
 L['DividerRight'] = '右分隔符';
 L['Player action bar setup.'] = '玩家动作条配置。';
+---------------------------------------------------------------
+-- Additional display strings
+---------------------------------------------------------------
+L['A doubled modifier is a bar of its own and cannot be combined with others.'] = '双击修饰键本身就是一个独立的动作条，无法与其他修饰键组合。';
+L['Camera'] = '镜头';
+L['Faction'] = '阵营';
+L['Friendly'] = '友方';
+L['Gyro'] = '陀螺仪';
+L['Hostile'] = '敌对';
+L['Off'] = '关闭';
+L['Player'] = '玩家';
+L['Redirect'] = '重定向';
+L['Tapping the same modifier twice needs the Doubled Bar option enabled.'] = '双击同一修饰键需要启用“双击动作条”选项。';
+L['Those modifiers do not form a layer that can be bound.'] = '这些修饰键无法组成可绑定的层。';
