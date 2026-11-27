@@ -1,5 +1,6 @@
 local env, db = CPAPI.GetEnv(...)
 local FadeIn, FadeOut = db.Alpha.FadeIn, db.Alpha.FadeOut;
+local IsSecret = CPAPI.IsSecret;
 ---------------------------------------------------------------
 local PET_STATUS_TEXTURE      = env.GetAsset[[Textures\PetRing\StatusFill.png]];
 local PET_STATE_MASK          = env.GetAsset[[Textures\PetRing\StateMask.png]];
@@ -322,14 +323,18 @@ function CPPetRingButton:UpdateFade(duration)
 	fade(self, duration, self:GetAlpha(), show and 1 or 0)
 end
 
+local function GetCooldownEnd(start, duration, enable, time)
+	if IsSecret(start) or IsSecret(duration) or IsSecret(enable) then return end;
+	if not enable or enable == 0 or not start or not duration then return end;
+	if ( start <= 0 or duration <= 0 ) then return end;
+	local expires = start + duration;
+	return expires > time and expires or nil;
+end
+
 function CPPetRingButton:UpdateCooldown(time)
 	local start, duration, enable = GetPetActionCooldown(self:GetID())
 	CooldownFrame_Set(self.cooldown, start, duration, enable)
-	local expires;
-	if enable and enable ~= 0 and start and start > 0 and duration and duration > 0 then
-		expires = start + duration;
-	end
-	self.cooldownEnd = expires and expires > (time or GetTime()) and expires or nil;
+	self.cooldownEnd = GetCooldownEnd(start, duration, enable, time or GetTime())
 	self:UpdateFade(0.1)
 	if GameTooltip:IsOwned(self) then
 		self:OnEnter()
