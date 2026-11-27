@@ -77,8 +77,6 @@ function env.UIHandler:HideBlizzard()
 
 	---------------------------------------------------------------
 	-- Action bars
-	self:HideMultiBar('MultiBarBottomLeft')
-	self:HideMultiBar('MultiBarBottomRight')
 	for bar, setting in pairs(env.OptionalBlizzardBars) do
 		if env(setting) then
 			self:HideMultiBar(bar)

@@ -9,11 +9,13 @@ env.UIHandler  = CPAPI.CreateEventHandler({'Frame'}, {
 }); local db, L, UIHandler = env.db, env.db.Locale, env.UIHandler;
 
 env.OptionalBlizzardBars = {
-	MultiBarRight = 'hideMultiBarRight';
-	MultiBarLeft  = 'hideMultiBarLeft';
-	MultiBar5     = 'hideMultiBar5';
-	MultiBar6     = 'hideMultiBar6';
-	MultiBar7     = 'hideMultiBar7';
+	MultiBarBottomLeft  = 'hideMultiBarBottomLeft';
+	MultiBarBottomRight = 'hideMultiBarBottomRight';
+	MultiBarRight       = 'hideMultiBarRight';
+	MultiBarLeft        = 'hideMultiBarLeft';
+	MultiBar5           = 'hideMultiBar5';
+	MultiBar6           = 'hideMultiBar6';
+	MultiBar7           = 'hideMultiBar7';
 };
 
 UIHandler:Hide()

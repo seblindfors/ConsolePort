@@ -161,6 +161,16 @@ env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------
 	_('Blizzard Bars', ACTIONBARS_LABEL);
 	---------------------------------------------------------------
+	hideMultiBarBottomLeft = _{Data.Bool(true);
+		name = 'Hide Action Bar 2';
+		desc = 'Hide Blizzard\'s action bar 2 instead of leaving it on screen next to the gamepad bars.';
+		note = 'Showing it again requires a reload.';
+	};
+	hideMultiBarBottomRight = _{Data.Bool(true);
+		name = 'Hide Action Bar 3';
+		desc = 'Hide Blizzard\'s action bar 3 instead of leaving it on screen next to the gamepad bars.';
+		note = 'Showing it again requires a reload.';
+	};
 	hideMultiBarRight = _{Data.Bool(false);
 		name = 'Hide Action Bar 4';
 		desc = 'Hide Blizzard\'s action bar 4 instead of leaving it on screen next to the gamepad bars.';
