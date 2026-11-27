@@ -412,28 +412,29 @@ Layers.Env = {
 -- At file scope: a registrant in a later file may arrive first.
 function Layers:OnEnvironmentChanged()
 	self:Execute([[
-		HELD     = HELD     or newtable();
-		HELDSET  = HELDSET  or newtable();
-		LATCH    = LATCH    or newtable();
-		MODS     = MODS     or newtable();
 		ALIAS    = ALIAS    or newtable();
 		APPLIED  = APPLIED  or newtable();
 		BINDINGS = BINDINGS or newtable();
-		STORED   = STORED   or newtable();
 		CLAIMED  = CLAIMED  or newtable();
-		EMULATED = EMULATED or newtable();
-		STATES   = STATES   or newtable();
 		CLAIMS   = CLAIMS   or newtable();
+		EMULATED = EMULATED or newtable();
+		HELD     = HELD     or newtable();
+		HELDSET  = HELDSET  or newtable();
+		LATCH    = LATCH    or newtable();
+		LEVELS   = LEVELS   or newtable();
 		LIVE     = LIVE     or newtable();
-		LEVEL_BASE, LEVEL_OVERRIDE, LEVEL_NAV, LEVEL_MODAL = 1, 2, 3, 4;
-		LEVELS = LEVELS or newtable();
-		LEVELS.BASE, LEVELS.OVERRIDE, LEVELS.NAV, LEVELS.MODAL = 1, 2, 3, 4;
-		ROWOWNER = 'row';
+		MODS     = MODS     or newtable();
 		ROW      = ROW      or newtable();
-		VOID     = 'ConsolePortVoid';
-		STRICT   = false;
-		PULSES     = PULSES or 0;
+		STATES   = STATES   or newtable();
+		STORED   = STORED   or newtable();
+		PULSES   = PULSES   or 0;
+
+		LEVEL_BASE, LEVEL_OVERRIDE, LEVEL_NAV, LEVEL_MODAL = 1, 2, 3, 4;
+		LEVELS.BASE, LEVELS.OVERRIDE, LEVELS.NAV, LEVELS.MODAL = 1, 2, 3, 4;
 		ARM_PULSES = 3;
+		ROWOWNER   = 'row';
+		VOID       = 'ConsolePortVoid';
+		STRICT     = false;
 	]])
 	self:CreateEnvironment()
 end
