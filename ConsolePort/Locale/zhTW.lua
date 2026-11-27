@@ -1966,3 +1966,19 @@ L['SHIFT'] = 'Shift';
 L['ALT-CTRL'] = 'Alt-Ctrl';
 L['ALT-SHIFT'] = 'Alt-Shift';
 L['CTRL-SHIFT'] = 'Ctrl-Shift';
+---------------------------------------------------------------
+-- Cluster designs
+---------------------------------------------------------------
+L['Beveled Silver'] = '斜角銀色';
+L['Round Silver'] = '圓形銀色';
+L['Round Gold'] = '圓形金色';
+L['Hex Gold'] = '六邊形金色';
+L['Squared Gold'] = '方形金色';
+L['Cluster - %s'] = '集群 - %s';
+L['Cluster - Orthodox'] = '集群 - 正統';
+L['Cluster Design'] = '集群外觀';
+L['Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.'] = '選擇集群按鈕的形狀和材質。金色外觀也會套用到寵物環。';
+L['Cooldown Swipe Color'] = '冷卻掃掠顏色';
+L['Color and opacity of regular cooldown and swing timer shading.'] = '一般冷卻和揮擊計時器遮罩的顏色與不透明度。';
+L['Global Cooldown Swipe Color'] = '共用冷卻掃掠顏色';
+L['Color and opacity of the global cooldown shading on cluster buttons.'] = '集群按鈕上共用冷卻遮罩的顏色與不透明度。';

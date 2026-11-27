@@ -1976,3 +1976,19 @@ L['SHIFT'] = 'Maj';
 L['ALT-CTRL'] = 'Alt-Ctrl';
 L['ALT-SHIFT'] = 'Alt-Maj';
 L['CTRL-SHIFT'] = 'Ctrl-Maj';
+---------------------------------------------------------------
+-- Cluster designs
+---------------------------------------------------------------
+L['Beveled Silver'] = 'Argent biseauté';
+L['Round Silver'] = 'Argent rond';
+L['Round Gold'] = 'Or rond';
+L['Hex Gold'] = 'Or hexagonal';
+L['Squared Gold'] = 'Or carré';
+L['Cluster - %s'] = 'Cluster - %s';
+L['Cluster - Orthodox'] = 'Cluster - Orthodoxe';
+L['Cluster Design'] = 'Style du cluster';
+L['Choose the shape and finish of the cluster buttons. Gold designs also style the pet ring.'] = 'Choisis la forme et la finition des boutons du cluster. Les styles dorés habillent aussi le menu radial du familier.';
+L['Cooldown Swipe Color'] = 'Couleur de balayage du temps de recharge';
+L['Color and opacity of regular cooldown and swing timer shading.'] = "Couleur et opacité de l'ombrage des temps de recharge normaux et du minuteur d'attaque.";
+L['Global Cooldown Swipe Color'] = 'Couleur de balayage du temps de recharge global';
+L['Color and opacity of the global cooldown shading on cluster buttons.'] = "Couleur et opacité de l'ombrage du temps de recharge global sur les boutons du cluster.";
