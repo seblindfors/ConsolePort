@@ -201,20 +201,18 @@ Layers.Env = {
 		end
 
 		if STRICT and ( chord ~= '' ) then
-			local stored, bound = STORED[''], BINDINGS[''];
 			local ownStored, ownBound = STORED[chord], BINDINGS[chord];
 			for i = 1, 2 do
-				local set = ( i == 1 ) and stored or bound;
-				if set then
-					for button in pairs(set) do
-						local key = chord..button;
-						if ( not ROW[button] and not CLAIMED[button] and not EMULATED[button]
-							and not ALIAS[key]
-							and not ( ownStored and ownStored[button] )
-							and not ( ownBound and ownBound[button] ) ) then
-							self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', VOID, 'LeftButton')
-							APPLIED[#APPLIED + 1] = key;
-						end
+				local set = ( i == 1 ) and STORED[''] or BINDINGS[''];
+				for button in pairs(set or ROW) do
+					local key = chord..button;
+					if ( not ROW[button] and not CLAIMED[button] and not EMULATED[button]
+						and not ALIAS[key]
+						and not ( ownStored and ownStored[button] )
+						and not ( ownBound and ownBound[button] ) ) then
+						self::Claim(ROWOWNER, LEVEL_BASE, key, 'click', VOID, 'LeftButton')
+						APPLIED[#APPLIED + 1] = key;
+						ROW[button] = true;
 					end
 				end
 			end
