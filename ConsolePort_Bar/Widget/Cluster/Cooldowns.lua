@@ -12,8 +12,7 @@ local ProxyCooldown = env.ProxyCooldown;
 local SHORT_COOLDOWN_LIMIT  = 2;
 local TIMING_TOLERANCE      = 0.001;
 local GCD_WHEN_UNKNOWN      = false;
-local GCD_SPELL_ID          = (CPAPI.IsAnniVersion or CPAPI.IsCamelotVersion or CPAPI.IsClassicEraVersion or CPAPI.IsWrathVersion)
-	and 29515 or 61304;
+local GCD_SPELL_ID          = (CPAPI.IsRetailVersion or CPAPI.IsClassicVersion) and 61304 or 29515;
 local FULL_ROTATION         = 2 * math.pi;
 local MS_PER_SECOND         = 1000;
 local LOSS_OF_CONTROL_RED   = 0.17;
