@@ -1424,14 +1424,22 @@ function Loadout:Update()
 	self:Draw()
 end
 
+local isLoadoutShown = false;
+
+function env:IsLoadoutConfigShown()
+	return isLoadoutShown;
+end
+
 function Loadout:OnShow()
 	self:MarkDirty()
 	self:Draw()
+	isLoadoutShown = true;
 	env:TriggerEvent('OnLoadoutConfigShown', true)
 end
 
 function Loadout:OnHide()
 	self:ToggleFactory(false)
+	isLoadoutShown = false;
 	env:TriggerEvent('OnLoadoutConfigShown', false)
 end
 

@@ -526,6 +526,7 @@ function CPPetRing:OnLoad()
 	self.Health:SetFillColor(0, 1, 0, 1)
 
 	env:RegisterCallback('OnLoadoutConfigShown', self.OnLoadoutConfigShown, self)
+	self.isLoadoutConfigShown = env:IsLoadoutConfigShown();
 	env:RegisterCallbacks(self.OnVariableChanged, self,
 		'Settings/borderColor',
 		'Settings/clusterDesign'

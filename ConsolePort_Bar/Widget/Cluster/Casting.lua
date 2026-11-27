@@ -61,10 +61,6 @@ local CAN_EMPOWER              = GetUnitEmpowerStageDuration and GetUnitEmpowerH
 
 local function canCreateCastFrame()
 	if not ActionButtonCastingAnimFrameMixin then return false end;
-	if ( C_XMLUtil and C_XMLUtil.GetTemplateInfo ) then
-		local found, info = pcall(C_XMLUtil.GetTemplateInfo, CAST_FRAME_TEMPLATE);
-		return found and info ~= nil;
-	end
 	local created, probe = pcall(CreateFrame, 'Frame', nil, nil, CAST_FRAME_TEMPLATE);
 	if created then
 		probe:SetScript('OnHide', nil)

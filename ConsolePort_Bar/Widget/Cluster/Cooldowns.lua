@@ -689,7 +689,6 @@ if SWING_TYPES then
 			CPAPI.RegisterFrameForEvents(self, self.Events)
 		else
 			self:UnregisterAllEvents()
-			forgetSwings()
 		end
 	end
 

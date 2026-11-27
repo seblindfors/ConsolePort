@@ -169,6 +169,7 @@ function FlyoutButton:OnLoad()
 	self:WatchCooldownVisibility()
 	self:OnShowAll(env('clusterShowAll'))
 	self:OnShowFlyoutIcons(env('clusterShowFlyoutIcons'))
+	self:OnConfigShown(env:IsLoadoutConfigShown())
 
 	local flyoutArrow = self.FlyoutArrowContainer or self.FlyoutArrow or self.Arrow;
 	if flyoutArrow then
