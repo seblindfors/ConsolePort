@@ -8,12 +8,6 @@ local invert = function(v) return not v end;
 local color  = function(v) return db.Data.Color(unpack(v)):GetHex() end;
 
 function env.UpgradeClusterSettings(settings)
-	-- Copy only an explicitly saved legacy tint. An existing new tint takes priority.
-	if rawget(settings, 'swipeColor') then
-		settings.clusterSwipeColor = rawget(settings, 'clusterSwipeColor') or settings.swipeColor;
-		settings.swipeColor = nil;
-	end
-
 	local borderStyle = settings.clusterBorderStyle;
 	if not borderStyle then return end;
 	local design = settings.clusterDesign;
@@ -43,7 +37,6 @@ local V1V2DBMap = {
 	classicBorders = { 'clusterDesign', function(v) return v and CLUSTER_DESIGN.Beveled or CLUSTER_DESIGN.Original end };
 	borderRGB      = { 'borderColor', color };
 	expRGB         = { 'xpBarColor', color };
-	swipeRGB       = { 'clusterSwipeColor', color };
 	tintRGB        = { 'tintColor', color };
 };
 
